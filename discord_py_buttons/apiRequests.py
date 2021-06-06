@@ -19,21 +19,21 @@ def jsonifyMessage(content=None, *, tts=False,
             embed=None, file=None, files=None, nonce=None,
             allowed_mentions=None, reference=None, mention_author=None, buttons=None):
     json = { }
-    if content != None:
+    if content is not None:
         json |= { "content": content }
-    if tts == False:
+    if tts is False:
         json |= { "tts": tts }
-    if file != None:
+    if file is not None:
         json |= { "file": file }
-    if files != None:
+    if files is not None:
         json |= {"files": files}
-    if nonce != None:
+    if nonce is not None:
         json |= { "nonce": nonce }
-    if allowed_mentions != None:
+    if allowed_mentions is not None:
         json |= { "mentions" }
 
     #region embed
-    if embed != None:
+    if embed is not None:
         embedJSON = {"embed": {"type": "rich"} }
 
         if embed.title:
