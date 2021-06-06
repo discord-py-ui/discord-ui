@@ -1,6 +1,8 @@
 import requests
 from . import buttons
 
+url = "https://discord.com/api/v8"
+
 def POST(token, url, data):
     return requests.post(url,
         json=data, headers={"Authorization": f"Bot {token}"})
@@ -11,7 +13,9 @@ def DELETE(token, url):
     return requests.delete(url,
         headers={"Authorization": f"Bot {token}"})
 
-def jsonifyMessage(content=None, *, tts=False, embed=None, file=None, files=None, nonce=None, allowed_mentions=None, reference=None, mention_author=None, buttons=None):
+def jsonifyMessage(content=None, *, tts=False,
+            embed=None, file=None, files=None, delete_after=None, nonce=None,
+            allowed_mentions=None, reference=None, mention_author=None, buttons=None):
     json = { }
     if content != None:
         json |= { "content": content }

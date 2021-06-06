@@ -1,7 +1,7 @@
 import discord
 
 class Button(object):
-    def __init__(self, custom_id: str, color: int or str, label: str, inline: bool = False, disabled: bool = False) -> None:
+    def __init__(self, custom_id: str, color: str or int, label: str, inline: bool = False, disabled: bool = False) -> None:
         self.inline = inline
 
         self._json = {
@@ -27,7 +27,7 @@ class Button(object):
         return self._json["label"]
     @label.setter
     def label(self, val):
-        self._json["label"] = label
+        self._json["label"] = val
 
     @property
     def color(self) -> int:
@@ -39,10 +39,13 @@ class Button(object):
 
     @property
     def disabled(self) -> bool:
-        return self._json["disabled"]
+        return self._json["disabled"] if "disabled" in self._json else False
     @disabled.setter
     def disabled(self, val):
-        self._json["disabled"] = disabled
+        if "disabled" in self._json:
+            self._json["disabled"] = val
+        else:
+            self._json |= {"disabled": val}
     #endregion
     @staticmethod
     def _fromData(data) -> 'Button':
@@ -108,11 +111,11 @@ class Colors:
         if type(s) == int:
             return s
         s = s.lower()
-        if s == "blurple" or s == "primary":
+        if s in ("blurple", "primary"):
             return Colors.blurple
-        if s == "grey" or s == "secondary":
+        if s in ("grey", "secondary"):
             return Colors.grey
-        if s == "green" or s == "succes":
+        if s in ("green", "succes"):
             return Colors.green
-        if s == "red" or s == "danger":
+        if s in ("red", "danger"):
             return Colors.red
