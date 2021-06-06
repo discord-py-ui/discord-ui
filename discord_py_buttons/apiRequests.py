@@ -1,20 +1,22 @@
 import requests
-from . import buttons
+import discord
+from typing import List
+from .buttons import Button
 
 url = "https://discord.com/api/v8"
 
-def POST(token, url, data):
-    return requests.post(url,
+def POST(token, _url, data):
+    return requests.post(_url,
         json=data, headers={"Authorization": f"Bot {token}"})
-def GET(token, url):
-    return requests.get(url,
+def GET(token, _url):
+    return requests.get(_url,
         headers={"Authorization": f"Bot {token}"})
-def DELETE(token, url):
-    return requests.delete(url,
+def DELETE(token, _url):
+    return requests.delete(_url,
         headers={"Authorization": f"Bot {token}"})
 
 def jsonifyMessage(content=None, *, tts=False,
-            embed=None, file=None, files=None, delete_after=None, nonce=None,
+            embed=None, file=None, files=None, nonce=None,
             allowed_mentions=None, reference=None, mention_author=None, buttons=None):
     json = { }
     if content != None:
@@ -65,7 +67,7 @@ def jsonifyMessage(content=None, *, tts=False,
     #endregion
     #region reference
     if reference:
-        json |= {"message_reference": {"message_id": reference.id if type(reference) == discord.Message else reference}}
+        json |= {"message_reference": {"message_id": reference.id if type(reference) is discord.Message else reference}}
     #endregion
     #region buttons
     if buttons:

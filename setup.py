@@ -4,7 +4,6 @@ from setuptools import version
 
 def getVersion():
     with open("discord_py_buttons/__init__.py") as f:
-        global version
         return [f for f in f.readlines() if f.startswith("__version__")][0].split('"')[1].split('"')[0]
 
 

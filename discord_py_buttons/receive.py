@@ -4,7 +4,7 @@ from .apiRequests import POST, url, jsonifyMessage
 from .buttons import Button, LinkButton
 from typing import List
 
-class PressedButton(object):
+class PressedButton():
     def __init__(self, data, user, b) -> None:
         self.interaction = {
             "token": data["token"],
@@ -38,12 +38,12 @@ class Message(discord.Message):
         if len(data["components"]) > 1:
             for componentWrapper in data["components"]:
                 for btn in componentWrapper["components"]:
-                    self.buttons.append(Button._fromData(btn) if not "url" in btn else LinkButton._fromData(btn))
+                    self.buttons.append(Button._fromData(btn) if "url" not in btn else LinkButton._fromData(btn))
         elif len(data["components"][0]["components"]) > 1:
             for btn in data["components"][0]["components"]:
-                self.buttons.append(Button._fromData(btn) if not "url" in btn else LinkButton._fromData(btn))
+                self.buttons.append(Button._fromData(btn) if "url" not in btn else LinkButton._fromData(btn))
         else:
-            self.buttons.append(Button._fromData(data["components"][0]["components"][0]) if not "url" in data["components"][0]["components"][0] else LinkButton._fromData(data["components"][0]["components"][0]))
+            self.buttons.append(Button._fromData(data["components"][0]["components"][0]) if "url" not in data["components"][0]["components"][0] else LinkButton._fromData(data["components"][0]["components"][0]))
 
 class ResponseMessage(Message):
     def __init__(self, *, state, channel, data, user, client):
@@ -55,7 +55,7 @@ class ResponseMessage(Message):
                 self.pressedButton = PressedButton(data, user, x)
 
     def acknowledge(self):
-        r = POST(self._discord.http.token, f'{url}/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
+        POST(self._discord.http.token, f'{url}/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
             "type": 5
         })
 

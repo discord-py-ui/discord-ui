@@ -1,6 +1,6 @@
 import discord
 
-class Button(object):
+class Button():
     def __init__(self, custom_id: str, color: str or int, label: str, inline: bool = False, disabled: bool = False) -> None:
         self.inline = inline
 
@@ -53,7 +53,7 @@ class Button(object):
         b._json = data
         return b
 
-class LinkButton(object):
+class LinkButton():
     def __init__(self, url: str, label: str, inline: bool = False, disabled: bool = False) -> None:
         self.inline = inline
 
@@ -93,7 +93,7 @@ class LinkButton(object):
         return self._json["disabled"]
     @disabled.setter
     def disabled(self, val):
-        self._json["disabled"] = disabled
+        self._json["disabled"] = val
     #endregion
     @staticmethod
     def _fromData(data) -> 'LinkButton':
@@ -107,8 +107,9 @@ class Colors:
     Succes = green = 3
     Danger = red = 4
 
+    @staticmethod
     def _getColor(s):
-        if type(s) == int:
+        if type(s) is int:
             return s
         s = s.lower()
         if s in ("blurple", "primary"):
