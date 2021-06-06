@@ -1,7 +1,15 @@
 import discord
 
+
 class Button(object):
-    def __init__(self, custom_id: str, color: str or int, label: str, inline: bool = False, disabled: bool = False) -> None:
+    def __init__(
+        self,
+        custom_id: str,
+        color: str or int,
+        label: str,
+        inline: bool = False,
+        disabled: bool = False,
+    ) -> None:
         self.inline = inline
 
         self._json = {
@@ -9,14 +17,15 @@ class Button(object):
             "custom_id": custom_id,
             "label": label,
             "style": Colors._getColor(color),
-            "disabled": disabled
+            "disabled": disabled,
         }
 
-    #region props
+    # region props
     @property
     def custom_id(self) -> str:
         """The customID for identifiying the button"""
         return self._json["custom_id"]
+
     @custom_id.setter
     def custom(self, val):
         self._json["custom_id"] = val
@@ -25,6 +34,7 @@ class Button(object):
     def label(self) -> str:
         """The text on the button"""
         return self._json["label"]
+
     @label.setter
     def label(self, val):
         self._json["label"] = val
@@ -33,6 +43,7 @@ class Button(object):
     def color(self) -> int:
         """The Color for the button"""
         return self._json["style"]
+
     @color.setter
     def color(self, val):
         self._json["style"] = val
@@ -40,21 +51,26 @@ class Button(object):
     @property
     def disabled(self) -> bool:
         return self._json["disabled"] if "disabled" in self._json else False
+
     @disabled.setter
     def disabled(self, val):
         if "disabled" in self._json:
             self._json["disabled"] = val
         else:
             self._json |= {"disabled": val}
-    #endregion
+
+    # endregion
     @staticmethod
-    def _fromData(data) -> 'Button':
+    def _fromData(data) -> "Button":
         b = Button("", 1, "")
         b._json = data
         return b
 
+
 class LinkButton(object):
-    def __init__(self, url: str, label: str, inline: bool = False, disabled: bool = False) -> None:
+    def __init__(
+        self, url: str, label: str, inline: bool = False, disabled: bool = False
+    ) -> None:
         self.inline = inline
 
         self._json = {
@@ -62,26 +78,28 @@ class LinkButton(object):
             "url": url,
             "label": label,
             "style": 5,
-            "disabled": disabled
+            "disabled": disabled,
         }
 
-    #region props
+    # region props
     @property
     def url(self) -> str:
         """The url which will be opened after the button is pressed"""
         return self._json["url"]
+
     @url.setter
     def url(self, val: str):
         if not val.startswith("http://") and not val.startswith("https://"):
             raise discord.InvalidData("Link must start with 'https://' or 'http://'")
         self._json["url"] = val
-    
+
     @property
     def label(self):
         return self._json["label"]
+
     @label.setter
     def label(self, val):
-        self._json["label"] = val 
+        self._json["label"] = val
 
     @property
     def color(self) -> int:
@@ -91,15 +109,18 @@ class LinkButton(object):
     @property
     def disabled(self) -> bool:
         return self._json["disabled"]
+
     @disabled.setter
     def disabled(self, val):
         self._json["disabled"] = disabled
-    #endregion
+
+    # endregion
     @staticmethod
-    def _fromData(data) -> 'LinkButton':
+    def _fromData(data) -> "LinkButton":
         b = LinkButton("", "")
         b._json = data
         return b
+
 
 class Colors:
     Primary = blurple = 1
