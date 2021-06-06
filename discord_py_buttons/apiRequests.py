@@ -1,6 +1,8 @@
 import requests
 from . import buttons
 
+url = "https://discord.com/api/v8"
+
 def POST(token, url, data):
     return requests.post(url,
         json=data, headers={"Authorization": f"Bot {token}"})
