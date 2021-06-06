@@ -21,25 +21,28 @@ class PressedButton(object):
             self.label = b.label
             self.disabled = b.disabled
 
-async def getResponseMessage(client: commands.Bot, data):
-    channel = client.fetch_channel(data["channel_id"])
-    return ResponseMessage(state=client._connection, channel, data["message"])
+async def getResponseMessage(client: commands.Bot, data, response = True):
+    channel = await client.fetch_channel(data["channel_id"])
+    if response:
+        return ResponseMessage(state=client._connection, channel=channel, data=data["message"])
+    else:
+        return Message(state=client._connection, channel=channel, data=data)
 
 class Message(discord.Message):
     def __init__(self, *, state, channel, data):
         super().__init__(state=state, channel=channel, data=data)
 
         self.buttons: List[Button] = []
-        
+        print(data)
         if len(data["components"]) > 1:
             for componentWrapper in data["components"]:
                 for btn in componentWrapper["components"]:
-                    self.buttons.append(Button.from_data(btn) if not "url" in btn else LinkButton.from_data(btn))
+                    self.buttons.append(Button._fromData(btn) if not "url" in btn else LinkButton._fromData(btn))
         if len(data["components"][0]["components"]) > 1:
             for btn in data["components"][0]["components"]:
-                self.buttons.append(Button.from_data(btn) if not "url" in btn else LinkButton.from_data(btn))
+                self.buttons.append(Button._fromData(btn) if not "url" in btn else LinkButton._fromData(btn))
         else:
-            self.buttons.append(Button.from_data(data["components"][0]["components"]) if not "url" in data["components"][0]["components"] else LinkButton.from_data(data["components"][0]["components"]))
+            self.buttons.append(Button._fromData(data["components"][0]["components"]) if not "url" in data["components"][0]["components"] else LinkButton.from_data(data["components"][0]["components"]))
 
 class ResponseMessage(Message):
     def __init__(self, *, state, channel, data):

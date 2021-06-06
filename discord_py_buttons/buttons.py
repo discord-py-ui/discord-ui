@@ -76,7 +76,7 @@ class LinkButton(object):
     @property
     def label(self):
         return self._json["label"]
-    label.setter
+    @label.setter
     def label(self, val):
         self._json["label"] = val 
 
