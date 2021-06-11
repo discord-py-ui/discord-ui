@@ -4,7 +4,16 @@ from .apiRequests import POST, url, jsonifyMessage
 from .buttons import Button, LinkButton
 from typing import List
 
+<<<<<<< Updated upstream
 class PressedButton():
+=======
+class PressedButton(object):
+    """
+    An object for a pressed Button
+    
+    #### There should be no need to initialize a new instance of this type
+    """
+>>>>>>> Stashed changes
     def __init__(self, data, user, b) -> None:
         self.interaction = {
             "token": data["token"],
@@ -23,6 +32,37 @@ class PressedButton():
             self.disabled = b.disabled
 
 async def getResponseMessage(client: commands.Bot, data, user = None, response = True):
+    """
+    Async function to get the Response Message
+    
+    Should not be needed to be executed
+
+    Parameters
+    -----------------
+
+    ```py
+    (commands.Bot) client
+    ```
+    The Discord Bot Client
+    ```py
+    (json) data
+    ```
+    The raw data
+    ```py
+    (discord.User) user
+    ```
+    The User which pressed the button
+    ```py
+    response
+    ```
+    Wheter the Message returned should be of type `ResponseMessage` or `Message`
+
+    Returns
+    -----------------
+    ```py
+    (ResponseMessage or Message)
+    ```
+    """
     channel = await client.fetch_channel(data["channel_id"])
     if response and user:
         return ResponseMessage(state=client._connection, channel=channel, data=data, user=user, client=client)
@@ -30,6 +70,11 @@ async def getResponseMessage(client: commands.Bot, data, user = None, response =
     return Message(state=client._connection, channel=channel, data=data)
 
 class Message(discord.Message):
+    """
+    A fixed message object with added properties like `buttons`
+
+    #### There should be no need to initialize a new instance of this type
+    """
     def __init__(self, *, state, channel, data):
         super().__init__(state=state, channel=channel, data=data)
 
@@ -46,6 +91,15 @@ class Message(discord.Message):
             self.buttons.append(Button._fromData(data["components"][0]["components"][0]) if "url" not in data["components"][0]["components"][0] else LinkButton._fromData(data["components"][0]["components"][0]))
 
 class ResponseMessage(Message):
+    """
+    A fixed message Object which extends the `Message` Object with some added properties:
+
+    #### There should be no need to initialize a new instance of this type
+
+    - `(PressedButton) pressedButton`
+    - `(function) acknowledge`
+    - `(function) respond`
+    """
     def __init__(self, *, state, channel, data, user, client):
         super().__init__(state=state, channel=channel, data=data["message"])
 
@@ -55,20 +109,78 @@ class ResponseMessage(Message):
                 self.pressedButton = PressedButton(data, user, x)
 
     def acknowledge(self):
+<<<<<<< Updated upstream
         POST(self._discord.http.token, f'{url}/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
+=======
+        """
+        This will acknowledge the interaction. This will show the (*Bot* is thinking...) Dialog
+
+        This function should be used if the Bot needs more than 15 seconds to respond
+        """
+
+        r = POST(self._discord.http.token, f'{url}/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
+>>>>>>> Stashed changes
             "type": 5
         })
 
     def respond(self, content=None, *, tts=False,
-            embed=None, file=None, files=None, delete_after=None, nonce=None,
-            allowed_mentions=None, reference=None, mention_author=None, buttons=None,
+            embed=None, file=None, files=None, nonce=None,
+            allowed_mentions=None, reference=None, buttons=None,
         ninjaMode = False):
+        """
+        Function to respond to the interaction
+
+
+        Parameters
+        -----------------------
+        ```py
+        (str) content
+        ```
+        The raw message content
+        ```py
+        (bool) tts
+        ```
+        Wheter the message should be send with text-to-speech
+        ```py
+        (discord.Embed) embed
+        ```
+        The embed for the message
+        ```py
+        (discord.File) file
+        ```
+        The file which will be attached to the message
+        ```py
+        (List[discord.File]) files
+        ```
+        A list of files which will be attached to the message
+        ```py
+        (int) nonce
+        ```
+        The nonce to use for sending this message
+        ```py
+        (discord.AllowedMentions) allowed_mentions
+        ```
+        Controls the mentions being processed in this message
+        ```py
+        (discord.MessageReference) reference 
+        ```
+        The message to refer
+        ```py
+        List[Button] buttons
+        ```
+        A list of Buttons for the message to be included
+
+        ```py
+        (bool) ninjaMode
+        ```
+        If true, the client will respond to the button interaction with almost nothing
+        """
         if ninjaMode:
             r = POST(self._discord.http.token, f'https://discord.com/api/v8/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
                 "type": 6
             })
         else:
-            json = jsonifyMessage(content = content, embed=embed, file=file, files=files, buttons=buttons)
+            json = jsonifyMessage(content=content, embed=embed, file=file, files=files, nonce=nonce, buttons=buttons)
             if "embed" in json:
                 json["embeds"] = [json["embed"]]
                 del json["embed"]
@@ -78,5 +190,5 @@ class ResponseMessage(Message):
                 "data": json
             })
         if r.status_code == 400:
-            raise Exception(r.text)
+            raise discord.HTTPException(r.text)
         
