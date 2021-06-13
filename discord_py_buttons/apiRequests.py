@@ -6,16 +6,6 @@ from .buttons import Button
 
 url = "https://discord.com/api/v8"
 
-<<<<<<< Updated upstream
-def POST(token, _url, data):
-    return requests.post(_url,
-        json=data, headers={"Authorization": f"Bot {token}"})
-def GET(token, _url):
-    return requests.get(_url,
-        headers={"Authorization": f"Bot {token}"})
-def DELETE(token, _url):
-    return requests.delete(_url,
-=======
 
 def POST(token, url, data):
     """POST request with the Bot token in the Authorization Header"""
@@ -28,7 +18,6 @@ def GET(token, url):
 def DELETE(token, url):
     """DELETE request with the Bot token in the Authorization Header"""
     return requests.delete(url,
->>>>>>> Stashed changes
         headers={"Authorization": f"Bot {token}"})
 
 def jsonifyMessage(content=None, *, tts=False,
@@ -83,13 +72,8 @@ def jsonifyMessage(content=None, *, tts=False,
         json = json | embedJSON
     #endregion
     #region reference
-<<<<<<< Updated upstream
-    if reference:
-        json |= {"message_reference": {"message_id": reference.id if type(reference) is discord.Message else reference}}
-=======
     if reference is not None and type(reference) is discord.MessageReference:
         json |= { "message_reference": reference.to_dict() }
->>>>>>> Stashed changes
     #endregion
     #region buttons
     if buttons:

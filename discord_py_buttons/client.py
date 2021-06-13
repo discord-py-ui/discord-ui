@@ -41,9 +41,6 @@ class Buttons:
             embed=None, file=None, files=None, delete_after=None, nonce=None,
             allowed_mentions=None, reference=None, mention_author=None, buttons=None
         ) -> Message:
-<<<<<<< Updated upstream
-        if type(channel) is not discord.TextChannel:
-=======
         """
         Sends a message to a `discord.TextChannel`
 
@@ -107,20 +104,13 @@ class Buttons:
         The sent message including buttons
         """
         if type(channel) != discord.TextChannel:
->>>>>>> Stashed changes
             raise discord.InvalidArgument("Channel must be of type discord.TextChannel")
         r = apiRequests.POST(self._discord.http.token, f"{apiRequests.url}/channels/{channel.id}/messages", data=apiRequests.jsonifyMessage(content, tts=tts, embed=embed, file=file, files=files, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference, mention_author=mention_author, buttons=buttons))
         if(r.status_code != 200):
             raise Exception(r.text)
         msg = await getResponseMessage(self._discord, r.json(), False)
-<<<<<<< Updated upstream
-        if delete_after is not None:
-            await msg.delete(delay=delete_after)
-
-=======
         
         if delete_after is not None:
             await msg.delete(delay=delete_after)
         
->>>>>>> Stashed changes
         return msg

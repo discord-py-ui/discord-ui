@@ -4,16 +4,12 @@ from .apiRequests import POST, url, jsonifyMessage
 from .buttons import Button, LinkButton
 from typing import List
 
-<<<<<<< Updated upstream
-class PressedButton():
-=======
 class PressedButton(object):
     """
     An object for a pressed Button
     
     #### There should be no need to initialize a new instance of this type
     """
->>>>>>> Stashed changes
     def __init__(self, data, user, b) -> None:
         self.interaction = {
             "token": data["token"],
@@ -109,9 +105,6 @@ class ResponseMessage(Message):
                 self.pressedButton = PressedButton(data, user, x)
 
     def acknowledge(self):
-<<<<<<< Updated upstream
-        POST(self._discord.http.token, f'{url}/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
-=======
         """
         This will acknowledge the interaction. This will show the (*Bot* is thinking...) Dialog
 
@@ -119,7 +112,6 @@ class ResponseMessage(Message):
         """
 
         r = POST(self._discord.http.token, f'{url}/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
->>>>>>> Stashed changes
             "type": 5
         })
 
