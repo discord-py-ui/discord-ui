@@ -4,17 +4,16 @@ from .apiRequests import POST, url, jsonifyMessage
 from .buttons import Button, LinkButton
 from typing import List
 
+
 class PressedButton(object):
     """
     An object for a pressed Button
-    
+
     #### There should be no need to initialize a new instance of this type
     """
+
     def __init__(self, data, user, b) -> None:
-        self.interaction = {
-            "token": data["token"],
-            "id": data["id"]
-        }
+        self.interaction = {"token": data["token"], "id": data["id"]}
         self.member: discord.Member = user
 
         if hasattr(b, "url"):
@@ -27,10 +26,11 @@ class PressedButton(object):
             self.label = b.label
             self.disabled = b.disabled
 
-async def getResponseMessage(client: commands.Bot, data, user = None, response = True):
+
+async def getResponseMessage(client: commands.Bot, data, user=None, response=True):
     """
     Async function to get the Response Message
-    
+
     Should not be needed to be executed
 
     Parameters
@@ -61,9 +61,16 @@ async def getResponseMessage(client: commands.Bot, data, user = None, response =
     """
     channel = await client.fetch_channel(data["channel_id"])
     if response and user:
-        return ResponseMessage(state=client._connection, channel=channel, data=data, user=user, client=client)
+        return ResponseMessage(
+            state=client._connection,
+            channel=channel,
+            data=data,
+            user=user,
+            client=client,
+        )
 
     return Message(state=client._connection, channel=channel, data=data)
+
 
 class Message(discord.Message):
     """
@@ -71,20 +78,34 @@ class Message(discord.Message):
 
     #### There should be no need to initialize a new instance of this type
     """
+
     def __init__(self, *, state, channel, data):
         super().__init__(state=state, channel=channel, data=data)
 
         self.buttons: List[Button] = []
-        #print(data)
+        # print(data)
         if len(data["components"]) > 1:
             for componentWrapper in data["components"]:
                 for btn in componentWrapper["components"]:
-                    self.buttons.append(Button._fromData(btn) if "url" not in btn else LinkButton._fromData(btn))
+                    self.buttons.append(
+                        Button._fromData(btn)
+                        if "url" not in btn
+                        else LinkButton._fromData(btn)
+                    )
         elif len(data["components"][0]["components"]) > 1:
             for btn in data["components"][0]["components"]:
-                self.buttons.append(Button._fromData(btn) if "url" not in btn else LinkButton._fromData(btn))
+                self.buttons.append(
+                    Button._fromData(btn)
+                    if "url" not in btn
+                    else LinkButton._fromData(btn)
+                )
         else:
-            self.buttons.append(Button._fromData(data["components"][0]["components"][0]) if "url" not in data["components"][0]["components"][0] else LinkButton._fromData(data["components"][0]["components"][0]))
+            self.buttons.append(
+                Button._fromData(data["components"][0]["components"][0])
+                if "url" not in data["components"][0]["components"][0]
+                else LinkButton._fromData(data["components"][0]["components"][0])
+            )
+
 
 class ResponseMessage(Message):
     """
@@ -96,12 +117,13 @@ class ResponseMessage(Message):
     - `(function) acknowledge`
     - `(function) respond`
     """
+
     def __init__(self, *, state, channel, data, user, client):
         super().__init__(state=state, channel=channel, data=data["message"])
 
         self._discord = client
         for x in self.buttons:
-            if hasattr(x, 'custom_id') and x.custom_id == data["data"]["custom_id"]:
+            if hasattr(x, "custom_id") and x.custom_id == data["data"]["custom_id"]:
                 self.pressedButton = PressedButton(data, user, x)
 
     def acknowledge(self):
@@ -111,14 +133,26 @@ class ResponseMessage(Message):
         This function should be used if the Bot needs more than 15 seconds to respond
         """
 
-        r = POST(self._discord.http.token, f'{url}/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
-            "type": 5
-        })
+        r = POST(
+            self._discord.http.token,
+            f'{url}/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback',
+            {"type": 5},
+        )
 
-    def respond(self, content=None, *, tts=False,
-            embed=None, file=None, files=None, nonce=None,
-            allowed_mentions=None, reference=None, buttons=None,
-        ninjaMode = False):
+    def respond(
+        self,
+        content=None,
+        *,
+        tts=False,
+        embed=None,
+        file=None,
+        files=None,
+        nonce=None,
+        allowed_mentions=None,
+        reference=None,
+        buttons=None,
+        ninjaMode=False,
+    ):
         """
         Function to respond to the interaction
 
@@ -154,7 +188,7 @@ class ResponseMessage(Message):
         ```
         Controls the mentions being processed in this message
         ```py
-        (discord.MessageReference) reference 
+        (discord.MessageReference) reference
         ```
         The message to refer
         ```py
@@ -168,19 +202,28 @@ class ResponseMessage(Message):
         If true, the client will respond to the button interaction with almost nothing
         """
         if ninjaMode:
-            r = POST(self._discord.http.token, f'https://discord.com/api/v8/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
-                "type": 6
-            })
+            r = POST(
+                self._discord.http.token,
+                f'https://discord.com/api/v8/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback',
+                {"type": 6},
+            )
         else:
-            json = jsonifyMessage(content=content, embed=embed, file=file, files=files, nonce=nonce, buttons=buttons)
+            json = jsonifyMessage(
+                content=content,
+                embed=embed,
+                file=file,
+                files=files,
+                nonce=nonce,
+                buttons=buttons,
+            )
             if "embed" in json:
                 json["embeds"] = [json["embed"]]
                 del json["embed"]
 
-            r = POST(self._discord.http.token, f'https://discord.com/api/v8/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
-                "type": 4,
-                "data": json
-            })
+            r = POST(
+                self._discord.http.token,
+                f'https://discord.com/api/v8/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback',
+                {"type": 4, "data": json},
+            )
         if r.status_code == 400:
             raise discord.HTTPException(r.text)
-        

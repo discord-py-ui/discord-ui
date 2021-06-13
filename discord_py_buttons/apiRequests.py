@@ -9,38 +9,50 @@ url = "https://discord.com/api/v8"
 
 def POST(token, url, data):
     """POST request with the Bot token in the Authorization Header"""
-    return requests.post(url,
-        json=data, headers={"Authorization": f"Bot {token}"})
+    return requests.post(url, json=data, headers={"Authorization": f"Bot {token}"})
+
+
 def GET(token, url):
     """GET request with the Bot token in the Authorization Header"""
-    return requests.get(url,
-        headers={"Authorization": f"Bot {token}"})
+    return requests.get(url, headers={"Authorization": f"Bot {token}"})
+
+
 def DELETE(token, url):
     """DELETE request with the Bot token in the Authorization Header"""
-    return requests.delete(url,
-        headers={"Authorization": f"Bot {token}"})
+    return requests.delete(url, headers={"Authorization": f"Bot {token}"})
 
-def jsonifyMessage(content=None, *, tts=False,
-            embed=None, file=None, files=None, nonce=None,
-            allowed_mentions=None, reference=None, mention_author=None, buttons=None):
+
+def jsonifyMessage(
+    content=None,
+    *,
+    tts=False,
+    embed=None,
+    file=None,
+    files=None,
+    nonce=None,
+    allowed_mentions=None,
+    reference=None,
+    mention_author=None,
+    buttons=None,
+):
     """Turns parameters from the `discord.TextChannel.send` function into json for requests"""
-    json = { }
+    json = {}
     if content is not None:
-        json |= { "content": content }
+        json |= {"content": content}
     if tts is False:
-        json |= { "tts": tts }
+        json |= {"tts": tts}
     if file is not None:
-        json |= { "file": file }
+        json |= {"file": file}
     if files is not None:
         json |= {"files": files}
     if nonce is not None:
-        json |= { "nonce": nonce }
+        json |= {"nonce": nonce}
     if allowed_mentions is not None:
-        json |= { "mentions" }
+        json |= {"mentions"}
 
-    #region embed
+    # region embed
     if embed is not None:
-        embedJSON = {"embed": {"type": "rich"} }
+        embedJSON = {"embed": {"type": "rich"}}
 
         if embed.title:
             embedJSON["embed"] |= embedJSON["embed"] | {"title": embed.title}
@@ -57,7 +69,7 @@ def jsonifyMessage(content=None, *, tts=False,
         if embed.image:
             embedJSON["embed"] |= {"image": embed._image}
         if embed.thumbnail:
-            embedJSON["embed"] |= {"thumbnail": embed._thumbnail} 
+            embedJSON["embed"] |= {"thumbnail": embed._thumbnail}
         if embed.video:
             embedJSON["embed"] |= {"video": embed.video}
         if embed.provider:
@@ -70,42 +82,44 @@ def jsonifyMessage(content=None, *, tts=False,
             embedJSON["embed"] |= {"thumbnail": embed._thumbnail}
 
         json = json | embedJSON
-    #endregion
-    #region reference
+    # endregion
+    # region reference
     if reference is not None and type(reference) is discord.MessageReference:
-        json |= { "message_reference": reference.to_dict() }
-    #endregion
-    #region buttons
+        json |= {"message_reference": reference.to_dict()}
+    # endregion
+    # region buttons
     if buttons:
         componentsJSON = {"components": []}
-        
+
         wrapperButtons = []
         currentLineButtons = []
 
         if len(buttons) > 1:
             for btn in buttons:
-                if(len(currentLineButtons) > 5):
+                if len(currentLineButtons) > 5:
                     raise Exception("Limit exceeded: max. 5 Buttons in a row")
                 if btn.inline:
                     currentLineButtons.append(btn)
                 else:
-                    if(len(currentLineButtons) > 0):
+                    if len(currentLineButtons) > 0:
                         wrapperButtons.append(currentLineButtons)
                     wrapperButtons.append([btn])
                     currentLineButtons = []
-            if(len(currentLineButtons) > 0):
+            if len(currentLineButtons) > 0:
                 wrapperButtons.append(currentLineButtons)
         else:
             wrapperButtons.append([buttons[0]])
 
         for lineButtons in wrapperButtons:
             lineButtons = lineButtons
-            componentsJSON["components"].append({"type": 1, "components": [x._json for x in lineButtons]})
+            componentsJSON["components"].append(
+                {"type": 1, "components": [x._json for x in lineButtons]}
+            )
 
         json |= componentsJSON
-    #endregion buttons
-    #region allowedMentions
+    # endregion buttons
+    # region allowedMentions
     if allowed_mentions is not None:
-        json |= { "allowed_mentions": allowed_mentions.to_dict() }
-    #endregion
+        json |= {"allowed_mentions": allowed_mentions.to_dict()}
+    # endregion
     return json
