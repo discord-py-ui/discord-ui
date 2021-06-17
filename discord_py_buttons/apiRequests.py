@@ -1,6 +1,7 @@
 import discord
 import requests
-import discord
+
+
 from typing import List
 from .buttons import Button
 
@@ -20,61 +21,54 @@ def DELETE(token, url):
     return requests.delete(url,
         headers={"Authorization": f"Bot {token}"})
 
-def jsonifyMessage(content=None, *, tts=False,
-            embed=None, file=None, files=None, nonce=None,
-            allowed_mentions=None, reference=None, mention_author=None, buttons=None):
+def jsonifyMessage(content = None, *, tts=False,
+            embed: discord.Embed = None, file: discord.File = None, files: List[discord.File] = None, nonce: int = None,
+            allowed_mentions: discord.AllowedMentions = None, reference: discord.MessageReference = None, mention_author: bool = None, buttons: List[Button] = None, state = None):
     """Turns parameters from the `discord.TextChannel.send` function into json for requests"""
-    json = { }
+    payload = { "tts": tts }
+    
     if content is not None:
-        json |= { "content": content }
-    if tts is False:
-        json |= { "tts": tts }
-    if file is not None:
-        json |= { "file": file }
-    if files is not None:
-        json |= {"files": files}
+        payload["content"] = content
+    
     if nonce is not None:
-        json |= { "nonce": nonce }
-    if allowed_mentions is not None:
-        json |= { "mentions" }
+        payload["nonce"] = nonce
+    
+    if file is not None and files is not None:
+        raise discord.InvalidArgument("cannot pass files and file parameter")
+    
+    if file is not None:
+        if type(file) is not discord.File:
+            raise TypeError("file must be of type discord.File")
+        raise Exception("sending file is not supportet in this version, instead try using the normal discord.TextChannel.send(file=yourFile) function until this is completed")
+    if files is not None:
+        if type(file) is not discord.File:
+            raise TypeError("file must be of type discord.File")
+        raise Exception("sending files is not supportet in this version, instead try using the normal discord.TextChannel.send(files=[yourFiles...]) function until this is completed")
 
-    #region embed
+    
     if embed is not None:
-        embedJSON = {"embed": {"type": "rich"} }
+        if type(embed) is not discord.Embed:
+            raise TypeError("embed must be of type discord.Embed")
+        payload["embed"] = embed.to_dict()
+    
+    if reference is not None:
+        if type(reference) is not discord.MessageReference:
+            raise TypeError("Reference must be of type discord.MessageReference")
+        payload["message_reference"] = reference.to_dict()
 
-        if embed.title:
-            embedJSON["embed"] |= embedJSON["embed"] | {"title": embed.title}
-        if embed.description:
-            embedJSON["embed"] |= {"description": embed.description}
-        if embed.url:
-            embedJSON["embed"] |= {"url": embed.url}
-        if embed.timestamp:
-            embedJSON["embed"] |= {"timestamp": embed._timestamp}
-        if embed.color:
-            embedJSON["embed"] |= {"color": embed._colour.value}
-        if embed.footer:
-            embedJSON["embed"] |= {"footer": embed._footer}
-        if embed.image:
-            embedJSON["embed"] |= {"image": embed._image}
-        if embed.thumbnail:
-            embedJSON["embed"] |= {"thumbnail": embed._thumbnail} 
-        if embed.video:
-            embedJSON["embed"] |= {"video": embed.video}
-        if embed.provider:
-            embedJSON["embed"] |= {"provider": embed.provider}
-        if embed.author:
-            embedJSON["embed"] |= {"author": embed._author}
-        if embed.fields:
-            embedJSON["embed"] |= {"fields": embed._fields}
-        if embed.thumbnail:
-            embedJSON["embed"] |= {"thumbnail": embed._thumbnail}
+    if allowed_mentions is not None:
+        if state.allowed_mentions is not None:
+            payload["allowed_mentions"] = state.allowed_mentions.merge(allowed_mentions).to_dict()
+        else:
+            payload["allowed_mentions"] = allowed_mentions.to_dict()
+    if mention_author is not None:
+        allowed_mentions = payload["allowed_mentions"] if "allowed_mentions" in payload else discord.AllowedMentions().to_dict()
+        allowed_mentions['replied_user'] = bool(mention_author)
+        if "allowed_mentions" in payload:
+            payload["allowed_mentions"] = allowed_mentions
+        else:
+            payload["allowed_mentions"] = allowed_mentions
 
-        json = json | embedJSON
-    #endregion
-    #region reference
-    if reference is not None and type(reference) is discord.MessageReference:
-        json |= { "message_reference": reference.to_dict() }
-    #endregion
     #region buttons
     if buttons:
         componentsJSON = {"components": []}
@@ -102,10 +96,7 @@ def jsonifyMessage(content=None, *, tts=False,
             lineButtons = lineButtons
             componentsJSON["components"].append({"type": 1, "components": [x._json for x in lineButtons]})
 
-        json |= componentsJSON
+        payload |= componentsJSON 
     #endregion buttons
-    #region allowedMentions
-    if allowed_mentions is not None:
-        json |= { "allowed_mentions": allowed_mentions.to_dict() }
-    #endregion
-    return json
+
+    return payload

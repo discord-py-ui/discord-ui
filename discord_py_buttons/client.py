@@ -1,14 +1,24 @@
-import discord
-from discord.ext import commands
-from .receive import PressedButton
-
 from . import apiRequests
 from .receive import Message, getResponseMessage
 
-class Buttons:
+import discord
+from discord.ext import commands
+
+
+class Buttons():
+    """A button instance for using buttons
+    
+    Attributes
+    ----------------
+    send: `function`
+        Sends a message to a `discord.TextChannel`
+    
+    """
     def __init__(self, client: commands.Bot):
         """
-        This will create a new Button Listener
+        This will create a new button intearction Listener
+
+        For receiving the button event, scroll down to the bottom and take a look at the example
 
         Parameters
         ------------------
@@ -16,6 +26,19 @@ class Buttons:
         (commands.Bot) client
         ```
         The discord Bot client
+
+        Example
+        ------------------
+        Here's an example for using the button listener
+        ```py
+        # Your bot declaration should be here
+        ...
+        client.button = Button(client)
+
+        @client.event("on_button_press")
+        async def on_button(pressedButton, message):
+            pass
+        ```
         """
         self._discord = client
         self._discord.add_listener(self.on_socket_response)
@@ -57,7 +80,7 @@ class Buttons:
         ```py
         (bool) tts
         ```
-        Wheter text-to-speech should be used
+        whether text-to-speech should be used
         ```py
         (discord.MessageEmbed) embed
         ```
@@ -89,7 +112,7 @@ class Buttons:
         ```py
         (bool) mention_author
         ```
-        Wheter the author should be mentioned
+        whether the author should be mentioned
         ```py
         (List[Button]) buttons
         ```
@@ -105,9 +128,13 @@ class Buttons:
         """
         if type(channel) != discord.TextChannel:
             raise discord.InvalidArgument("Channel must be of type discord.TextChannel")
+
         r = apiRequests.POST(self._discord.http.token, f"{apiRequests.url}/channels/{channel.id}/messages", data=apiRequests.jsonifyMessage(content, tts=tts, embed=embed, file=file, files=files, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference, mention_author=mention_author, buttons=buttons))
-        if(r.status_code != 200):
+        if(r.status_code == 403):
+            raise discord.Forbidden(r, "Got forbidden response")
+        elif(r.status_code != 200):
             raise Exception(r.text)
+
         msg = await getResponseMessage(self._discord, r.json(), False)
         
         if delete_after is not None:

@@ -1,14 +1,32 @@
+from .buttons import Button, LinkButton
+from .apiRequests import POST, url, jsonifyMessage
+
 import discord
 from discord.ext import commands
-from .apiRequests import POST, url, jsonifyMessage
-from .buttons import Button, LinkButton
+
 from typing import List
 
 class PressedButton(object):
-    """
-    An object for a pressed Button
+    """Represents a pressed button
     
-    #### There should be no need to initialize a new instance of this type
+    Attributes
+    ----------------
+    interaction: `dict`
+        The most important stuff from the received interaction
+        - `token`: The interaction token
+        - `id`: The ID for the interaction
+
+    member: `discord.Member`
+        The guild member who pressed the button
+    custom_id: `str`
+        The custom_id for the button to identify it
+    label: `str`
+        The text appearing on the button
+    color: `int`
+        The buttons color style.
+        For the values, take a look at `Colors`
+    disabled: `bool`
+        Whether the button is disabled
     """
     def __init__(self, data, user, b) -> None:
         self.interaction = {
@@ -17,21 +35,15 @@ class PressedButton(object):
         }
         self.member: discord.Member = user
 
-        if hasattr(b, "url"):
-            self.url = b.url
-            self.label = b.label
-            self.disabled = b.disabled
-        else:
-            self.custom_id = b.custom_id
-            self.color = b.color
-            self.label = b.label
-            self.disabled = b.disabled
+        self.custom_id = b.custom_id
+        self.color = b.color
+        self.label = b.label
+        self.disabled = b.disabled
 
 async def getResponseMessage(client: commands.Bot, data, user = None, response = True):
     """
     Async function to get the Response Message
-    
-    Should not be needed to be executed
+
 
     Parameters
     -----------------
@@ -51,7 +63,7 @@ async def getResponseMessage(client: commands.Bot, data, user = None, response =
     ```py
     response
     ```
-    Wheter the Message returned should be of type `ResponseMessage` or `Message`
+    whether the Message returned should be of type `ResponseMessage` or `Message`
 
     Returns
     -----------------
@@ -67,9 +79,111 @@ async def getResponseMessage(client: commands.Bot, data, user = None, response =
 
 class Message(discord.Message):
     """
-    A fixed message object with added properties like `buttons`
+    A fixed discord.Message optimized for buttons
 
-    #### There should be no need to initialize a new instance of this type
+    Added attributes
+    ----------------
+    buttons: `List[Button]`
+        The Buttons the message contains
+    
+    Attributes
+    ----------------
+    tts: :class:`bool`
+        Specifies if the message was done with text-to-speech.
+        This can only be accurately received in :func:`on_message` due to
+        a discord limitation.
+    type: :class:`MessageType`
+        The type of message. In most cases this should not be checked, but it is helpful
+        in cases where it might be a system message for :attr:`system_content`.
+    author: :class:`abc.User`
+        A :class:`Member` that sent the message. If :attr:`channel` is a
+        private channel or the user has the left the guild, then it is a :class:`User` instead.
+    content: :class:`str`
+        The actual contents of the message.
+    nonce
+        The value used by the discord guild and the client to verify that the message is successfully sent.
+        This is not stored long term within Discord's servers and is only used ephemerally.
+    embeds: List[:class:`Embed`]
+        A list of embeds the message has.
+    channel: Union[:class:`abc.Messageable`]
+        The :class:`TextChannel` that the message was sent from.
+        Could be a :class:`DMChannel` or :class:`GroupChannel` if it's a private message.
+    call: Optional[:class:`CallMessage`]
+        The call that the message refers to. This is only applicable to messages of type
+        :attr:`MessageType.call`.
+
+        .. deprecated:: 1.7
+
+    reference: Optional[:class:`~discord.MessageReference`]
+        The message that this message references. This is only applicable to messages of
+        type :attr:`MessageType.pins_add`, crossposted messages created by a
+        followed channel integration, or message replies.
+
+        .. versionadded:: 1.5
+
+    mention_everyone: :class:`bool`
+        Specifies if the message mentions everyone.
+
+        .. note::
+
+            This does not check if the ``@everyone`` or the ``@here`` text is in the message itself.
+            Rather this boolean indicates if either the ``@everyone`` or the ``@here`` text is in the message
+            **and** it did end up mentioning.
+    mentions: List[:class:`abc.User`]
+        A list of :class:`Member` that were mentioned. If the message is in a private message
+        then the list will be of :class:`User` instead. For messages that are not of type
+        :attr:`MessageType.default`\, this array can be used to aid in system messages.
+        For more information, see :attr:`system_content`.
+
+        .. warning::
+
+            The order of the mentions list is not in any particular order so you should
+            not rely on it. This is a Discord limitation, not one with the library.
+    channel_mentions: List[:class:`abc.GuildChannel`]
+        A list of :class:`abc.GuildChannel` that were mentioned. If the message is in a private message
+        then the list is always empty.
+    role_mentions: List[:class:`Role`]
+        A list of :class:`Role` that were mentioned. If the message is in a private message
+        then the list is always empty.
+    id: :class:`int`
+        The message ID.
+    webhook_id: Optional[:class:`int`]
+        If this message was sent by a webhook, then this is the webhook ID's that sent this
+        message.
+    attachments: List[:class:`Attachment`]
+        A list of attachments given to a message.
+    pinned: :class:`bool`
+        Specifies if the message is currently pinned.
+    flags: :class:`MessageFlags`
+        Extra features of the message.
+
+        .. versionadded:: 1.3
+
+    reactions : List[:class:`Reaction`]
+        Reactions to a message. Reactions can be either custom emoji or standard unicode emoji.
+    activity: Optional[:class:`dict`]
+        The activity associated with this message. Sent with Rich-Presence related messages that for
+        example, request joining, spectating, or listening to or with another member.
+
+        It is a dictionary with the following optional keys:
+
+        - ``type``: An integer denoting the type of message activity being requested.
+        - ``party_id``: The party ID associated with the party.
+    application: Optional[:class:`dict`]
+        The rich presence enabled application associated with this message.
+
+        It is a dictionary with the following keys:
+
+        - ``id``: A string representing the application's ID.
+        - ``name``: A string representing the application's name.
+        - ``description``: A string representing the application's description.
+        - ``icon``: A string representing the icon ID of the application.
+        - ``cover_image``: A string representing the embed's image asset ID.
+    stickers: List[:class:`Sticker`]
+        A list of stickers given to the message.
+
+
+    ### For more information, take a look at the `discord.Message` object
     """
     def __init__(self, *, state, channel, data):
         super().__init__(state=state, channel=channel, data=data)
@@ -88,13 +202,117 @@ class Message(discord.Message):
 
 class ResponseMessage(Message):
     """
-    A fixed message Object which extends the `Message` Object with some added properties:
+    A message Object which extends the `Message` Object optimized for an interaction button (pressed button)
 
-    #### There should be no need to initialize a new instance of this type
+    Added attributes
+    ----------------
+    pressedButton: `PressedButton`
+        The button which was presed
+    acknowledge: `function`
+        Function to acknowledge the buttonPress interaction
+    respond: `function`
+        Function to respond to the buttonPress interaction
 
-    - `(PressedButton) pressedButton`
-    - `(function) acknowledge`
-    - `(function) respond`
+    Attributes
+    ----------------
+    buttons: `List[Button]`
+        The Buttons the message contains
+
+    tts: :class:`bool`
+        Specifies if the message was done with text-to-speech.
+        This can only be accurately received in :func:`on_message` due to
+        a discord limitation.
+    type: :class:`MessageType`
+        The type of message. In most cases this should not be checked, but it is helpful
+        in cases where it might be a system message for :attr:`system_content`.
+    author: :class:`abc.User`
+        A :class:`Member` that sent the message. If :attr:`channel` is a
+        private channel or the user has the left the guild, then it is a :class:`User` instead.
+    content: :class:`str`
+        The actual contents of the message.
+    nonce
+        The value used by the discord guild and the client to verify that the message is successfully sent.
+        This is not stored long term within Discord's servers and is only used ephemerally.
+    embeds: List[:class:`Embed`]
+        A list of embeds the message has.
+    channel: Union[:class:`abc.Messageable`]
+        The :class:`TextChannel` that the message was sent from.
+        Could be a :class:`DMChannel` or :class:`GroupChannel` if it's a private message.
+    call: Optional[:class:`CallMessage`]
+        The call that the message refers to. This is only applicable to messages of type
+        :attr:`MessageType.call`.
+
+        .. deprecated:: 1.7
+
+    reference: Optional[:class:`~discord.MessageReference`]
+        The message that this message references. This is only applicable to messages of
+        type :attr:`MessageType.pins_add`, crossposted messages created by a
+        followed channel integration, or message replies.
+
+        .. versionadded:: 1.5
+
+    mention_everyone: :class:`bool`
+        Specifies if the message mentions everyone.
+
+        .. note::
+
+            This does not check if the ``@everyone`` or the ``@here`` text is in the message itself.
+            Rather this boolean indicates if either the ``@everyone`` or the ``@here`` text is in the message
+            **and** it did end up mentioning.
+    mentions: List[:class:`abc.User`]
+        A list of :class:`Member` that were mentioned. If the message is in a private message
+        then the list will be of :class:`User` instead. For messages that are not of type
+        :attr:`MessageType.default`\, this array can be used to aid in system messages.
+        For more information, see :attr:`system_content`.
+
+        .. warning::
+
+            The order of the mentions list is not in any particular order so you should
+            not rely on it. This is a Discord limitation, not one with the library.
+    channel_mentions: List[:class:`abc.GuildChannel`]
+        A list of :class:`abc.GuildChannel` that were mentioned. If the message is in a private message
+        then the list is always empty.
+    role_mentions: List[:class:`Role`]
+        A list of :class:`Role` that were mentioned. If the message is in a private message
+        then the list is always empty.
+    id: :class:`int`
+        The message ID.
+    webhook_id: Optional[:class:`int`]
+        If this message was sent by a webhook, then this is the webhook ID's that sent this
+        message.
+    attachments: List[:class:`Attachment`]
+        A list of attachments given to a message.
+    pinned: :class:`bool`
+        Specifies if the message is currently pinned.
+    flags: :class:`MessageFlags`
+        Extra features of the message.
+
+        .. versionadded:: 1.3
+
+    reactions : List[:class:`Reaction`]
+        Reactions to a message. Reactions can be either custom emoji or standard unicode emoji.
+    activity: Optional[:class:`dict`]
+        The activity associated with this message. Sent with Rich-Presence related messages that for
+        example, request joining, spectating, or listening to or with another member.
+
+        It is a dictionary with the following optional keys:
+
+        - ``type``: An integer denoting the type of message activity being requested.
+        - ``party_id``: The party ID associated with the party.
+    application: Optional[:class:`dict`]
+        The rich presence enabled application associated with this message.
+
+        It is a dictionary with the following keys:
+
+        - ``id``: A string representing the application's ID.
+        - ``name``: A string representing the application's name.
+        - ``description``: A string representing the application's description.
+        - ``icon``: A string representing the icon ID of the application.
+        - ``cover_image``: A string representing the embed's image asset ID.
+    stickers: List[:class:`Sticker`]
+        A list of stickers given to the message.
+
+    ### For more information, take a look at the `buttons.Message` and `discord.Message` objects
     """
     def __init__(self, *, state, channel, data, user, client):
         super().__init__(state=state, channel=channel, data=data["message"])
@@ -114,6 +332,8 @@ class ResponseMessage(Message):
         r = POST(self._discord.http.token, f'{url}/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
             "type": 5
         })
+        if r.status_code == 403:
+            raise discord.Forbidden(r, "forbidden")
 
     def respond(self, content=None, *, tts=False,
             embed=None, file=None, files=None, nonce=None,
@@ -132,7 +352,7 @@ class ResponseMessage(Message):
         ```py
         (bool) tts
         ```
-        Wheter the message should be send with text-to-speech
+        whether the message should be send with text-to-speech
         ```py
         (discord.Embed) embed
         ```
