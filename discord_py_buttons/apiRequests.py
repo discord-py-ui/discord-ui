@@ -1,9 +1,9 @@
-import discord
-import requests
-
-
-from typing import List
 from .buttons import Button
+
+import discord
+
+import requests
+from typing import List
 
 url = "https://discord.com/api/v8"
 

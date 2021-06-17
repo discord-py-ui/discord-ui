@@ -22,6 +22,8 @@ class PressedButton():
         The custom_id for the button to identify it
     label: `str`
         The text appearing on the button
+    emoji: `discord.Emoji or str`
+        The emoji appearing before the label
     color: `int`
         The buttons color style.
         For the values, take a look at `Colors`
@@ -39,6 +41,7 @@ class PressedButton():
         self.color = b.color
         self.label = b.label
         self.disabled = b.disabled
+        self.emoji = b.emoji
 
 async def getResponseMessage(client: commands.Bot, data, user = None, response = True):
     """
@@ -188,7 +191,6 @@ class Message(discord.Message):
         super().__init__(state=state, channel=channel, data=data)
 
         self.buttons: List[Button] = []
-        #print(data)
         if len(data["components"]) > 1:
             for componentWrapper in data["components"]:
                 for btn in componentWrapper["components"]:
@@ -401,4 +403,3 @@ class ResponseMessage(Message):
             })
         if r.status_code == 400:
             raise discord.HTTPException(r.text, "Error while sending message")
-        

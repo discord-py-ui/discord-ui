@@ -1,3 +1,4 @@
+from discord import Emoji
 from discord.errors import InvalidArgument
 
 class Button():
@@ -12,12 +13,14 @@ class Button():
         The text that appears on the button
     color: `int`
         The color of the button
+    emoji: `str or discord.Emoji`
+        The emoji that appears befor the label
     inline: `bool`
         Whether the button should be in the current line or in a new line
     disabled: `bool`
         whether the button is clickable or not
     """
-    def __init__(self, custom_id: str, label: str, color: str or int = "blurple", inline: bool = False, disabled: bool = False) -> None:
+    def __init__(self, custom_id: str, label: str = None, color: str or int = "blurple", emoji: Emoji or str = None, inline: bool = False, disabled: bool = False) -> None:
         """Creates a new Button Object
         
         Parameter
@@ -27,13 +30,17 @@ class Button():
         ```
         A developer-defined identifier for the button, max 100 characters
         ```py
+        (str) label
+        ```
+        Text that appears on the button, max 80 characters
+        ```py
         (str or int) color
         ```
         The color of the button
         ```py
-        (str) label
+        (discord.Emoji or str) emoji
         ```
-        Text that appears on the button, max 80 characters
+        The emoji displayed before the text
         ```py
         (bool) inline
         ```
@@ -49,36 +56,48 @@ class Button():
         ```py
         InvalidArgument
         ```
-        - the custom_id is longer than 100 characters or 0
-        - the label is longer than 80 characters or 0
+        - the custom_id is longer than 100 characters or is empty
+        - the label is longer than 80 characters
+        - No label and no emoji
         - an ivalid color was passed
         - passed agrument is wrong type
         """
-        if type(label) is not str:
+        if label is None and emoji is None:
+            raise InvalidArgument("You need to pass a label or an emoji")
+        if label is not None and type(label) is not str:
             raise InvalidArgument("label must be of type str, not " + str(type(label)))
         if type(custom_id) is not str:
             raise InvalidArgument("custom_id must be of type str, not " + str(type(custom_id)))
         if type(disabled) is not bool:
             raise InvalidArgument("disabled must be of type bool") 
+        if emoji is not None and type(emoji) not in [Emoji, str]:
+            raise InvalidArgument("emoji msut be of type discord.Emoji or str, not "+ str(type(emoji)))
         if len(custom_id) > 100:
             raise InvalidArgument("custom_id maximum character limit (100) exceeded")
         if len(custom_id) < 1:
             raise InvalidArgument("custom_id must be longer than 0 characters")
-        if len(label) > 80:
+        if label is not None and len(label) > 80:
             raise InvalidArgument("lavel maximum character limit (80) exceeded")
-        if len(label) < 1:
+        if label is not None and len(label) < 1:
             raise InvalidArgument("label must be longer than 0 characters")
-        if Colors.getColor(color) is not None:
+        if Colors.getColor(color) is None:
             raise InvalidArgument(str(color) + " is not a valid color")
 
         self.inline = inline
         self._json = {
             "type": 2,
             "custom_id": custom_id,
-            "label": label,
             "style": Colors.getColor(color),
-            "disabled": bool(disabled)
+            "disabled": bool(disabled),
         }
+        if label is not None:
+            self._json["label"] = label
+        if emoji is not None:
+            self._json["emoji"] = {
+                "id": None if type(emoji) is str else emoji.id,
+                "name": emoji if type(emoji) is str else emoji.name,
+                "animated": False if type(emoji) is str else emoji.animated
+            }
 
     def to_dict(self):
         """Converts to a dict"""
@@ -104,7 +123,7 @@ class Button():
     @property
     def label(self) -> str:
         """The lbel displayed on the button"""
-        return self._json["label"]
+        return self._json.get("label", None)
     @label.setter
     def label(self, val: str):
         if type(val) is not str:
@@ -122,10 +141,34 @@ class Button():
         return self._json["style"]
     @color.setter
     def color(self, val):
-        if Colors.getColor(val) is not None:
+        if Colors.getColor(val) is None:
             raise InvalidArgument(str(val) + " is not a valid color")
         self._json["style"] = Colors.getColor(val)
     
+    @property
+    def emoji(self) -> str or Emoji:
+        """Emoji mention before the text"""
+        if "emoji" not in self._json:
+            return None
+        if "id" not in self._json["emoji"]:
+            return self._json["emoji"]["name"]
+        return f'<{"a" if "animated" in self._json["emoji"] else ""}:{self._json["emoji"]["name"]}:{self._json["emoji"]["id"]}>'
+    @emoji.setter
+    def emoji(self, val: Emoji or str):
+        if type(val) not in [Emoji, str]:
+            raise InvalidArgument("emoji msut be of type discord.Emoji or str, not "+ str(type(val)))
+        if type(val) is str:
+            self._json["emoji"] = {
+                "id": None,
+                "name": val
+            }
+        elif type(val) is Emoji:
+            self._json["emoji"] = {
+                "id": val.id,
+                "name": val.name,
+                "animated": val.animated
+            }
+
     @property
     def disabled(self) -> bool:
         """Whether the button is disabled"""
@@ -139,9 +182,10 @@ class Button():
         else:
             self._json |= {"disabled": bool(val)}
     #endregion
+    
     @classmethod
     def _fromData(cls, data) -> 'Button':
-        b = cls("", 1, "")
+        b = cls("empty", "empty")
         b._json = data
         return b
 
@@ -157,12 +201,14 @@ class LinkButton():
         The text that appears on the button
     color: `int`
         One of button styles
+    emoji: `discord.Emoji or str`
+        The emoji before the label
     inline: `bool`
         Whether the button should be in the current line or in a new line
     disabled: `bool`
         whether the button is clickable or not
     """
-    def __init__(self, url: str, label: str, inline: bool = False, disabled: bool = False) -> None:
+    def __init__(self, url: str, label: str = None, emoji: Emoji or str = None, inline: bool = False, disabled: bool = False) -> None:
         """Creates a new LinkButton Object
         
         Parameter
@@ -175,6 +221,10 @@ class LinkButton():
         (str) label
         ```
         Text that appears on the button, max 80 characters
+        ```
+        (discord.Emoji or str) emoji
+        ```
+        Emoji that appears before the label
         ```py
         (bool) inline
         ```
@@ -194,7 +244,11 @@ class LinkButton():
         - passed argument is wrong type 
         
         """
-        if type(label) is not str:
+        if label is None and emoji is None:
+            raise InvalidArgument("You need to pass a label or an emoji")
+        if label is not None and type(label) is not str:
+            raise InvalidArgument("label must be of type str, not " + str(type(label)))
+        if label is not None and type(label) is not str:
             raise InvalidArgument("label must be of type str, not " + str(type(label)))
         if type(url) is not str:
             raise InvalidArgument("url must be of type str, not " + str(type(url)))
@@ -202,19 +256,28 @@ class LinkButton():
             raise InvalidArgument("Link must start with 'http://' or 'https://'")
         if type(disabled) is not bool:
             raise InvalidArgument("disabled must be of type bool, not " + str(type(disabled)))
-        if len(label) > 80:
+        if emoji is not None and type(emoji) not in [Emoji, str]:
+            raise InvalidArgument("emoji msut be of type discord.Emoji or str, not " + str(type(emoji)))
+        if label is not None and len(label) > 80:
             raise InvalidArgument("lavel maximum character limit (80) exceeded")
-        if len(label) < 1:
+        if label is not None and len(label) < 1:
             raise InvalidArgument("label must be longer than 0 characters")
 
         self.inline = inline
         self._json = {
             "type": 2,
             "url": url,
-            "label": label,
             "style": 5,
             "disabled": disabled
         }
+        if label is not None:
+            self._json["label"] = label
+        if emoji is not None:
+            self._json["emoji"] = {
+                "id": None if type(emoji) is str else emoji.id,
+                "name": emoji if type(emoji) is str else emoji.name,
+                "animated": False if type(emoji) is str else emoji.animated
+            }
 
     def to_dict(self):
         return self._json
@@ -234,12 +297,36 @@ class LinkButton():
     
     @property
     def label(self):
-        return self._json["label"]
+        return self._json.get("label", None)
     @label.setter
     def label(self, val):
         if type(val) is not str:
             raise InvalidArgument("label must be of type str, not " + str(type(val)))
         self._json["label"] = val 
+
+    @property
+    def emoji(self) -> str or Emoji:
+        """The emoji before the text"""
+        if "emoji" not in self._json:
+            return None
+        if "id" not in self._json["emoji"]:
+            return self._json["emoji"]["name"]
+        return f'<{"a" if "animated" in self._json["emoji"] else ""}:{self._json["emoji"]["name"]}:{self._json["emoji"]["id"]}>'
+    @emoji.setter
+    def emoji(self, val: Emoji or str):
+        if type(val) not in [Emoji, str]:
+            raise InvalidArgument("emoji msut be of type discord.Emoji or str, not " + str(type(val)))
+        if type(val) is str:
+            self._json["emoji"] = {
+                "id": None,
+                "name": val
+            }
+        elif type(val) is Emoji:
+            self._json["emoji"] = {
+                "id": val.id,
+                "name": val.name,
+                "animated": val.animated
+            }
 
     @property
     def color(self) -> int:
@@ -256,7 +343,7 @@ class LinkButton():
 
     @staticmethod
     def _fromData(data) -> 'LinkButton':
-        b = LinkButton("", "")
+        b = LinkButton("https://empty", "empty")
         b._json = data
         return b
 
