@@ -78,16 +78,16 @@ def jsonifyMessage(content = None, *, tts=False,
 
         if len(buttons) > 1:
             for btn in buttons:
-                if(len(currentLineButtons) > 5):
+                if len(currentLineButtons) > 5:
                     raise Exception("Limit exceeded: max. 5 Buttons in a row")
                 if btn.inline:
                     currentLineButtons.append(btn)
                 else:
-                    if(len(currentLineButtons) > 0):
+                    if len(currentLineButtons) > 0:
                         wrapperButtons.append(currentLineButtons)
                     wrapperButtons.append([btn])
                     currentLineButtons = []
-            if(len(currentLineButtons) > 0):
+            if len(currentLineButtons) > 0:
                 wrapperButtons.append(currentLineButtons)
         else:
             wrapperButtons.append([buttons[0]])
