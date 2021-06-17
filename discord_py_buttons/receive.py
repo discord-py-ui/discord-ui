@@ -78,8 +78,7 @@ async def getResponseMessage(client: commands.Bot, data, user = None, response =
     return Message(state=client._connection, channel=channel, data=data)
 
 class Message(discord.Message):
-    """
-    A fixed discord.Message optimized for buttons
+    """A fixed discord.Message optimized for buttons
 
     Added attributes
     ----------------
@@ -201,8 +200,7 @@ class Message(discord.Message):
             self.buttons.append(Button._fromData(data["components"][0]["components"][0]) if "url" not in data["components"][0]["components"][0] else LinkButton._fromData(data["components"][0]["components"][0]))
 
 class ResponseMessage(Message):
-    """
-    A message Object which extends the `Message` Object optimized for an interaction button (pressed button)
+    """A message Object which extends the `Message` Object optimized for an interaction button (pressed button)
 
     Added attributes
     ----------------
