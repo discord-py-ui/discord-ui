@@ -68,7 +68,7 @@ class Button():
             raise InvalidArgument("lavel maximum character limit (80) exceeded")
         if len(label) < 1:
             raise InvalidArgument("label must be longer than 0 characters")
-        if Colors._getColor(color) is not None:
+        if Colors.getColor(color) is not None:
             raise InvalidArgument(str(color) + " is not a valid color")
 
         self.inline = inline
@@ -76,7 +76,7 @@ class Button():
             "type": 2,
             "custom_id": custom_id,
             "label": label,
-            "style": Colors._getColor(color),
+            "style": Colors.getColor(color),
             "disabled": bool(disabled)
         }
 
@@ -122,9 +122,9 @@ class Button():
         return self._json["style"]
     @color.setter
     def color(self, val):
-        if Colors._getColor(val) is not None:
+        if Colors.getColor(val) is not None:
             raise InvalidArgument(str(val) + " is not a valid color")
-        self._json["style"] = Colors._getColor(val)
+        self._json["style"] = Colors.getColor(val)
     
     @property
     def disabled(self) -> bool:
@@ -280,7 +280,7 @@ class Colors:
     Danger = red = 4
 
     @classmethod
-    def _getColor(cls, s):
+    def getColor(cls, s):
         if type(s) is int:
             return s
         s = s.lower()
