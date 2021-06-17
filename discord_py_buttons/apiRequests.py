@@ -64,10 +64,7 @@ def jsonifyMessage(content = None, *, tts=False,
     if mention_author is not None:
         allowed_mentions = payload["allowed_mentions"] if "allowed_mentions" in payload else discord.AllowedMentions().to_dict()
         allowed_mentions['replied_user'] = bool(mention_author)
-        if "allowed_mentions" in payload:
-            payload["allowed_mentions"] = allowed_mentions
-        else:
-            payload["allowed_mentions"] = allowed_mentions
+        payload["allowed_mentions"] = allowed_mentions
 
     #region buttons
     if buttons:
