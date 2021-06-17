@@ -90,7 +90,7 @@ def jsonifyMessage(content = None, *, tts=False,
             wrapperButtons.append([buttons[0]])
 
         for lineButtons in wrapperButtons:
-            componentsJSON["components"].append({"type": 1, "components": [x._json for x in lineButtons]})
+            componentsJSON["components"].append({"type": 1, "components": [x.to_dict() for x in lineButtons]})
 
         payload |= componentsJSON 
     #endregion buttons
