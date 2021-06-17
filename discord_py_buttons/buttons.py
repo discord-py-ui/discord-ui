@@ -1,6 +1,7 @@
 from discord.errors import InvalidArgument
 
-class Button():
+
+class Button:
     """
     Represents a message component Button
 
@@ -17,9 +18,17 @@ class Button():
     disabled: `bool`
         whether the button is clickable or not
     """
-    def __init__(self, custom_id: str, label: str, color: str or int = "blurple", inline: bool = False, disabled: bool = False) -> None:
+
+    def __init__(
+        self,
+        custom_id: str,
+        label: str,
+        color: str or int = "blurple",
+        inline: bool = False,
+        disabled: bool = False,
+    ) -> None:
         """Creates a new Button Object
-        
+
         Parameter
         ----------------
         ```py
@@ -37,13 +46,13 @@ class Button():
         ```py
         (bool) inline
         ```
-        whether the button should be in a new line (False) or in the same, current line (True) 
+        whether the button should be in a new line (False) or in the same, current line (True)
         ```py
         (bool) disabled
         ```
         Whether the button is disabled, default `False`
-        
-        
+
+
         Exceptions
         ----------------
         ```py
@@ -57,9 +66,11 @@ class Button():
         if type(label) is not str:
             raise InvalidArgument("label must be of type str, not " + str(type(label)))
         if type(custom_id) is not str:
-            raise InvalidArgument("custom_id must be of type str, not " + str(type(custom_id)))
+            raise InvalidArgument(
+                "custom_id must be of type str, not " + str(type(custom_id))
+            )
         if type(disabled) is not bool:
-            raise InvalidArgument("disabled must be of type bool") 
+            raise InvalidArgument("disabled must be of type bool")
         if len(custom_id) > 100:
             raise InvalidArgument("custom_id maximum character limit (100) exceeded")
         if len(custom_id) < 1:
@@ -77,23 +88,26 @@ class Button():
             "custom_id": custom_id,
             "label": label,
             "style": Colors.getColor(color),
-            "disabled": bool(disabled)
+            "disabled": bool(disabled),
         }
 
     def to_dict(self):
         """Converts to a dict"""
         return self._json
 
-    #region props
+    # region props
     @property
     def custom_id(self) -> str:
         """The custom_id for identifiying the button"""
         return self._json["custom_id"]
+
     @custom_id.setter
     def custom_id(self, val: str):
         if type(val) is not str:
-            raise InvalidArgument("custom_id must be of type str, not " + str(type(val)))
-        
+            raise InvalidArgument(
+                "custom_id must be of type str, not " + str(type(val))
+            )
+
         if len(val) > 100:
             raise InvalidArgument("custom_id must be shorter than 100 characters")
         if len(val) < 1:
@@ -105,6 +119,7 @@ class Button():
     def label(self) -> str:
         """The lbel displayed on the button"""
         return self._json["label"]
+
     @label.setter
     def label(self, val: str):
         if type(val) is not str:
@@ -120,16 +135,18 @@ class Button():
     def color(self) -> int:
         """The color for the button"""
         return self._json["style"]
+
     @color.setter
     def color(self, val):
         if Colors.getColor(val) is not None:
             raise InvalidArgument(str(val) + " is not a valid color")
         self._json["style"] = Colors.getColor(val)
-    
+
     @property
     def disabled(self) -> bool:
         """Whether the button is disabled"""
         return self._json["disabled"] if "disabled" in self._json else False
+
     @disabled.setter
     def disabled(self, val):
         if type(val) != bool:
@@ -138,14 +155,16 @@ class Button():
             self._json["disabled"] = bool(val)
         else:
             self._json |= {"disabled": bool(val)}
-    #endregion
+
+    # endregion
     @classmethod
-    def _fromData(cls, data) -> 'Button':
+    def _fromData(cls, data) -> "Button":
         b = cls("", 1, "")
         b._json = data
         return b
 
-class LinkButton():
+
+class LinkButton:
     """
     Represents a message component LinkButton
 
@@ -162,9 +181,12 @@ class LinkButton():
     disabled: `bool`
         whether the button is clickable or not
     """
-    def __init__(self, url: str, label: str, inline: bool = False, disabled: bool = False) -> None:
+
+    def __init__(
+        self, url: str, label: str, inline: bool = False, disabled: bool = False
+    ) -> None:
         """Creates a new LinkButton Object
-        
+
         Parameter
         ----------------
         ```py
@@ -178,12 +200,12 @@ class LinkButton():
         ```py
         (bool) inline
         ```
-        whether the button should be in a new line (False) or in the same, current line (True) 
+        whether the button should be in a new line (False) or in the same, current line (True)
         ```py
         (bool) disabled
         ```
         Whether the button is disabled, default `False`
-        
+
         Exceptions
         ----------------
         ```py
@@ -191,8 +213,8 @@ class LinkButton():
         ```
         - url doesn't start with 'http://' or 'https://'
         - the label is longer than 80 characters or 0
-        - passed argument is wrong type 
-        
+        - passed argument is wrong type
+
         """
         if type(label) is not str:
             raise InvalidArgument("label must be of type str, not " + str(type(label)))
@@ -201,7 +223,9 @@ class LinkButton():
         if not url.startswith("http://") and not url.startswith("https://"):
             raise InvalidArgument("Link must start with 'http://' or 'https://'")
         if type(disabled) is not bool:
-            raise InvalidArgument("disabled must be of type bool, not " + str(type(disabled)))
+            raise InvalidArgument(
+                "disabled must be of type bool, not " + str(type(disabled))
+            )
         if len(label) > 80:
             raise InvalidArgument("lavel maximum character limit (80) exceeded")
         if len(label) < 1:
@@ -213,17 +237,18 @@ class LinkButton():
             "url": url,
             "label": label,
             "style": 5,
-            "disabled": disabled
+            "disabled": disabled,
         }
 
     def to_dict(self):
         return self._json
 
-    #region props
+    # region props
     @property
     def url(self) -> str:
         """The url which will be opened after the button is pressed"""
         return self._json["url"]
+
     @url.setter
     def url(self, val: str):
         if type(val) is not str:
@@ -231,15 +256,16 @@ class LinkButton():
         if not val.startswith("http://") and not val.startswith("https://"):
             raise InvalidArgument("Link must start with 'https://' or 'http://'")
         self._json["url"] = val
-    
+
     @property
     def label(self):
         return self._json["label"]
+
     @label.setter
     def label(self, val):
         if type(val) is not str:
             raise InvalidArgument("label must be of type str, not " + str(type(val)))
-        self._json["label"] = val 
+        self._json["label"] = val
 
     @property
     def color(self) -> int:
@@ -249,16 +275,19 @@ class LinkButton():
     @property
     def disabled(self) -> bool:
         return self._json["disabled"]
+
     @disabled.setter
     def disabled(self, val):
         self._json["disabled"] = val
-    #endregion
+
+    # endregion
 
     @staticmethod
-    def _fromData(data) -> 'LinkButton':
+    def _fromData(data) -> "LinkButton":
         b = LinkButton("", "")
         b._json = data
         return b
+
 
 class Colors:
     """
@@ -269,11 +298,12 @@ class Colors:
     Primary, blurple: `int`   => 1
 
     Secondary, grey: `int`    => 2
-    
+
     Succes green: `int`       => 3
-    
+
     Danger, red: `int`        => 4
     """
+
     Primary = blurple = 1
     Secondary = grey = 2
     Succes = green = 3
