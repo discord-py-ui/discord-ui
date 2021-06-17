@@ -400,5 +400,5 @@ class ResponseMessage(Message):
                 "data": json
             })
         if r.status_code == 400:
-            raise discord.HTTPException(r.text)
+            raise discord.HTTPException(r.text, "Error while sending message")
         
