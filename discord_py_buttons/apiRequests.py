@@ -8,17 +8,17 @@ from .buttons import Button
 url = "https://discord.com/api/v8"
 
 
-def POST(token, url, data):
+def POST(token, URL, data):
     """POST request with the Bot token in the Authorization Header"""
-    return requests.post(url,
+    return requests.post(URL,
         json=data, headers={"Authorization": f"Bot {token}"})
-def GET(token, url):
+def GET(token, URL):
     """GET request with the Bot token in the Authorization Header"""
-    return requests.get(url,
+    return requests.get(URL,
         headers={"Authorization": f"Bot {token}"})
-def DELETE(token, url):
+def DELETE(token, URL):
     """DELETE request with the Bot token in the Authorization Header"""
-    return requests.delete(url,
+    return requests.delete(URL,
         headers={"Authorization": f"Bot {token}"})
 
 def jsonifyMessage(content = None, *, tts=False,
