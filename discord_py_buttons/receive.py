@@ -6,7 +6,7 @@ from discord.ext import commands
 
 from typing import List
 
-class PressedButton(object):
+class PressedButton():
     """Represents a pressed button
     
     Attributes
