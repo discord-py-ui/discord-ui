@@ -56,7 +56,7 @@ The parameters passed to your function will be
 Your function should look something like this
 ```py
 @client.listen('on_button_press')
-async def on_button(btn: PressedButton, messaeg: ResponseMessage)
+async def on_button(btn: PressedButton, message: ResponseMessage)
     # code goes here
 ```
 
@@ -438,7 +438,7 @@ Extends the `Message` object
 - - - -
 
 <details>
-    <summary><h2>Future</h2></summary>
+    <summary>To-Do</summary>
 
 - [ ] file sending complete support
 - [ ] fixing function pararmeters
