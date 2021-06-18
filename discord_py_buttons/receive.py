@@ -343,7 +343,7 @@ class ResponseMessage(Message):
             "type": 5
         })
         if r.status_code == 403:
-            raise discord.Forbidden(r, "forbidden")
+            raise discord.ClientException(r.json(), "forbidden")
 
     def respond(self, content=None, *, tts=False, embed = None, embeds=None, file=None, files=None, nonce=None,
         allowed_mentions=None, reference=None, mention_author=None, buttons=None,
@@ -419,6 +419,6 @@ class ResponseMessage(Message):
                 "data": json
             })
         if r.status_code == 403:
-            raise discord.Forbidden(r, "Forbidden")
+            raise discord.ClientException(r.json(), "Forbidden")
         if r.status_code == 400:
             raise discord.ClientException(r.json(), "Error while sending message")

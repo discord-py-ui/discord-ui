@@ -392,9 +392,6 @@ LinkButton(url: str, label: str, emoji: discord.Emoji or str, new_line: bool, di
 - disabled: `bool`
     > Whether the button is disabled
 
-- hash: `str`
-    > The unique hash for the button
-
 </details>
 
 
@@ -590,7 +587,11 @@ Added events for `client.wait_for` and `client.listen`
     <summary>on_button_press</summary>
 
     ```py
-    (async) def listen(btn: PressedButton, msg: ResponseMessage):
+    async def on_button(btn: PressedButton, msg: ResponseMessage):
+    ```
+
+    ```py
+    def check(btn: PressedButton, msg: ResponseMessage):
     ```
 
     This event will be dispatched whenever a button was pressed

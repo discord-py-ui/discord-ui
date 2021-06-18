@@ -230,8 +230,6 @@ class LinkButton():
         Whether a new line should be added before the button
     disabled: `bool`
         whether the button is clickable or not
-    hash: `str`
-        A unique hash for the button
     """
     def __init__(self, url: str, label: str = None, emoji: Emoji or str = None, new_line: bool = False, disabled: bool = False) -> None:
         """Creates a new LinkButton Object
@@ -368,10 +366,6 @@ class LinkButton():
     @disabled.setter
     def disabled(self, val):
         self._json["disabled"] = val
-
-    @property
-    def hash(self) -> str:
-        return self._json.get('hash', None)
     #endregion
 
     @staticmethod

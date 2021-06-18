@@ -128,17 +128,17 @@ class Buttons():
         ```py
         (Message)
         ```
-        T   he sent message including buttons
+            The sent message including buttons
         """
         if type(channel) != discord.TextChannel:
             raise discord.InvalidArgument("Channel must be of type discord.TextChannel")
 
         r = apiRequests.POST(self._discord.http.token, f"{apiRequests.url}/channels/{channel.id}/messages", data=apiRequests.jsonifyMessage(content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference, mention_author=mention_author, buttons=buttons))
         if r.status_code == 403:
-            raise discord.Forbidden(r, "Got forbidden response")
+            raise discord.ClientException(r.json(), "Got forbidden response")
         if r.status_code != 200:
-            raise Exception(r.text)
-            
+            raise Exception(r.json())
+
         msg = await getResponseMessage(self._discord, r.json(), response=False)
         
         if delete_after is not None:
