@@ -442,7 +442,7 @@ Extends the `Message` object
 
 - [ ] file sending complete support
 - [ ] fixing function pararmeters
-    - [ ] ResonseMessage.reply() add mention_author
+    - [ ] ResonseMessage.respond() add mention_author
 - [ ] change `embed` to `embeds` 
 - [ ] inline => new_line
 </details>
