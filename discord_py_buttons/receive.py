@@ -29,8 +29,6 @@ class PressedButton(Button):
         For the values, take a look at `Colors`
     new_line: `bool`
         If a new line was added before the button
-    disabled: `bool`
-        Whether the button is disabled
     """
     def __init__(self, data, user, b: Button) -> None:
         bDict = b.to_dict()
@@ -40,6 +38,8 @@ class PressedButton(Button):
             "id": data["id"]
         }
         self.member: discord.Member = user
+
+        del self.disabled
 
 async def getResponseMessage(client: commands.Bot, data, user = None, response = True):
     """

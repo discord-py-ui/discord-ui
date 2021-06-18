@@ -13,7 +13,7 @@ setuptools.setup(
     name="discord-py-buttons",
     version=getVersion(),
     author="404kuso, RedstoneZockt, ",
-    author_email="bellou9022@gmail.com, info@redstonezockt.de",
+    author_email="bellou9022@gmail.com, redstoneprofihd@gmail.com",
     description="A discord button handler for discord.py",
     long_description=getReadme(),
     long_description_content_type="text/markdown",

@@ -7,20 +7,26 @@ This is a [discord.py](https://github.com/Rapptz/discord.py) button extension ma
 - [Sending Butttons](#Sending)
 - [Receiving a button press](#Receiving)
 - [Complete example](#Example)
-- [Code docs](#CodeDocs)
+- [Code docs](#Code-docs)
 - [Future added](#Future)
 
 - - - -
 
 # Get started
 
-At first, you need a `discord.ext.commands.Bot` client
+First things first, the installation for this package
+
+```cmd
+py -m pip install discord_py_buttons 
+```
+
+Then you need a `discord.ext.commands.Bot` client in your code
 
 ```py
 import discord
 from discord.ext import commands
 
-client = commands.Bot()
+client = commands.Bot(" ")
 ```
 
 To initialize the button extension, you need to import the `Buttons` class
@@ -38,7 +44,7 @@ This will add a listener to button presses and will grant you acces to the butto
 
 # Events
 
-These events can be received trought `client.listen('eventName')`
+These events can be received trought `client.listen('eventName')` or can be awaited with `client.wait_for('eventName', filter)`
 
 <details>
 <summary>on_button_press</summary>
@@ -50,15 +56,19 @@ The parameters passed to your function will be
 - `PressedButton`
     > The Button which was pressed
 
-
 - `Message`
     > The message on which the button was pressed
 
-Your function should look something like this
+If you want to listen to it, your function should look something like this
 ```py
 @client.listen('on_button_press')
 async def on_button(btn: PressedButton, message: ResponseMessage)
     # code goes here
+```
+
+If you want to await this event, use
+```py
+btn, msg = await client.wait_for('on_button_press', lambda btn, msg: check here)
 ```
 
 </details>
@@ -76,7 +86,7 @@ from discord_py_buttons import Button
 @client.listen('on_message')
 async def on_message(message: discord.Message):
     if message.content == "!btn":
-        client.buttons.send(message.channel, "here you go", buttons=[Button("myID", "Press me", emoji="😀")])
+        await client.buttons.send(message.channel, "here you go", buttons=[Button("myID", "Press me", emoji="😀")])
 ```
 
 - - - -
@@ -119,7 +129,7 @@ client.buttons = Buttons(client)
 @client.listen('on_message')
 async def on_message(message: discord.Message):
     if message.content == "!btn":
-        client.buttons.send("Here ya go!", buttons=[Button("custom_id", "PRESS ME")])
+        await client.buttons.send("Here ya go!", buttons=[Button("custom_id", "PRESS ME")])
     
 @client.listen('on_button_press')
 async def on_button(btn: PressedButton, msg: ResponseMessage):
@@ -128,13 +138,38 @@ async def on_button(btn: PressedButton, msg: ResponseMessage):
 client.run("Your secret token")
 ```
 
-- - - -
+Here is another example code which uses `client.wait_for`
+It will send a question in which the message author decides if they like cats or dogs more
+
+Example
+```py
+import discord
+from discord.ext import commands
+from discord_py_buttons import Button, Buttons
+
+client = commands.Bot(" ")
+
+@client.listen('on_message')
+async def on_message(message: discord.Message):
+    if message.content == "!q":
+        # This will send the buttons to the textchannel
+        question = await client.buttons.send(message.channel, "What do you like the most?", buttons=[Button("cats", label="I like cats", emoji="🐱"), Button("dogs", label="I like dogs", emoji="🐶")])
+        # This will wait for a new button press and only continue if the user who pressed the button is the message author and the messageID on which the button was pressed is the same ID as the message we sent (question)
+        btn, msg = await client.wait_for("button_press", check=lambda btn, msg: btn.member.id == message.author.id and msg.id == question.id)
+
+        if btn.custom_id == "cats":
+            msg.respond("yay, cats!")
+        elif btn.custom_id == "dogs":
+            msg.respond("yay, dogs")
+```
 
 - - - -
 
 - - - -
 
-# CodeDocs
+- - - -
+
+# Code docs
 
 
 ## Buttons: `class`
@@ -305,6 +340,7 @@ This type of button will not trigger the `on_button_press` event
 
 <details>
 <summary><b>Initialization</b></summary>
+
 ```py
 LinkButton(url: str, label: str, emoji: discord.Emoji or str, new_line: bool, disabled: bool)
 ```
@@ -350,7 +386,9 @@ LinkButton(url: str, label: str, emoji: discord.Emoji or str, new_line: bool, di
 
 - disabled: `bool`
     > Whether the button is disabled
+
 </details>
+
 
 <details>
 <summary><b>Methods</b></summary>
@@ -368,7 +406,54 @@ LinkButton(url: str, label: str, emoji: discord.Emoji or str, new_line: bool, di
 
 - - - -
 
-## <a name="Message"></a> Message: `class`
+## PressedButton: `class`
+
+Represents an Object of a Button which was pressed, including its interaction
+
+<details>
+<summary><b>Attributes</b></summary>
+
+- member: `discord.GuildMember`
+    > The member who pressed the button
+
+- interaction: `dict`
+    > The most important stuff for the interaction which was received
+    
+    <details>
+    <summary>Values</summary>
+
+    - id: `str`
+        > The interaction ID
+    - token: `str`
+        > The interaction token
+
+    </details>
+
+- content: `str`
+    > The content of the button (emoji + " " + label)
+
+- url: `str`
+    > The link which will be opened when clicking the button
+
+- label: `str`
+    > The text that appears on the button, max _80_ characters
+
+- color: `str or int`
+    > The color of the button
+    >
+    > This will always be `5` (_linkButton_)
+
+- emoji: `discord.Emoji or str`
+    > The emoji appearing before the label
+
+- new_line: `bool`
+    > Whether a new line was added before the button
+
+</details>
+
+- - - -
+
+## Message: `class`
 
 Extends the `discord.Message` object
 
@@ -481,9 +566,27 @@ Extends the `Message` object
 
 - - - -
 
-<details>
-    <summary>To-Do</summary>
+## Events
 
-- [ ] file sending complete support
-- [x] inline => new_line
-</details>
+Added events for `client.wait_for` and `client.listen`
+
+-   <details>
+    <summary>on_button_press</summary>
+
+    ```py
+    (async) def listen(btn: PressedButton, msg: ResponseMessage):
+    ```
+
+    This event will be dispatched whenever a button was pressed
+
+    Two parameters are passed to the listening function
+
+    [`PressedButton`](##-pressed-class)
+    > The button which was pressed
+
+    [`ResponseMessage`](##-responsemessage-class)
+    > The message with the interaction on which the button was pressed
+
+    </details>
+
+add hash value
