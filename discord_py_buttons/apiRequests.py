@@ -22,8 +22,8 @@ def DELETE(token, URL):
         headers={"Authorization": f"Bot {token}"})
 
 def jsonifyMessage(content = None, *, tts=False,
-            embed: discord.Embed = None, file: discord.File = None, files: List[discord.File] = None, nonce: int = None,
-            allowed_mentions: discord.AllowedMentions = None, reference: discord.MessageReference = None, mention_author: bool = None, buttons: List[Button] = None, state = None):
+            embed: discord.Embed = None, embeds: List[discord.Embed], file: discord.File = None, files: List[discord.File] = None, nonce: int = None,
+            allowed_mentions: discord.AllowedMentions = None, reference: discord.MessageReference = None, mention_author: bool = None, buttons: List[Button] = None):
     """Turns parameters from the `discord.TextChannel.send` function into json for requests"""
     payload = { "tts": tts }
     
@@ -34,7 +34,7 @@ def jsonifyMessage(content = None, *, tts=False,
         payload["nonce"] = nonce
     
     if file is not None and files is not None:
-        raise discord.InvalidArgument("cannot pass files and file parameter")
+        raise discord.InvalidArgument("cannot pass both 'files' and 'file' parameter")
     
     if file is not None:
         if type(file) is not discord.File:
@@ -45,54 +45,58 @@ def jsonifyMessage(content = None, *, tts=False,
             raise TypeError("file must be of type discord.File")
         raise Exception("sending files is not supportet in this version, instead try using the normal discord.TextChannel.send(files=[yourFiles...]) function until this is completed")
 
-    
+    if embed is not None and embeds is not None:
+        raise discord.InvalidArgument("cannot pass both 'embed' and 'embeds' parameter")
+
     if embed is not None:
         if type(embed) is not discord.Embed:
-            raise TypeError("embed must be of type discord.Embed")
-        payload["embed"] = embed.to_dict()
-    
+            raise TypeError("embed must be of type 'discord.Embed', not " + str(type(embed)))
+        payload["embeds"] = [ embed.to_dict() ]
+    if embeds is not None:
+        if type(embeds) is not list:
+            raise TypeError("embeds must be of type 'list', not " + str(type(embeds)))
+        payload["embeds"] = [em.to_dict() for em in embeds]
+
     if reference is not None:
-        if type(reference) is not discord.MessageReference:
-            raise TypeError("Reference must be of type discord.MessageReference")
-        payload["message_reference"] = reference.to_dict()
+        if type(reference) is not discord.MessageReference and type(reference) is not discord.Message:
+            raise TypeError("Reference must be of type 'discord.MessageReference' or 'discord.Message', not " + str(type(reference)))
+        if type(reference) is discord.MessageReference:
+            payload["message_reference"] = reference.to_dict()
+        elif type(reference) is discord.Message:
+            payload["message_reference"] = discord.MessageReference.from_message(reference).to_dict()
 
     if allowed_mentions is not None:
-        if state.allowed_mentions is not None:
-            payload["allowed_mentions"] = state.allowed_mentions.merge(allowed_mentions).to_dict()
-        else:
-            payload["allowed_mentions"] = allowed_mentions.to_dict()
+        payload["allowed_mentions"] = allowed_mentions.to_dict()
     if mention_author is not None:
         allowed_mentions = payload["allowed_mentions"] if "allowed_mentions" in payload else discord.AllowedMentions().to_dict()
-        allowed_mentions['replied_user'] = bool(mention_author)
+        allowed_mentions['replied_user'] = mention_author
         payload["allowed_mentions"] = allowed_mentions
 
-    #region buttons
     if buttons:
         componentsJSON = {"components": []}
         
-        wrapperButtons = []
-        currentLineButtons = []
+        wrappers: List[List[Button]] = []
 
         if len(buttons) > 1:
-            for btn in buttons:
-                if len(currentLineButtons) > 5:
-                    raise Exception("Limit exceeded: max. 5 Buttons in a row")
-                if btn.inline:
-                    currentLineButtons.append(btn)
-                else:
-                    if len(currentLineButtons) > 0:
-                        wrapperButtons.append(currentLineButtons)
-                    wrapperButtons.append([btn])
-                    currentLineButtons = []
-            if len(currentLineButtons) > 0:
-                wrapperButtons.append(currentLineButtons)
+            curWrapper = []
+            i = 0
+            for _btn in buttons:
+                btn: Button = _btn
+                # i > 0         => Preventing empty component field when first button wants to newLine 
+                if btn.new_line and i > 0:
+                    wrappers.append(curWrapper)
+                    curWrapper = [btn]
+                    continue
+                
+                curWrapper.append(btn)
+                i += 1
+            wrappers.append(curWrapper)
         else:
-            wrapperButtons.append([buttons[0]])
+            wrappers = [buttons]
 
-        for lineButtons in wrapperButtons:
-            componentsJSON["components"].append({"type": 1, "components": [x.to_dict() for x in lineButtons]})
+        for wrap in wrappers:
+            componentsJSON["components"].append({"type": 1, "components": [x.to_dict() for x in wrap]})
 
         payload |= componentsJSON 
-    #endregion buttons
 
     return payload

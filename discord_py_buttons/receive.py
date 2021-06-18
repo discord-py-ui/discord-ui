@@ -6,7 +6,7 @@ from discord.ext import commands
 
 from typing import List
 
-class PressedButton():
+class PressedButton(Button):
     """Represents a pressed button
     
     Attributes
@@ -27,21 +27,19 @@ class PressedButton():
     color: `int`
         The buttons color style.
         For the values, take a look at `Colors`
+    new_line: `bool`
+        If a new line was added before the button
     disabled: `bool`
         Whether the button is disabled
     """
-    def __init__(self, data, user, b) -> None:
+    def __init__(self, data, user, b: Button) -> None:
+        bDict = b.to_dict()
+        super().__init__(b.custom_id, label=bDict.get("label", None), color=b.color, emoji=bDict.get("emoji", None), new_line=b.new_line, disabled=b.disabled)
         self.interaction = {
             "token": data["token"],
             "id": data["id"]
         }
         self.member: discord.Member = user
-
-        self.custom_id = b.custom_id
-        self.color = b.color
-        self.label = b.label
-        self.disabled = b.disabled
-        self.emoji = b.emoji
 
 async def getResponseMessage(client: commands.Bot, data, user = None, response = True):
     """
@@ -54,19 +52,19 @@ async def getResponseMessage(client: commands.Bot, data, user = None, response =
     ```py
     (commands.Bot) client
     ```
-    The Discord Bot Client
+        The discord bot client
     ```py
     (json) data
     ```
-    The raw data
+        The raw data
     ```py
     (discord.User) user
     ```
-    The User which pressed the button
+        The User which pressed the button
     ```py
     response
     ```
-    whether the Message returned should be of type `ResponseMessage` or `Message`
+        Whether the Message returned should be of type `ResponseMessage` or `Message`
 
     Returns
     -----------------
@@ -191,14 +189,25 @@ class Message(discord.Message):
         super().__init__(state=state, channel=channel, data=data)
 
         self.buttons: List[Button] = []
-        if len(data["components"]) > 1:
+        if len(data["components"]) == 0:
+            self.buttons = []
+        elif len(data["components"]) > 1:
+            # multiple lines
             for componentWrapper in data["components"]:
-                for btn in componentWrapper["components"]:
-                    self.buttons.append(Button._fromData(btn) if "url" not in btn else LinkButton._fromData(btn))
+                # newline
+                for index, btn in enumerate(componentWrapper["components"]):
+                    # Button in this line
+                    self.buttons.append(
+                        Button._fromData(btn, index == 0)
+                            if "url" not in btn else 
+                        LinkButton._fromData(btn, index == 0)
+                    )
         elif len(data["components"][0]["components"]) > 1:
-            for btn in data["components"][0]["components"]:
-                self.buttons.append(Button._fromData(btn) if "url" not in btn else LinkButton._fromData(btn))
+            # All inline
+            for index, btn in enumerate(data["components"][0]["components"]):
+                self.buttons.append(Button._fromData(btn, index == 0) if "url" not in btn else LinkButton._fromData(btn, index == 0))
         else:
+            # One button
             self.buttons.append(Button._fromData(data["components"][0]["components"][0]) if "url" not in data["components"][0]["components"][0] else LinkButton._fromData(data["components"][0]["components"][0]))
 
 class ResponseMessage(Message):
@@ -335,9 +344,8 @@ class ResponseMessage(Message):
         if r.status_code == 403:
             raise discord.Forbidden(r, "forbidden")
 
-    def respond(self, content=None, *, tts=False,
-            embed=None, file=None, files=None, nonce=None,
-            allowed_mentions=None, reference=None, buttons=None,
+    def respond(self, content=None, *, tts=False, embed = None, embeds=None, file=None, files=None, nonce=None,
+        allowed_mentions=None, reference=None, mention_author=None, buttons=None,
         ninjaMode = False):
         """
         Function to respond to the interaction
@@ -348,51 +356,59 @@ class ResponseMessage(Message):
         ```py
         (str) content
         ```
-        The raw message content
+            The raw message content
         ```py
         (bool) tts
         ```
-        whether the message should be send with text-to-speech
+            Whether the message should be send with text-to-speech
         ```py
         (discord.Embed) embed
         ```
-        The embed for the message
+            The embed for the message
+        ```py
+        (List[discord.Embed]) embeds
+        ```
+            A list of embeds for the message
         ```py
         (discord.File) file
         ```
-        The file which will be attached to the message
+            The file which will be attached to the message
         ```py
         (List[discord.File]) files
         ```
-        A list of files which will be attached to the message
+            A list of files which will be attached to the message
         ```py
         (int) nonce
         ```
-        The nonce to use for sending this message
+            The nonce to use for sending this message
         ```py
         (discord.AllowedMentions) allowed_mentions
         ```
-        Controls the mentions being processed in this message
+            Controls the mentions being processed in this message
         ```py
-        (discord.MessageReference) reference 
+        (discord.MessageReference or discord.Message) reference 
         ```
-        The message to refer
+            The message to refer
+        ```py
+        (bool) mention_author
+        ```
+            Whether the author should be mentioned
         ```py
         List[Button] buttons
         ```
-        A list of Buttons for the message to be included
+            A list of Buttons for the message to be included
 
         ```py
         (bool) ninjaMode
         ```
-        If true, the client will respond to the button interaction with almost nothing
+            If true, the client will respond to the button interaction with almost nothing
         """
         if ninjaMode:
             r = POST(self._discord.http.token, f'https://discord.com/api/v8/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
                 "type": 6
             })
         else:
-            json = jsonifyMessage(content=content, embed=embed, file=file, files=files, nonce=nonce, buttons=buttons)
+            json = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference, mention_author=mention_author, buttons=buttons)
             if "embed" in json:
                 json["embeds"] = [json["embed"]]
                 del json["embed"]
@@ -401,5 +417,7 @@ class ResponseMessage(Message):
                 "type": 4,
                 "data": json
             })
+        if r.status_code == 403:
+            raise discord.Forbidden(r, "Forbidden")
         if r.status_code == 400:
-            raise discord.HTTPException(r.text, "Error while sending message")
+            raise discord.HTTPException(r, "Error while sending message")

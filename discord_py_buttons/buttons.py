@@ -7,6 +7,8 @@ class Button():
 
     Attributes
     ----------------
+    content: `str`
+        The whole text on the button
     custom_id: `str`
         A custom_id for identefying the button
     label: `str`
@@ -15,12 +17,12 @@ class Button():
         The color of the button
     emoji: `str or discord.Emoji`
         The emoji that appears befor the label
-    inline: `bool`
-        Whether the button should be in the current line or in a new line
+    new_line: `bool`
+        Whether a new line should be added before the button
     disabled: `bool`
         whether the button is clickable or not
     """
-    def __init__(self, custom_id: str, label: str = None, color: str or int = "blurple", emoji: Emoji or str = None, inline: bool = False, disabled: bool = False) -> None:
+    def __init__(self, custom_id: str, label: str = None, color: str or int = "blurple", emoji: Emoji or str = None, new_line: bool = False, disabled: bool = False) -> None:
         """Creates a new Button Object
         
         Parameter
@@ -28,27 +30,27 @@ class Button():
         ```py
         (str) custom_id
         ```
-        A developer-defined identifier for the button, max 100 characters
+            A identifier for the button, max 100 characters
         ```py
         (str) label
         ```
-        Text that appears on the button, max 80 characters
+            Text that appears on the button, max 80 characters
         ```py
         (str or int) color
         ```
-        The color of the button
+            The color of the button
         ```py
         (discord.Emoji or str) emoji
         ```
-        The emoji displayed before the text
+            The emoji displayed before the text
         ```py
-        (bool) inline
+        (bool) new_line
         ```
-        whether the button should be in a new line (False) or in the same, current line (True) 
+            Whether a new line should be added before the button
         ```py
         (bool) disabled
         ```
-        Whether the button is disabled, default `False`
+            Whether the button is disabled, default `False`
         
         
         Exceptions
@@ -70,7 +72,7 @@ class Button():
             raise InvalidArgument("custom_id must be of type str, not " + str(type(custom_id)))
         if type(disabled) is not bool:
             raise InvalidArgument("disabled must be of type bool") 
-        if emoji is not None and type(emoji) not in [Emoji, str]:
+        if emoji is not None and type(emoji) not in [Emoji, str, dict]:
             raise InvalidArgument("emoji msut be of type discord.Emoji or str, not "+ str(type(emoji)))
         if len(custom_id) > 100:
             raise InvalidArgument("custom_id maximum character limit (100) exceeded")
@@ -83,7 +85,7 @@ class Button():
         if Colors.getColor(color) is None:
             raise InvalidArgument(str(color) + " is not a valid color")
 
-        self.inline = inline
+        self.new_line = new_line
         self._json = {
             "type": 2,
             "custom_id": custom_id,
@@ -93,17 +95,29 @@ class Button():
         if label is not None:
             self._json["label"] = label
         if emoji is not None:
-            self._json["emoji"] = {
-                "id": None if type(emoji) is str else emoji.id,
-                "name": emoji if type(emoji) is str else emoji.name,
-                "animated": False if type(emoji) is str else emoji.animated
-            }
+            if type(emoji) is str:
+                self._json["emoji"] = {
+                    "id": None,
+                    "name": emoji
+                }
+            elif type(emoji) is Emoji:
+                self._json["emoji"] = {
+                    "id": emoji.id,
+                    "name": emoji.name,
+                    "animated": emoji.animated
+                }
+            elif type(emoji) is dict:
+                self._json["emoji"] = emoji
 
     def to_dict(self):
         """Converts to a dict"""
         return self._json
 
     #region props
+    @property
+    def content(self):
+        return (self.emoji + ' ' if self.emoji is not None else '') + (self.label if self.label is not None else '')
+
     @property
     def custom_id(self) -> str:
         """The custom_id for identifiying the button"""
@@ -184,9 +198,10 @@ class Button():
     #endregion
     
     @classmethod
-    def _fromData(cls, data) -> 'Button':
+    def _fromData(cls, data, new_line = False) -> 'Button':
         b = cls("empty", "empty")
         b._json = data
+        b.new_line = new_line
         return b
 
 class LinkButton():
@@ -195,6 +210,8 @@ class LinkButton():
 
     Attributes
     ----------------
+    content: `str`
+        The whole content of the button text
     url: `str`
         The url which opens when the button is pressed
     label: `str`
@@ -203,12 +220,12 @@ class LinkButton():
         One of button styles
     emoji: `discord.Emoji or str`
         The emoji before the label
-    inline: `bool`
-        Whether the button should be in the current line or in a new line
+    new_line: `bool`
+        Whether a new line should be added before the button
     disabled: `bool`
         whether the button is clickable or not
     """
-    def __init__(self, url: str, label: str = None, emoji: Emoji or str = None, inline: bool = False, disabled: bool = False) -> None:
+    def __init__(self, url: str, label: str = None, emoji: Emoji or str = None, new_line: bool = False, disabled: bool = False) -> None:
         """Creates a new LinkButton Object
         
         Parameter
@@ -216,24 +233,24 @@ class LinkButton():
         ```py
         (str) url
         ```
-        A url which will be opened when pressing the button
+            A url which will be opened when pressing the button
         ```py
         (str) label
         ```
-        Text that appears on the button, max 80 characters
+            Text that appears on the button, max 80 characters
         ```
         (discord.Emoji or str) emoji
         ```
-        Emoji that appears before the label
+            Emoji that appears before the label
         ```py
-        (bool) inline
+        (bool) new_line
         ```
-        whether the button should be in a new line (False) or in the same, current line (True) 
+            Whether a new line should be added before the button
         ```py
         (bool) disabled
         ```
-        Whether the button is disabled, default `False`
-        
+            Whether the button is disabled, default `False`
+
         Exceptions
         ----------------
         ```py
@@ -263,7 +280,7 @@ class LinkButton():
         if label is not None and len(label) < 1:
             raise InvalidArgument("label must be longer than 0 characters")
 
-        self.inline = inline
+        self.new_line = new_line
         self._json = {
             "type": 2,
             "url": url,
@@ -283,6 +300,10 @@ class LinkButton():
         return self._json
 
     #region props
+    @property
+    def content(self):
+        return (self.emoji + ' ' if self.emoji is not None else '') + (self.label if self.label is not None else '')
+
     @property
     def url(self) -> str:
         """The url which will be opened after the button is pressed"""
@@ -342,9 +363,10 @@ class LinkButton():
     #endregion
 
     @staticmethod
-    def _fromData(data) -> 'LinkButton':
+    def _fromData(data, new_line = False) -> 'LinkButton':
         b = LinkButton("https://empty", "empty")
         b._json = data
+        b.new_line = new_line
         return b
 
 class Colors:

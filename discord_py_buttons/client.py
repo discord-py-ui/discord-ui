@@ -25,7 +25,7 @@ class Buttons():
         ```py
         (commands.Bot) client
         ```
-        The discord Bot client
+            The discord bot client
 
         Example
         ------------------
@@ -33,7 +33,7 @@ class Buttons():
         ```py
         # Your bot declaration should be here
         ...
-        client.button = Button(client)
+        client.buttons = Buttons(client)
 
         @client.event("on_button_press")
         async def on_button(pressedButton, message):
@@ -61,7 +61,7 @@ class Buttons():
     
 
     async def send(self, channel: discord.TextChannel, content=None, *, tts=False,
-            embed=None, file=None, files=None, delete_after=None, nonce=None,
+            embed=None, embeds=None, file=None, files=None, delete_after=None, nonce=None,
             allowed_mentions=None, reference=None, mention_author=None, buttons=None
         ) -> Message:
         """
@@ -72,51 +72,55 @@ class Buttons():
         ```py
         (discord.TextChannel) channel
         ```
-        The channel where the message is going to be send
+            The channel where the message is going to be send
         ```py
         (str) content
         ```
-        The raw message content
+            The message text content
         ```py
         (bool) tts
         ```
-        whether text-to-speech should be used
+            Whether text-to-speech should be used
         ```py
-        (discord.MessageEmbed) embed
+        (discord.Embed) embed
         ```
-        The embed in the message
+            The embed in the message
+        ```py
+        (List[discord.Embed]) embeds
+        ```
+            A list of embeds for the message
         ```py
         (discord.File) file
         ```
-        The attached file for the message
+            The attached file for the message
         ```py
         (List[discord.File]) file
         ```
-        A list of Files which are going to be attached to the messaeg
+            A list of Files which are going to be attached to the messaeg
         ```py
         (float) delete_after
         ```
-        The numbers of seconds after which the message should be deleted
+            The numbers of seconds after which the message should be deleted
         ```py
         (int) nonce
         ```
-        The nonce to use for sending this message
+            The nonce to use for sending this message
         ```py
         (List[discord.AllowedMentions])
         ```
-        The mentions proceeded in the message
+            The mentions proceeded in the message
         ```py
-        (discord.MessageReference) reference
+        (discord.MessageReference or discord.Message) reference
         ```
-        The ID or the discord User Object of the message to reference
+            The message to refer to
         ```py
         (bool) mention_author
         ```
-        whether the author should be mentioned
+            Whether the author should be mentioned
         ```py
         (List[Button]) buttons
         ```
-        A list of buttons included in the message
+            A list of buttons included in the message
 
 
         Returns
@@ -124,18 +128,18 @@ class Buttons():
         ```py
         (Message)
         ```
-        The sent message including buttons
+        T   he sent message including buttons
         """
         if type(channel) != discord.TextChannel:
             raise discord.InvalidArgument("Channel must be of type discord.TextChannel")
 
-        r = apiRequests.POST(self._discord.http.token, f"{apiRequests.url}/channels/{channel.id}/messages", data=apiRequests.jsonifyMessage(content, tts=tts, embed=embed, file=file, files=files, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference, mention_author=mention_author, buttons=buttons))
+        r = apiRequests.POST(self._discord.http.token, f"{apiRequests.url}/channels/{channel.id}/messages", data=apiRequests.jsonifyMessage(content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference, mention_author=mention_author, buttons=buttons))
         if r.status_code == 403:
             raise discord.Forbidden(r, "Got forbidden response")
         if r.status_code != 200:
             raise Exception(r.text)
 
-        msg = await getResponseMessage(self._discord, r.json(), False)
+        msg = await getResponseMessage(self._discord, r.json(), response=False)
         
         if delete_after is not None:
             await msg.delete(delay=delete_after)
