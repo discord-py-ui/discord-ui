@@ -267,9 +267,15 @@ Button(custom_id: str, label: str, color: str or int, emoji: discord.Emoji or st
 
 - disabled: `bool`
     > Whether the button is disabled
+</details>
 
-- to_dict: `function -> dict`
-    > Converts the button to a python dictionary
+<details>
+<summary><b>Methods</b></summary>
+
+-   <details>
+    <summary>to_dict: <code>function -> dict</code></summary>
+    Converts the button to a python dictionary
+    </details>
 </details>
 
 - - - -
@@ -426,7 +432,7 @@ Extends the `Message` object
 
 <details>
 <summary><b>Super</b></summary>
-    <a href="Message">Message properties</a>
+    <a href="#-message-class">Message properties</a>
 </details>
 
 - - - -
