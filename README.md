@@ -8,7 +8,7 @@ This is a [discord.py](https://github.com/Rapptz/discord.py) button extension ma
 - [Receiving a button press](#Receiving)
 - [Complete example](#Example)
 - [Code docs](#Code-docs)
-- [Future added](#Future)
+- [Changelog](#Changelog)
 
 - - - -
 
@@ -603,5 +603,14 @@ Added events for `client.wait_for` and `client.listen`
 
     [`ResponseMessage`](##-responsemessage-class)
     > The message with the interaction on which the button was pressed
+
+    </details>
+
+# Changelog
+
+-   <details>
+    <summary>1.0.3</summary>
+    
+    - Added `hash` attribute to buttons
 
     </details>
