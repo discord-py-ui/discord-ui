@@ -1,9 +1,6 @@
 # discord.py button docs
 
-A [discord.py](https://github.com/Rapptz/discord.py) button extension
-
-
-> This is the documentation for the discord.py button extension
+This is a [discord.py](https://github.com/Rapptz/discord.py) button extension made by [404kuso](https://github.com/404kuso) and [RedstoneZockt](https://github.com/RedstoneZockt)
 
 - [Initializing](#Get-started)
 - [Client Events](#Events)
