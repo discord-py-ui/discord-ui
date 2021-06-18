@@ -288,6 +288,7 @@ Button(custom_id, label = None, color = None, emoji = None, new_line = False, di
 
 - disabled: `bool`
     > Whether the button should be clickable (disabled = False) or not (disabled=True)
+
 </details>
 
 <details>
@@ -313,6 +314,9 @@ Button(custom_id, label = None, color = None, emoji = None, new_line = False, di
 
 - disabled: `bool`
     > Whether the button is disabled
+
+- hash: `str`
+    > The unique hash for the button
 </details>
 
 <details>
@@ -359,6 +363,7 @@ LinkButton(url: str, label: str, emoji: discord.Emoji or str, new_line: bool, di
 
 - disabled: `bool`
     > Whether the button should be clickable (disabled = False) or not (disabled=True)
+
 </details>
 
 <details>
@@ -386,6 +391,9 @@ LinkButton(url: str, label: str, emoji: discord.Emoji or str, new_line: bool, di
 
 - disabled: `bool`
     > Whether the button is disabled
+
+- hash: `str`
+    > The unique hash for the button
 
 </details>
 
@@ -448,6 +456,14 @@ Represents an Object of a Button which was pressed, including its interaction
 
 - new_line: `bool`
     > Whether a new line was added before the button
+
+- disabled: `bool`
+    > Whether the button is disabled
+    > 
+    > Always `True`
+
+- hash: `str`
+    > The unique hash for the button
 
 </details>
 
@@ -588,5 +604,3 @@ Added events for `client.wait_for` and `client.listen`
     > The message with the interaction on which the button was pressed
 
     </details>
-
-add hash value

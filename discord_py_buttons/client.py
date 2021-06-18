@@ -138,7 +138,7 @@ class Buttons():
             raise discord.Forbidden(r, "Got forbidden response")
         if r.status_code != 200:
             raise Exception(r.text)
-
+            
         msg = await getResponseMessage(self._discord, r.json(), response=False)
         
         if delete_after is not None:

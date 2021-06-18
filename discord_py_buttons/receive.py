@@ -29,17 +29,18 @@ class PressedButton(Button):
         For the values, take a look at `Colors`
     new_line: `bool`
         If a new line was added before the button
+    disabled: `bool`
+        Whether the button is disabled
+    hash: `str`
+        A unique hash for the button
     """
     def __init__(self, data, user, b: Button) -> None:
-        bDict = b.to_dict()
-        super().__init__(b.custom_id, label=bDict.get("label", None), color=b.color, emoji=bDict.get("emoji", None), new_line=b.new_line, disabled=b.disabled)
+        self._json = b.to_dict()
         self.interaction = {
             "token": data["token"],
             "id": data["id"]
         }
         self.member: discord.Member = user
-
-        del self.disabled
 
 async def getResponseMessage(client: commands.Bot, data, user = None, response = True):
     """
@@ -420,4 +421,4 @@ class ResponseMessage(Message):
         if r.status_code == 403:
             raise discord.Forbidden(r, "Forbidden")
         if r.status_code == 400:
-            raise discord.HTTPException(r, "Error while sending message")
+            raise discord.ClientException(r.json(), "Error while sending message")
