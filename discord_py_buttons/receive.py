@@ -6,9 +6,10 @@ from discord.ext import commands
 
 from typing import List
 
+
 class PressedButton(Button):
     """Represents a pressed button
-    
+
     Attributes
     ----------------
     interaction: `dict`
@@ -30,18 +31,24 @@ class PressedButton(Button):
     new_line: `bool`
         If a new line was added before the button
     """
+
     def __init__(self, data, user, b: Button) -> None:
         bDict = b.to_dict()
-        super().__init__(b.custom_id, label=bDict.get("label", None), color=b.color, emoji=bDict.get("emoji", None), new_line=b.new_line, disabled=b.disabled)
-        self.interaction = {
-            "token": data["token"],
-            "id": data["id"]
-        }
+        super().__init__(
+            b.custom_id,
+            label=bDict.get("label", None),
+            color=b.color,
+            emoji=bDict.get("emoji", None),
+            new_line=b.new_line,
+            disabled=b.disabled,
+        )
+        self.interaction = {"token": data["token"], "id": data["id"]}
         self.member: discord.Member = user
 
         del self.disabled
 
-async def getResponseMessage(client: commands.Bot, data, user = None, response = True):
+
+async def getResponseMessage(client: commands.Bot, data, user=None, response=True):
     """
     Async function to get the Response Message
 
@@ -74,9 +81,16 @@ async def getResponseMessage(client: commands.Bot, data, user = None, response =
     """
     channel = await client.fetch_channel(data["channel_id"])
     if response and user:
-        return ResponseMessage(state=client._connection, channel=channel, data=data, user=user, client=client)
+        return ResponseMessage(
+            state=client._connection,
+            channel=channel,
+            data=data,
+            user=user,
+            client=client,
+        )
 
     return Message(state=client._connection, channel=channel, data=data)
+
 
 class Message(discord.Message):
     r"""A fixed discord.Message optimized for buttons
@@ -85,7 +99,7 @@ class Message(discord.Message):
     ----------------
     buttons: `List[Button]`
         The Buttons the message contains
-    
+
     Attributes
     ----------------
     tts: :class:`bool`
@@ -185,6 +199,7 @@ class Message(discord.Message):
 
     ### For more information, take a look at the `discord.Message` object
     """
+
     def __init__(self, *, state, channel, data):
         super().__init__(state=state, channel=channel, data=data)
 
@@ -199,16 +214,25 @@ class Message(discord.Message):
                     # Button in this line
                     self.buttons.append(
                         Button._fromData(btn, index == 0)
-                            if "url" not in btn else 
-                        LinkButton._fromData(btn, index == 0)
+                        if "url" not in btn
+                        else LinkButton._fromData(btn, index == 0)
                     )
         elif len(data["components"][0]["components"]) > 1:
             # All inline
             for index, btn in enumerate(data["components"][0]["components"]):
-                self.buttons.append(Button._fromData(btn, index == 0) if "url" not in btn else LinkButton._fromData(btn, index == 0))
+                self.buttons.append(
+                    Button._fromData(btn, index == 0)
+                    if "url" not in btn
+                    else LinkButton._fromData(btn, index == 0)
+                )
         else:
             # One button
-            self.buttons.append(Button._fromData(data["components"][0]["components"][0]) if "url" not in data["components"][0]["components"][0] else LinkButton._fromData(data["components"][0]["components"][0]))
+            self.buttons.append(
+                Button._fromData(data["components"][0]["components"][0])
+                if "url" not in data["components"][0]["components"][0]
+                else LinkButton._fromData(data["components"][0]["components"][0])
+            )
+
 
 class ResponseMessage(Message):
     r"""A message Object which extends the `Message` Object optimized for an interaction button (pressed button)
@@ -323,12 +347,13 @@ class ResponseMessage(Message):
 
     ### For more information, take a look at the `buttons.Message` and `discord.Message` objects
     """
+
     def __init__(self, *, state, channel, data, user, client):
         super().__init__(state=state, channel=channel, data=data["message"])
 
         self._discord = client
         for x in self.buttons:
-            if hasattr(x, 'custom_id') and x.custom_id == data["data"]["custom_id"]:
+            if hasattr(x, "custom_id") and x.custom_id == data["data"]["custom_id"]:
                 self.pressedButton = PressedButton(data, user, x)
 
     def acknowledge(self):
@@ -338,15 +363,30 @@ class ResponseMessage(Message):
         This function should be used if the Bot needs more than 15 seconds to respond
         """
 
-        r = POST(self._discord.http.token, f'{url}/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
-            "type": 5
-        })
+        r = POST(
+            self._discord.http.token,
+            f'{url}/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback',
+            {"type": 5},
+        )
         if r.status_code == 403:
             raise discord.Forbidden(r, "forbidden")
 
-    def respond(self, content=None, *, tts=False, embed = None, embeds=None, file=None, files=None, nonce=None,
-        allowed_mentions=None, reference=None, mention_author=None, buttons=None,
-        ninjaMode = False):
+    def respond(
+        self,
+        content=None,
+        *,
+        tts=False,
+        embed=None,
+        embeds=None,
+        file=None,
+        files=None,
+        nonce=None,
+        allowed_mentions=None,
+        reference=None,
+        mention_author=None,
+        buttons=None,
+        ninjaMode=False,
+    ):
         """
         Function to respond to the interaction
 
@@ -386,7 +426,7 @@ class ResponseMessage(Message):
         ```
             Controls the mentions being processed in this message
         ```py
-        (discord.MessageReference or discord.Message) reference 
+        (discord.MessageReference or discord.Message) reference
         ```
             The message to refer
         ```py
@@ -404,19 +444,34 @@ class ResponseMessage(Message):
             If true, the client will respond to the button interaction with almost nothing
         """
         if ninjaMode:
-            r = POST(self._discord.http.token, f'https://discord.com/api/v8/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
-                "type": 6
-            })
+            r = POST(
+                self._discord.http.token,
+                f'https://discord.com/api/v8/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback',
+                {"type": 6},
+            )
         else:
-            json = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference, mention_author=mention_author, buttons=buttons)
+            json = jsonifyMessage(
+                content=content,
+                tts=tts,
+                embed=embed,
+                embeds=embeds,
+                file=file,
+                files=files,
+                nonce=nonce,
+                allowed_mentions=allowed_mentions,
+                reference=reference,
+                mention_author=mention_author,
+                buttons=buttons,
+            )
             if "embed" in json:
                 json["embeds"] = [json["embed"]]
                 del json["embed"]
 
-            r = POST(self._discord.http.token, f'https://discord.com/api/v8/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
-                "type": 4,
-                "data": json
-            })
+            r = POST(
+                self._discord.http.token,
+                f'https://discord.com/api/v8/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback',
+                {"type": 4, "data": json},
+            )
         if r.status_code == 403:
             raise discord.Forbidden(r, "Forbidden")
         if r.status_code == 400:
