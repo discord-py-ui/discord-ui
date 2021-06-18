@@ -8,7 +8,7 @@ def getVersion():
 
 
 setuptools.setup(
-    name="discord-py-buttons",
+    name="discord_py_buttons",
     version=getVersion(),
     author="RedstoneZockt, 404kuso",
     author_email="info@redstonezockt.de, bellou9022@gmail.com",
