@@ -94,7 +94,7 @@ There will be two parameters which will be passed to your function
 - `ResponseMessage`
     > The message on which the button was pressed
 
-To respond to the interaction, you use `msg.respond()`
+To respond to the interaction, you should use `msg.respond()`
 
 Example:
 ```py
@@ -150,7 +150,7 @@ Buttons(client: discord.ext.commands.client)
 
 - client: `discord.ext.commands.client`
     > The bot client
-
+    
 </details>
 
 
@@ -216,7 +216,6 @@ Buttons(client: discord.ext.commands.client)
     #### **Returns**
     - `Message`
         > The sent message
-
     </details>
 </details>
 
@@ -306,7 +305,6 @@ This type of button will not trigger the `on_button_press` event
 
 <details>
 <summary><b>Initialization</b></summary>
-
 ```py
 LinkButton(url: str, label: str, emoji: discord.Emoji or str, new_line: bool, disabled: bool)
 ```
@@ -409,7 +407,8 @@ Extends the `Message` object
 
 -   <details>
     <summary>acknowledge: <code>function</code></summary>
-    Acknowledges that the interaction was receives
+    
+    Acknowledges that the interaction was received
 
     ```py
     def acknowledge():
@@ -486,8 +485,5 @@ Extends the `Message` object
     <summary>To-Do</summary>
 
 - [ ] file sending complete support
-- [ ] fixing function pararmeters
-    - [ ] ResonseMessage.respond() add mention_author
-- [ ] change `embed` to `embeds` 
-- [ ] inline => new_line
+- [x] inline => new_line
 </details>
