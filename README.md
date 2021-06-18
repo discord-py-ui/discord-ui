@@ -1,6 +1,6 @@
 # discord.py button docs
 
-> These are some docs for the discord.py button extension
+> This is the documentation for the discord.py button extension
 
 - [Initializing](#GetStarted)
 - [Client Events](#Events)
