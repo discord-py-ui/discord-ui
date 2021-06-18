@@ -35,6 +35,7 @@ class PressedButton(Button):
         A unique hash for the button
     """
     def __init__(self, data, user, b: Button) -> None:
+        super().__init__("empty", "empty")
         self._json = b.to_dict()
         self.interaction = {
             "token": data["token"],
