@@ -128,7 +128,7 @@ async def on_message(message: discord.Message):
 async def on_button(btn: PressedButton, msg: ResponseMessage):
     msg.respond("You pressed on " + btn.content + " with the customID " + btn.custom_id)
 
-client.login("Your secret token")
+client.run("Your secret token")
 ```
 
 - - - -
