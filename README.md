@@ -18,12 +18,12 @@ At first, you need a `discord.ext.commands.Bot` client
 
 ```py
 import discord
-from disicord.ext import commands
+from discord.ext import commands
 
 client = commands.Bot()
 ```
 
-To initialize the Button extension, you need to import the `Buttons` class
+To initialize the button extension, you need to import the `Buttons` class
 
 ```py
 from discord_py_buttons import Buttons
