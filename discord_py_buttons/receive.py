@@ -220,9 +220,11 @@ class ResponseMessage(Message):
     pressedButton: `PressedButton`
         The button which was presed
     acknowledge: `function`
-        Function to acknowledge the buttonPress interaction
+        Function to acknowledge the button-press interaction
     respond: `function`
         Function to respond to the buttonPress interaction
+    acknowledged: `bool`
+        Whether the button was acknowledged with the acknowledge functionn
 
     Attributes
     ----------------
@@ -329,6 +331,7 @@ class ResponseMessage(Message):
         super().__init__(state=state, channel=channel, data=data["message"])
 
         self._discord = client
+        self.acknowledged = False
         for x in self.buttons:
             if hasattr(x, 'custom_id') and x.custom_id == data["data"]["custom_id"]:
                 self.pressedButton = PressedButton(data, user, x)
@@ -346,10 +349,14 @@ class ResponseMessage(Message):
         if r.status_code == 403:
             raise discord.ClientException(r.json(), "forbidden")
 
-    def respond(self, content=None, *, tts=False, embed = None, embeds=None, file=None, files=None, nonce=None,
-        allowed_mentions=None, reference=None, mention_author=None, buttons=None,
-        ninjaMode = False):
+        self.acknowledged = True
+
+    async def respond(self, content=None, *, tts=False, embed = None, embeds=None, file=None, files=None, nonce=None,
+        allowed_mentions=None, mention_author=None, buttons=None,
+        ninjaMode = False) -> Message or None:
         """
+        | coro |
+
         Function to respond to the interaction
 
 
@@ -388,10 +395,6 @@ class ResponseMessage(Message):
         ```
             Controls the mentions being processed in this message
         ```py
-        (discord.MessageReference or discord.Message) reference 
-        ```
-            The message to refer
-        ```py
         (bool) mention_author
         ```
             Whether the author should be mentioned
@@ -403,23 +406,29 @@ class ResponseMessage(Message):
         ```py
         (bool) ninjaMode
         ```
-            If true, the client will respond to the button interaction with almost nothing
-        """
-        if ninjaMode:
-            r = POST(self._discord.http.token, f'https://discord.com/api/v8/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
-                "type": 6
-            })
-        else:
-            json = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference, mention_author=mention_author, buttons=buttons)
-            if "embed" in json:
-                json["embeds"] = [json["embed"]]
-                del json["embed"]
+            If true, the client will respond to the button interaction with almost nothing and returns nothing
+        
+        Returrns
+        -----------------------
+        ```py
+        (Message or None)
+        ```
+        The sent message if ninjaMode is false, otherwise `None` 
 
-            r = POST(self._discord.http.token, f'https://discord.com/api/v8/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
-                "type": 4,
-                "data": json
-            })
+        """
+        msg = None
+        if not ninjaMode:
+            json = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, nonce=nonce, allowed_mentions=allowed_mentions, reference=discord.MessageReference(message_id=self.id, channel_id=self.channel.id), mention_author=mention_author, buttons=buttons)
+            r = POST(token=self._discord.http.token, URL=(url + f"/channels/{self.channel.id}/messages"), data=json)
+            msg = await getResponseMessage(self._discord, r.json(), response=False)
+        
+        r = POST(self._discord.http.token, f'https://discord.com/api/v8/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
+            "type": 6
+        })
+
         if r.status_code == 403:
             raise discord.ClientException(r.json(), "Forbidden")
         if r.status_code == 400:
             raise discord.ClientException(r.json(), "Error while sending message")
+    
+        return msg

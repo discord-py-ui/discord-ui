@@ -58,7 +58,7 @@ def jsonifyMessage(content = None, *, tts=False,
         payload["embeds"] = [em.to_dict() for em in embeds]
 
     if reference is not None:
-        if type(reference) is not discord.MessageReference and type(reference) is not discord.Message:
+        if type(reference) not in [discord.MessageReference, discord.Message] and not issubclass(type(reference), discord.Message):
             raise TypeError("Reference must be of type 'discord.MessageReference' or 'discord.Message', not " + str(type(reference)))
         if type(reference) is discord.MessageReference:
             payload["message_reference"] = reference.to_dict()
