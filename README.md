@@ -616,6 +616,14 @@ Added events for `client.wait_for` and `client.listen`
 
 # Changelog
 
+
+-   <details>
+    <summary>1.0.5</summary>
+    
+    ### **Fixed**
+    - `ResponseMessage.respond()`
+        > responding now doesn't fail after sending the message, it will now acknowledge the interaction by it self if not already acknowledged and then send the message
+
 -   <details>
     <summary>1.0.4</summary>
     

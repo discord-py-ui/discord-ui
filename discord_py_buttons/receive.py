@@ -420,6 +420,10 @@ class ResponseMessage(Message):
         if not ninjaMode:
             json = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, nonce=nonce, allowed_mentions=allowed_mentions, reference=discord.MessageReference(message_id=self.id, channel_id=self.channel.id), mention_author=mention_author, buttons=buttons)
             r = POST(token=self._discord.http.token, URL=(url + f"/channels/{self.channel.id}/messages"), data=json)
+            
+            if not self.acknowledged:
+                # Preventing the interaction to fail while fetching the channel
+                self.acknowledge()
             msg = await getResponseMessage(self._discord, r.json(), response=False)
         
         r = POST(self._discord.http.token, f'https://discord.com/api/v8/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
