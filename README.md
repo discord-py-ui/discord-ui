@@ -416,7 +416,7 @@ Represents an Object of a Button which was pressed, including its interaction
 <details>
 <summary><b>Attributes</b></summary>
 
-- member: `discord.GuildMember`
+- member: `discord.Member`
     > The member who pressed the button
 
 - interaction: `dict`

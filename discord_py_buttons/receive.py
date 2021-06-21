@@ -331,20 +331,32 @@ class ResponseMessage(Message):
         super().__init__(state=state, channel=channel, data=data["message"])
 
         self._discord = client
-        self.acknowledged = False
+        self.deferred = False
         for x in self.buttons:
             if hasattr(x, 'custom_id') and x.custom_id == data["data"]["custom_id"]:
                 self.pressedButton = PressedButton(data, user, x)
 
     async def defer(self, hidden=False):
         """
+        | coro |
+
         This will acknowledge the interaction. This will show the (*Bot* is thinking...) Dialog
 
         This function should be used if the Bot needs more than 15 seconds to respond
+        
+        Parameter
+        ----------------
+        ```py
+        (bool) hidden
+        ```
+            Whether the loading thing will be only visible to the user
+            Default: `False`
+        
+        
         """
 
         body = {"type": 5}
-        if hidden == True:
+        if hidden:
             body |= { "flags": 64 }
         
         await self._discord.http.request(V8Route("POST", f'/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback'), json=body)
@@ -356,7 +368,7 @@ class ResponseMessage(Message):
         """
         | coro |
 
-        Function to respond to the interaction
+        Responds to the interaction
 
 
         Parameters
