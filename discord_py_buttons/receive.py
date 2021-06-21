@@ -1,5 +1,5 @@
 from .buttons import Button, LinkButton
-from .apiRequests import POST, url, jsonifyMessage
+from .tools import V8Route, jsonifyMessage
 
 import discord
 from discord.ext import commands
@@ -219,12 +219,12 @@ class ResponseMessage(Message):
     ----------------
     pressedButton: `PressedButton`
         The button which was presed
-    acknowledge: `function`
-        Function to acknowledge the button-press interaction
+    defer: `function`
+        Function to defer the button-press interaction
     respond: `function`
         Function to respond to the buttonPress interaction
-    acknowledged: `bool`
-        Whether the button was acknowledged with the acknowledge functionn
+    deferred: `bool`
+        Whether the button was deferred with the defer functionn
 
     Attributes
     ----------------
@@ -336,23 +336,22 @@ class ResponseMessage(Message):
             if hasattr(x, 'custom_id') and x.custom_id == data["data"]["custom_id"]:
                 self.pressedButton = PressedButton(data, user, x)
 
-    def acknowledge(self):
+    async def defer(self, hidden=False):
         """
         This will acknowledge the interaction. This will show the (*Bot* is thinking...) Dialog
 
         This function should be used if the Bot needs more than 15 seconds to respond
         """
 
-        r = POST(self._discord.http.token, f'{url}/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
-            "type": 5
-        })
-        if r.status_code == 403:
-            raise discord.ClientException(r.json(), "forbidden")
-
-        self.acknowledged = True
+        body = {"type": 5}
+        if hidden == True:
+            body |= { "flags": 64 }
+        
+        await self._discord.http.request(V8Route("POST", f'/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback'), json=body)
+        self.deferred = True
 
     async def respond(self, content=None, *, tts=False, embed = None, embeds=None, file=None, files=None, nonce=None,
-        allowed_mentions=None, mention_author=None, buttons=None,
+        allowed_mentions=None, mention_author=None, buttons=None, hidden=False,
         ninjaMode = False) -> Message or None:
         """
         | coro |
@@ -402,7 +401,10 @@ class ResponseMessage(Message):
         List[Button] buttons
         ```
             A list of Buttons for the message to be included
-
+        ```py
+        (bool) hidden
+        ```
+        Whether the response should be visible only to the user 
         ```py
         (bool) ninjaMode
         ```
@@ -416,23 +418,22 @@ class ResponseMessage(Message):
         The sent message if ninjaMode is false, otherwise `None` 
 
         """
-        msg = None
-        if not ninjaMode:
-            json = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, nonce=nonce, allowed_mentions=allowed_mentions, reference=discord.MessageReference(message_id=self.id, channel_id=self.channel.id), mention_author=mention_author, buttons=buttons)
-            r = POST(token=self._discord.http.token, URL=(url + f"/channels/{self.channel.id}/messages"), data=json)
-            
-            if not self.acknowledged:
-                # Preventing the interaction to fail while fetching the channel
-                self.acknowledge()
-            msg = await getResponseMessage(self._discord, r.json(), response=False)
-        
-        r = POST(self._discord.http.token, f'https://discord.com/api/v8/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback', {
-            "type": 6
-        })
+        if ninjaMode:
+            await self._discord.http.request(V8Route("POST", f'/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback'), json={
+                "type": 6
+            })
+            return
 
-        if r.status_code == 403:
-            raise discord.ClientException(r.json(), "Forbidden")
-        if r.status_code == 400:
-            raise discord.ClientException(r.json(), "Error while sending message")
-    
-        return msg
+        body = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, reference=discord.MessageReference(message_id=self.id, channel_id=self.channel.id), mention_author=mention_author, buttons=buttons)
+        
+        if hidden:
+            body |= {"flags": 64}
+
+        await self._discord.http.request(V8Route("POST", f'/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback'), json={
+            "type": 4,
+            "data": body
+        })
+        if not hidden:
+            responseMSG = await self._discord.http.request(V8Route("GET", f"/webhooks/{self._discord.user.id}/{self.pressedButton.interaction['token']}/messages/@original"))
+            
+            return await getResponseMessage(self._discord, responseMSG, response=False)

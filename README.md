@@ -196,9 +196,9 @@ Buttons(client: discord.ext.commands.client)
     <summary><b>send</b></summary>
 
     ```py
-    async def send(self, channel, content = None, *, tts = False, embed = None,
-                embeds = None, file = None, files = None, delete_after = None, nonce = None,
-                allowed_mentions = None, reference = None, mention_author = None, buttons = None
+    async def send(self, channel, content=None, *, tts=False, embed=None,
+                embeds=None, file=None, files = None, delete_after = None, nonce = None,
+                allowed_mentions=None, reference=None, mention_author=None, buttons=None
             ) -> Message:
     ```
 
@@ -208,8 +208,6 @@ Buttons(client: discord.ext.commands.client)
 
     - channel: `discord.TextChannel`
         > The textchannel where the message should be sent
-        >
-        > __Required__
 
     - content: `str`
         > The text content of the message
@@ -499,8 +497,8 @@ Extends the `Message` object
 - pressedButton: `Button`
     > The button which was pressed
 
-- acknowledged: `bool`
-    > Whether the message was acknowledged
+- deferred: `bool`
+    > Whether the message was deferred
 
 </details>
 
@@ -508,13 +506,20 @@ Extends the `Message` object
 <summary><b>Methods</b></summary>
 
 -   <details>
-    <summary>acknowledge: <code>function</code></summary>
+    <summary>defer: <code>function</code></summary>
     
-    Acknowledges that the interaction was received
+    defers that the interaction was received
 
     ```py
-    def acknowledge():
+    async def defer(hidden = False):
     ```
+
+    _| coroutine |_
+
+    #### **Parameters**
+
+    - hidden
+        > Whether the loading thing will be shown only to the user
 
     > This function should be used if your client needs more than 15 seconds to responod
 
@@ -527,7 +532,7 @@ Extends the `Message` object
     ```py
     async def respond(self, content=None, *, tts=False,
             embed = None, embeds=None, file=None, files=None, nonce=None,
-            allowed_mentions=None, mention_author=None, buttons=None,
+            allowed_mentions=None, mention_author=None, buttons=None, hidden=False,
         ninjaMode = False) -> Message or None:
     ```
 
@@ -564,6 +569,9 @@ Extends the `Message` object
 
     - buttons: `List[Button]`
         > A list of buttons in this message
+    
+    - hidden: `bool`
+        > Whether the message should be only visible to the user
 
     - ninjaMode: `bool`
         > Whether the client should respond silent like a ninja to the interaction
@@ -572,7 +580,7 @@ Extends the `Message` object
 
     #### **Returns**
     - `Message or None`
-        > The sent message if ninjaMode is false
+        > The sent message if ninjaMode and hidden are both set to false
 
     </details>
 </details>
@@ -618,18 +626,40 @@ Added events for `client.wait_for` and `client.listen`
 
 
 -   <details>
+    <summary>1.1.0</summary>
+
+    ### **Changed**
+    - Major changes to request code, now using the client's request
+    - `ResponseMessage.acknowledge()` -> `ResponseMessage.defer()`
+        > Changed the name of the function + changed `ResponseMessage.acknowledged` -> `ResponseMessage.deferred`
+    - `ResponseMessage.defer()` => `await ResponseMessage.defer()`
+        > `defer` (`acknowledge`) is now async and needs to be awaited
+
+    ### **Added**
+    - hidden responses
+        > You can now send responses only visible to the user
+    
+
+    ### **Fixed**
+    - `ResponseMessage.respond()`
+        > Now doesn't show a failed interaction
+ 
+
+    </details>
+
+-   <details>
     <summary>1.0.5</summary>
     
     ### **Fixed**
     - `ResponseMessage.respond()`
-        > responding now doesn't fail after sending the message, it will now acknowledge the interaction by it self if not already acknowledged and then send the message
+        > responding now doesn't fail after sending the message, it will now defer the interaction by it self if not already deferred and then send the message
 
 -   <details>
     <summary>1.0.4</summary>
     
     ### **Added**
     - `ResponseMessage.acknowledged`
-        > If the message was acknowledged with the `ResponseMessage.acknowledge()` function, the variable will be set to true
+        > Whether the message was acknowledged with the `ResponseMessage.acknowledged()` function
 
     ### **Changed**
 

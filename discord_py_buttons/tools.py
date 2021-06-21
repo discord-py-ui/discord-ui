@@ -1,29 +1,19 @@
 from .buttons import Button
+from discord.http import Route
 
 import discord
 
-import requests
 from typing import List
 
 url = "https://discord.com/api/v8"
 
 
-def POST(token, URL, data):
-    """POST request with the Bot token in the Authorization Header"""
-    return requests.post(URL,
-        json=data, headers={"Authorization": f"Bot {token}"})
-def GET(token, URL):
-    """GET request with the Bot token in the Authorization Header"""
-    return requests.get(URL,
-        headers={"Authorization": f"Bot {token}"})
-def DELETE(token, URL):
-    """DELETE request with the Bot token in the Authorization Header"""
-    return requests.delete(URL,
-        headers={"Authorization": f"Bot {token}"})
+class V8Route(Route):
+    BASE = "https://discord.com/api/v8"
 
 def jsonifyMessage(content = None, *, tts=False,
-            embed: discord.Embed = None, embeds: List[discord.Embed], file: discord.File = None, files: List[discord.File] = None, nonce: int = None,
-            allowed_mentions: discord.AllowedMentions = None, reference: discord.MessageReference = None, mention_author: bool = None, buttons: List[Button] = None):
+                embed: discord.Embed = None, embeds: List[discord.Embed], nonce: int = None,
+                allowed_mentions: discord.AllowedMentions = None, reference: discord.MessageReference = None, mention_author: bool = None, buttons: List[Button] = None):
     """Turns parameters from the `discord.TextChannel.send` function into json for requests"""
     payload = { "tts": tts }
     
@@ -33,18 +23,6 @@ def jsonifyMessage(content = None, *, tts=False,
     if nonce is not None:
         payload["nonce"] = nonce
     
-    if file is not None and files is not None:
-        raise discord.InvalidArgument("cannot pass both 'files' and 'file' parameter")
-    
-    if file is not None:
-        if type(file) is not discord.File:
-            raise TypeError("file must be of type discord.File")
-        raise Exception("sending file is not supportet in this version, instead try using the normal discord.TextChannel.send(file=yourFile) function until this is completed")
-    if files is not None:
-        if type(file) is not discord.File:
-            raise TypeError("file must be of type discord.File")
-        raise Exception("sending files is not supportet in this version, instead try using the normal discord.TextChannel.send(files=[yourFiles...]) function until this is completed")
-
     if embed is not None and embeds is not None:
         raise discord.InvalidArgument("cannot pass both 'embed' and 'embeds' parameter")
 

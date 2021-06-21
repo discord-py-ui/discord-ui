@@ -1,4 +1,5 @@
-from . import apiRequests
+from typing import List
+from .tools import jsonifyMessage, V8Route
 from .receive import Message, getResponseMessage
 
 import discord
@@ -61,7 +62,7 @@ class Buttons():
     
 
     async def send(self, channel: discord.TextChannel, content=None, *, tts=False,
-            embed=None, embeds=None, file=None, files=None, delete_after=None, nonce=None,
+            embed=None, embeds=None, file: discord.File=None, files: List[discord.File]=None, delete_after=None, nonce=None,
             allowed_mentions=None, reference=None, mention_author=None, buttons=None
         ) -> Message:
         """
@@ -133,14 +134,14 @@ class Buttons():
         if type(channel) != discord.TextChannel:
             raise discord.InvalidArgument("Channel must be of type discord.TextChannel")
 
-        r = apiRequests.POST(self._discord.http.token, f"{apiRequests.url}/channels/{channel.id}/messages", data=apiRequests.jsonifyMessage(content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference, mention_author=mention_author, buttons=buttons))
-        if r.status_code == 403:
-            raise discord.ClientException(r.json(), "Got forbidden response")
-        if r.status_code != 200:
-            raise Exception(r.json())
-
-        msg = await getResponseMessage(self._discord, r.json(), response=False)
+        payload = jsonifyMessage(content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference, mention_author=mention_author, buttons=buttons)
         
+
+        route = V8Route("POST", f"/channels/{channel.id}/messages")
+        
+        r = await self._discord.http.request(route, json=payload)
+        msg = await getResponseMessage(self._discord, r, response=False)
+            
         if delete_after is not None:
             await msg.delete(delay=delete_after)
         
