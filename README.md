@@ -1,4 +1,6 @@
 # discord.py button docs
+https://pypi.org/project/discord-py-buttons/
+
 
 This is a [discord.py](https://github.com/Rapptz/discord.py) button extension made by [404kuso](https://github.com/404kuso) and [RedstoneZockt](https://github.com/RedstoneZockt)
 
