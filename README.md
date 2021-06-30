@@ -678,7 +678,7 @@ Added events for `client.wait_for` and `client.listen`
     <summary>1.1.1</summary>
 
     ### **Added**
-    - edit
+    - Message.edit()
         > You can now edit messages with button support
 
     </details>
