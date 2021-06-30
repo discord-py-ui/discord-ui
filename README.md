@@ -1,10 +1,17 @@
 # discord.py button docs
 
-https://pypi.org/project/discord-buttons/
+https://pypi.org/project/discord-py-buttons/
 
 
+## Hello there
 
-This is a [discord.py](https://github.com/Rapptz/discord.py) button extension made by [404kuso](https://github.com/404kuso) and [RedstoneZockt](https://github.com/RedstoneZockt)
+This is a [discord.py](https://github.com/Rapptz/discord.py) button extension made by [404kuso](https://github.com/404kuso) and [RedstoneZockt](https://github.com/RedstoneZockt), which you can use until discord.py v2.0 is out
+
+> We got some features for you like **send buttons**, **receive a press** and **edit messages** with buttons and everything is compatible with discord.py
+
+
+- - -
+# Index
 
 - [Initializing](#Get-started)
 - [Client Events](#Events)
