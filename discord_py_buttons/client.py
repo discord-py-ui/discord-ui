@@ -6,18 +6,19 @@ import discord
 from discord.ext import commands
 
 
-class Buttons():
+class Buttons:
     """
     A button instance for using buttons
-    
+
     - - -
 
     Attributes
     ----------------
     send: `function`
         Sends a message to a `discord.TextChannel`
-    
+
     """
+
     def __init__(self, client: commands.Bot):
         """
         This will create a new button intearction Listener
@@ -48,7 +49,7 @@ class Buttons():
         """
         self._discord = client
         self._discord.add_listener(self.on_socket_response)
-    
+
     async def on_socket_response(self, msg):
         """Will be executed if the bot receives a socket response"""
         if msg["t"] != "INTERACTION_CREATE":
@@ -57,19 +58,33 @@ class Buttons():
 
         if data["type"] != 3:
             return
-        
+
         guild = await self._discord.fetch_guild(data["guild_id"])
-        user = discord.Member(data=data["member"], guild=guild, state=self._discord._connection)
-        
+        user = discord.Member(
+            data=data["member"], guild=guild, state=self._discord._connection
+        )
+
         msg = await getResponseMessage(self._discord, data, user, True)
 
         self._discord.dispatch("button_press", msg.pressedButton, msg)
-    
 
-    async def send(self, channel: discord.TextChannel, content=None, *, tts=False,
-            embed=None, embeds=None, file: discord.File=None, files: List[discord.File]=None, delete_after=None, nonce=None,
-            allowed_mentions=None, reference=None, mention_author=None, buttons=None
-        ) -> Message:
+    async def send(
+        self,
+        channel: discord.TextChannel,
+        content=None,
+        *,
+        tts=False,
+        embed=None,
+        embeds=None,
+        file: discord.File = None,
+        files: List[discord.File] = None,
+        delete_after=None,
+        nonce=None,
+        allowed_mentions=None,
+        reference=None,
+        mention_author=None,
+        buttons=None,
+    ) -> Message:
         """
         Sends a message to a `discord.TextChannel`
 
@@ -116,15 +131,24 @@ class Buttons():
         if type(channel) != discord.TextChannel:
             raise discord.InvalidArgument("Channel must be of type discord.TextChannel")
 
-        payload = jsonifyMessage(content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference, mention_author=mention_author, buttons=buttons)
-        
+        payload = jsonifyMessage(
+            content,
+            tts=tts,
+            embed=embed,
+            embeds=embeds,
+            nonce=nonce,
+            allowed_mentions=allowed_mentions,
+            reference=reference,
+            mention_author=mention_author,
+            buttons=buttons,
+        )
 
         route = V8Route("POST", f"/channels/{channel.id}/messages")
-        
+
         r = await self._discord.http.request(route, json=payload)
         msg = await getResponseMessage(self._discord, r, response=False)
-            
+
         if delete_after is not None:
             await msg.delete(delay=delete_after)
-        
+
         return msg
