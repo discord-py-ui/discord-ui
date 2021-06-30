@@ -6,9 +6,10 @@ from discord.ext import commands
 
 from typing import List
 
+
 class PressedButton(Button):
     """Represents a pressed button
-    
+
     - - -
 
     Attributes
@@ -36,16 +37,15 @@ class PressedButton(Button):
     hash: `str`
         A unique hash for the button
     """
+
     def __init__(self, data, user, b: Button) -> None:
         super().__init__("empty", "empty")
         self._json = b.to_dict()
-        self.interaction = {
-            "token": data["token"],
-            "id": data["id"]
-        }
+        self.interaction = {"token": data["token"], "id": data["id"]}
         self.member: discord.Member = user
 
-async def getResponseMessage(client: commands.Bot, data, user = None, response = True):
+
+async def getResponseMessage(client: commands.Bot, data, user=None, response=True):
     """
     Async function to get the Response Message
 
@@ -73,9 +73,16 @@ async def getResponseMessage(client: commands.Bot, data, user = None, response =
     """
     channel = await client.fetch_channel(data["channel_id"])
     if response and user:
-        return ResponseMessage(state=client._connection, channel=channel, data=data, user=user, client=client)
+        return ResponseMessage(
+            state=client._connection,
+            channel=channel,
+            data=data,
+            user=user,
+            client=client,
+        )
 
     return Message(state=client._connection, channel=channel, data=data)
+
 
 class Message(discord.Message):
     r"""A fixed discord.Message optimized for buttons
@@ -88,7 +95,7 @@ class Message(discord.Message):
         The Buttons the message contains
     edit: `function` [patched]
         A fixed edit function with button support
-    
+
     - - -
 
     Attributes
@@ -190,12 +197,13 @@ class Message(discord.Message):
 
     ### For more information, take a look at the `discord.Message` object
     """
+
     def __init__(self, *, state, channel, data):
         super().__init__(state=state, channel=channel, data=data)
 
         self.buttons: List[Button] = []
         self._update_components(data)
-        
+
     def _update_components(self, data):
         """Updates the message components"""
         if len(data["components"]) == 0:
@@ -208,24 +216,44 @@ class Message(discord.Message):
                     # Button in this line
                     self.buttons.append(
                         Button._fromData(btn, index == 0)
-                            if "url" not in btn else 
-                        LinkButton._fromData(btn, index == 0)
+                        if "url" not in btn
+                        else LinkButton._fromData(btn, index == 0)
                     )
         elif len(data["components"][0]["components"]) > 1:
             # All inline
             for index, btn in enumerate(data["components"][0]["components"]):
-                self.buttons.append(Button._fromData(btn, index == 0) if "url" not in btn else LinkButton._fromData(btn, index == 0))
+                self.buttons.append(
+                    Button._fromData(btn, index == 0)
+                    if "url" not in btn
+                    else LinkButton._fromData(btn, index == 0)
+                )
         else:
             # One button
-            self.buttons.append(Button._fromData(data["components"][0]["components"][0]) if "url" not in data["components"][0]["components"][0] else LinkButton._fromData(data["components"][0]["components"][0]))
+            self.buttons.append(
+                Button._fromData(data["components"][0]["components"][0])
+                if "url" not in data["components"][0]["components"][0]
+                else LinkButton._fromData(data["components"][0]["components"][0])
+            )
+
     def _update(self, data):
         super()._update(data)
         self._update_components(data)
 
-    async def edit(self, *, content: str = None, embed: discord.Embed = None, embeds: List[discord.Embed] = None, attachments: List[discord.Attachment] = None, suppress: bool = None, delete_after: float = None, allowed_mentions: discord.AllowedMentions = None, buttons: List[Button or LinkButton] = None):
+    async def edit(
+        self,
+        *,
+        content: str = None,
+        embed: discord.Embed = None,
+        embeds: List[discord.Embed] = None,
+        attachments: List[discord.Attachment] = None,
+        suppress: bool = None,
+        delete_after: float = None,
+        allowed_mentions: discord.AllowedMentions = None,
+        buttons: List[Button or LinkButton] = None,
+    ):
         """
         | coro |
-        
+
         Edits the message
 
         - - -
@@ -249,12 +277,22 @@ class Message(discord.Message):
         buttons: `List[Button]`
             A list of buttons in the message
         """
-        payload = jsonifyMessage(content, embed=embed, embeds=embeds, allowed_mentions=allowed_mentions, suppress=suppress, flags=self.flags.value, buttons=buttons)
+        payload = jsonifyMessage(
+            content,
+            embed=embed,
+            embeds=embeds,
+            allowed_mentions=allowed_mentions,
+            suppress=suppress,
+            flags=self.flags.value,
+            buttons=buttons,
+        )
         data = await self._state.http.edit_message(self.channel.id, self.id, **payload)
         self._update(data)
 
         if delete_after is not None:
             await self.delete(delay=delete_after)
+
+
 class ResponseMessage(Message):
     r"""A message Object which extends the `Message` Object optimized for an interaction button (pressed button)
 
@@ -374,13 +412,14 @@ class ResponseMessage(Message):
 
     ### For more information, take a look at the `buttons.Message` and `discord.Message` objects
     """
+
     def __init__(self, *, state, channel, data, user, client):
         super().__init__(state=state, channel=channel, data=data["message"])
 
         self._discord = client
         self.deferred = False
         for x in self.buttons:
-            if hasattr(x, 'custom_id') and x.custom_id == data["data"]["custom_id"]:
+            if hasattr(x, "custom_id") and x.custom_id == data["data"]["custom_id"]:
                 self.pressedButton = PressedButton(data, user, x)
 
     async def defer(self, hidden=False):
@@ -390,7 +429,7 @@ class ResponseMessage(Message):
         This will acknowledge the interaction. This will show the (*Bot* is thinking...) Dialog
 
         This function should be used if the Bot needs more than 15 seconds to respond
-        
+
         - - -
 
         Parameters
@@ -398,20 +437,39 @@ class ResponseMessage(Message):
         hidden: `bool`
             Whether the loading thing will be only visible to the user
             Default: `False`
-        
-        
+
+
         """
 
         body = {"type": 5}
         if hidden:
-            body |= { "flags": 64 }
-        
-        await self._discord.http.request(V8Route("POST", f'/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback'), json=body)
+            body |= {"flags": 64}
+
+        await self._discord.http.request(
+            V8Route(
+                "POST",
+                f'/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback',
+            ),
+            json=body,
+        )
         self.deferred = True
 
-    async def respond(self, content=None, *, tts=False, embed = None, embeds=None, file=None, files=None, nonce=None,
-        allowed_mentions=None, mention_author=None, buttons=None, hidden=False,
-        ninjaMode = False) -> Message or None:
+    async def respond(
+        self,
+        content=None,
+        *,
+        tts=False,
+        embed=None,
+        embeds=None,
+        file=None,
+        files=None,
+        nonce=None,
+        allowed_mentions=None,
+        mention_author=None,
+        buttons=None,
+        hidden=False,
+        ninjaMode=False,
+    ) -> Message or None:
         """
         | coro |
 
@@ -423,7 +481,7 @@ class ResponseMessage(Message):
         -----------------------
         content: `str`
             The raw message content
-        tts: `bool` 
+        tts: `bool`
             Whether the message should be send with text-to-speech
         embed: `discord.Embed`
             The embed for the message
@@ -442,36 +500,60 @@ class ResponseMessage(Message):
         buttons: `List[Button]`
             A list of Buttons for the message to be included
         hidden: `bool`
-            Whether the response should be visible only to the user 
+            Whether the response should be visible only to the user
         ninjaMode: `bool`
             If true, the client will respond to the button interaction with almost nothing and returns nothing
-        
+
         - - -
-        
+
         Returns
         -----------------------
         ```py
         (Message or None)
         ```
-            The sent message if ninjaMode is false, otherwise `None` 
+            The sent message if ninjaMode is false, otherwise `None`
 
         """
         if ninjaMode:
-            await self._discord.http.request(V8Route("POST", f'/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback'), json={
-                "type": 6
-            })
+            await self._discord.http.request(
+                V8Route(
+                    "POST",
+                    f'/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback',
+                ),
+                json={"type": 6},
+            )
             return
 
-        body = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, reference=discord.MessageReference(message_id=self.id, channel_id=self.channel.id), mention_author=mention_author, buttons=buttons)
-        
+        body = jsonifyMessage(
+            content=content,
+            tts=tts,
+            embed=embed,
+            embeds=embeds,
+            nonce=nonce,
+            allowed_mentions=allowed_mentions,
+            reference=discord.MessageReference(
+                message_id=self.id, channel_id=self.channel.id
+            ),
+            mention_author=mention_author,
+            buttons=buttons,
+        )
+
         if hidden:
             body |= {"flags": 64}
 
-        await self._discord.http.request(V8Route("POST", f'/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback'), json={
-            "type": 4,
-            "data": body
-        })
+        await self._discord.http.request(
+            V8Route(
+                "POST",
+                f'/interactions/{self.pressedButton.interaction["id"]}/{self.pressedButton.interaction["token"]}/callback',
+            ),
+            json={"type": 4, "data": body},
+        )
         if not hidden:
-            responseMSG = await self._discord.http.request(V8Route("GET", f"/webhooks/{self._discord.user.id}/{self.pressedButton.interaction['token']}/messages/@original"))
-            
+            responseMSG = await self._discord.http.request(
+                V8Route(
+                    "GET",
+                    f"/webhooks/{self._discord.user.id}/{self.pressedButton.interaction['token']}/messages/@original",
+                )
+            )
+
             return await getResponseMessage(self._discord, responseMSG, response=False)
