@@ -10,7 +10,7 @@ def getReadme():
         return f.read()
 
 setuptools.setup(
-    name="discord-py-buttons",
+    name="discord-buttons",
     version=getVersion(),
     author="404kuso, RedstoneZockt, ",
     author_email="bellou9022@gmail.com, redstoneprofihd@gmail.com",
