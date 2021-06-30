@@ -5,12 +5,14 @@ class Button():
     """
     Represents a message component Button
 
+    - - -
+
     Attributes
     ----------------
     content: `str`
         The whole text on the button
     custom_id: `str`
-        A custom_id for identefying the button
+        A custom_id for identifying the button
     label: `str`
         The text that appears on the button
     color: `int`
@@ -25,35 +27,26 @@ class Button():
         A unique hash for the button
     """
     def __init__(self, custom_id: str, label: str = None, color: str or int = "blurple", emoji: Emoji or str = None, new_line: bool = False, disabled: bool = False) -> None:
-        """Creates a new Button Object
+        """Creates a new Button object
         
-        Parameter
+        - - -
+
+        Parameters
         ----------------
-        ```py
-        (str) custom_id
-        ```
+        custom_id: `str`
             A identifier for the button, max 100 characters
-        ```py
-        (str) label
-        ```
+        label: `str`
             Text that appears on the button, max 80 characters
-        ```py
-        (str or int) color
-        ```
+        color: `str or int`
             The color of the button
-        ```py
-        (discord.Emoji or str) emoji
-        ```
+        emoji: `discord.Emoji or str`
             The emoji displayed before the text
-        ```py
-        (bool) new_line
-        ```
+        new_line: `bool`
             Whether a new line should be added before the button
-        ```py
-        (bool) disabled
-        ```
+        disabled: `bool`
             Whether the button is disabled, default `False`
         
+        - - -
         
         Exceptions
         ----------------
@@ -112,17 +105,24 @@ class Button():
                 self._json["emoji"] = emoji
 
     def to_dict(self):
-        """Converts to a dict"""
+        """Converts the button to a dict"""
         return self._json
 
     #region props
     @property
-    def content(self):
+    def content(self) -> str:
+        """
+        `str`
+            The complete content in the button ("{emoji} {label}")
+        """
         return (self.emoji + ' ' if self.emoji is not None else '') + (self.label if self.label is not None else '')
 
     @property
     def custom_id(self) -> str:
-        """The custom_id for identifiying the button"""
+        """
+        `str`
+            The custom_id for identifiying the button
+        """
         return self._json["custom_id"]
     @custom_id.setter
     def custom_id(self, val: str):
@@ -138,7 +138,10 @@ class Button():
 
     @property
     def label(self) -> str:
-        """The lbel displayed on the button"""
+        """
+        `str`
+            The label displayed on the button
+        """
         return self._json.get("label", None)
     @label.setter
     def label(self, val: str):
@@ -153,7 +156,10 @@ class Button():
 
     @property
     def color(self) -> int:
-        """The color for the button"""
+        """
+        `int`
+            The color for the button
+        """
         return self._json["style"]
     @color.setter
     def color(self, val):
@@ -162,8 +168,14 @@ class Button():
         self._json["style"] = Colors.getColor(val)
     
     @property
-    def emoji(self) -> str or Emoji:
-        """Emoji mention before the text"""
+    def emoji(self) -> str:
+        """
+        `str`
+            The mention of the emoji before the text
+
+        - - -
+        For settings the emoji, you can use a str or discord.Emoji          
+        """
         if "emoji" not in self._json:
             return None
         if "id" not in self._json["emoji"]:
@@ -187,7 +199,10 @@ class Button():
 
     @property
     def disabled(self) -> bool:
-        """Whether the button is disabled"""
+        """
+        `bool`
+            Whether the button is disabled or not
+        """
         return self._json["disabled"] if "disabled" in self._json else False
     @disabled.setter
     def disabled(self, val):
@@ -200,11 +215,16 @@ class Button():
     
     @property
     def hash(self) -> str:
+        """
+        `str`
+            The unique hash from the discord api for the button 
+        """
         return self._json.get('hash', None)
     #endregion
     
     @classmethod
     def _fromData(cls, data, new_line = False) -> 'Button':
+        """Returns a new button initialized from api response data"""
         b = cls("empty", "empty")
         b._json = data
         b.new_line = new_line
@@ -213,6 +233,8 @@ class Button():
 class LinkButton():
     """
     Represents a message component LinkButton
+
+    - - -
 
     Attributes
     ----------------
@@ -234,29 +256,23 @@ class LinkButton():
     def __init__(self, url: str, label: str = None, emoji: Emoji or str = None, new_line: bool = False, disabled: bool = False) -> None:
         """Creates a new LinkButton Object
         
-        Parameter
-        ----------------
-        ```py
-        (str) url
-        ```
-            A url which will be opened when pressing the button
-        ```py
-        (str) label
-        ```
-            Text that appears on the button, max 80 characters
-        ```
-        (discord.Emoji or str) emoji
-        ```
-            Emoji that appears before the label
-        ```py
-        (bool) new_line
-        ```
-            Whether a new line should be added before the button
-        ```py
-        (bool) disabled
-        ```
-            Whether the button is disabled, default `False`
+        - - -
 
+        Parameters
+        ----------------
+        url: `str`
+            A url which will be opened when pressing the button
+        label: `str`
+            Text that appears on the button, max 80 characters
+        emoji: `discord.Emoji or str`
+            Emoji that appears before the label
+        new_line: `bool`
+            Whether a new line should be added before the button
+        disabled: `bool`
+            Whether the button is disabled, default `False`
+        
+        - - -
+ 
         Exceptions
         ----------------
         ```py
@@ -303,16 +319,24 @@ class LinkButton():
             }
 
     def to_dict(self):
+        """Turns the button to a dict"""
         return self._json
 
     #region props
     @property
     def content(self):
+        """
+        `str`
+            The whole content of the button text
+        """
         return (self.emoji + ' ' if self.emoji is not None else '') + (self.label if self.label is not None else '')
 
     @property
     def url(self) -> str:
-        """The url which will be opened after the button is pressed"""
+        """
+        `str`
+            The url which will be opened after the button is pressed
+        """
         return self._json["url"]
     @url.setter
     def url(self, val: str):
@@ -323,7 +347,11 @@ class LinkButton():
         self._json["url"] = val
     
     @property
-    def label(self):
+    def label(self) -> str:
+        """
+        `str`
+            The text that appears on the button
+        """
         return self._json.get("label", None)
     @label.setter
     def label(self, val):
@@ -332,8 +360,13 @@ class LinkButton():
         self._json["label"] = val 
 
     @property
-    def emoji(self) -> str or Emoji:
-        """The emoji before the text"""
+    def emoji(self) -> str:
+        """
+        `str`
+            The mention of the emoji before the text
+        - - -
+        For settings the emoji you can use `str` or `discord.Emoji`
+        """
         if "emoji" not in self._json:
             return None
         if "id" not in self._json["emoji"]:
@@ -357,11 +390,20 @@ class LinkButton():
 
     @property
     def color(self) -> int:
-        """The Color for the button"""
+        """
+        `int`
+            The Color for the button
+        - - -
+        Will always be `5` (link_button)
+        """
         return self._json["style"]
 
     @property
     def disabled(self) -> bool:
+        """
+        `bool`
+            Whether the button is disabled or not
+        """
         return self._json["disabled"]
     @disabled.setter
     def disabled(self, val):
@@ -370,6 +412,7 @@ class LinkButton():
 
     @staticmethod
     def _fromData(data, new_line = False) -> 'LinkButton':
+        """Returns a new Linkbutton initialized from api response data"""
         b = LinkButton("https://empty", "empty")
         b._json = data
         b.new_line = new_line

@@ -9,6 +9,8 @@ from typing import List
 class PressedButton(Button):
     """Represents a pressed button
     
+    - - -
+
     Attributes
     ----------------
     interaction: `dict`
@@ -47,26 +49,21 @@ async def getResponseMessage(client: commands.Bot, data, user = None, response =
     """
     Async function to get the Response Message
 
+    - - -
 
     Parameters
     -----------------
 
-    ```py
-    (commands.Bot) client
-    ```
+    client: `commands.Bot`
         The discord bot client
-    ```py
-    (json) data
-    ```
+    data: `dict`
         The raw data
-    ```py
-    (discord.User) user
-    ```
+    user: `discord.User`
         The User which pressed the button
-    ```py
     response
-    ```
         Whether the Message returned should be of type `ResponseMessage` or `Message`
+
+    - - -
 
     Returns
     -----------------
@@ -83,11 +80,17 @@ async def getResponseMessage(client: commands.Bot, data, user = None, response =
 class Message(discord.Message):
     r"""A fixed discord.Message optimized for buttons
 
+    - - -
+
     Added attributes
     ----------------
     buttons: `List[Button]`
         The Buttons the message contains
+    edit: `function` [patched]
+        A fixed edit function with button support
     
+    - - -
+
     Attributes
     ----------------
     tts: :class:`bool`
@@ -191,6 +194,10 @@ class Message(discord.Message):
         super().__init__(state=state, channel=channel, data=data)
 
         self.buttons: List[Button] = []
+        self._update_components(data)
+        
+    def _update_components(self, data):
+        """Updates the message components"""
         if len(data["components"]) == 0:
             self.buttons = []
         elif len(data["components"]) > 1:
@@ -211,9 +218,47 @@ class Message(discord.Message):
         else:
             # One button
             self.buttons.append(Button._fromData(data["components"][0]["components"][0]) if "url" not in data["components"][0]["components"][0] else LinkButton._fromData(data["components"][0]["components"][0]))
+    def _update(self, data):
+        super()._update(data)
+        self._update_components
 
+    async def edit(self, *, content: str = None, embed: discord.Embed = None, embeds: List[discord.Embed] = None, attachments: List[discord.Attachment] = None, suppress: bool = None, delete_after: float = None, allowed_mentions: discord.AllowedMentions = None, buttons: List[Button or LinkButton] = None):
+        """
+        | coro |
+        
+        Edits the message
+
+        - - -
+
+        Parameters
+        ----------------
+        content: `str`
+            The new message content
+        embded: `discord.Embed`
+            The new discord embed
+        embeds: `List[discord.Embed]`
+            The new list of discord embeds
+        attachments: `List[discord.Attachments]`
+            A list of new attachments
+        supress: `bool`
+            Whether the embeds should be shown
+        delete_after: `float`
+            After how many seconds the message should be deleted
+        allowed_mentions: `discord.AllowedMentions`
+            The mentions proceeded in the message
+        buttons: `List[Button]`
+            A list of buttons in the message
+        """
+        payload = jsonifyMessage(content, embed=embed, embeds=embeds, allowed_mentions=allowed_mentions, suppress=suppress, flags=self.flags.value, buttons=buttons)
+        data = await self._state.http.edit_message(self.channel.id, self.id, **payload)
+        self._update(data)
+
+        if delete_after is not None:
+            await self.delete(delay=delete_after)
 class ResponseMessage(Message):
     r"""A message Object which extends the `Message` Object optimized for an interaction button (pressed button)
+
+    - - -
 
     Added attributes
     ----------------
@@ -225,6 +270,8 @@ class ResponseMessage(Message):
         Function to respond to the buttonPress interaction
     deferred: `bool`
         Whether the button was deferred with the defer functionn
+
+    - - -
 
     Attributes
     ----------------
@@ -344,11 +391,11 @@ class ResponseMessage(Message):
 
         This function should be used if the Bot needs more than 15 seconds to respond
         
-        Parameter
+        - - -
+
+        Parameters
         ----------------
-        ```py
-        (bool) hidden
-        ```
+        hidden: `bool`
             Whether the loading thing will be only visible to the user
             Default: `False`
         
@@ -370,64 +417,43 @@ class ResponseMessage(Message):
 
         Responds to the interaction
 
+        - - -
 
         Parameters
         -----------------------
-        ```py
-        (str) content
-        ```
+        content: `str`
             The raw message content
-        ```py
-        (bool) tts
-        ```
+        tts: `bool` 
             Whether the message should be send with text-to-speech
-        ```py
-        (discord.Embed) embed
-        ```
+        embed: `discord.Embed`
             The embed for the message
-        ```py
-        (List[discord.Embed]) embeds
-        ```
+        embeds: `List[discord.Embed]`
             A list of embeds for the message
-        ```py
-        (discord.File) file
-        ```
+        file: `discord.File`
             The file which will be attached to the message
-        ```py
-        (List[discord.File]) files
-        ```
+        files: `List[discord.File]`
             A list of files which will be attached to the message
-        ```py
-        (int) nonce
-        ```
+        nonce: `int`
             The nonce to use for sending this message
-        ```py
-        (discord.AllowedMentions) allowed_mentions
-        ```
+        allowed_mentions: `discord.AllowedMentions`
             Controls the mentions being processed in this message
-        ```py
-        (bool) mention_author
-        ```
+        mention_author: `bool`
             Whether the author should be mentioned
-        ```py
-        List[Button] buttons
-        ```
+        buttons: `List[Button]`
             A list of Buttons for the message to be included
-        ```py
-        (bool) hidden
-        ```
-        Whether the response should be visible only to the user 
-        ```py
-        (bool) ninjaMode
-        ```
+        hidden: `bool`
+            Whether the response should be visible only to the user 
+        ninjaMode: `bool`
             If true, the client will respond to the button interaction with almost nothing and returns nothing
         
-        Returrns
+        - - -
+        
+        Returns
         -----------------------
         ```py
         (Message or None)
         ```
-        The sent message if ninjaMode is false, otherwise `None` 
+            The sent message if ninjaMode is false, otherwise `None` 
 
         """
         if ninjaMode:

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, SupportsAbs, overload
 from .tools import jsonifyMessage, V8Route
 from .receive import Message, getResponseMessage
 
@@ -7,8 +7,11 @@ from discord.ext import commands
 
 
 class Buttons():
-    """A button instance for using buttons
+    """
+    A button instance for using buttons
     
+    - - -
+
     Attributes
     ----------------
     send: `function`
@@ -21,12 +24,14 @@ class Buttons():
 
         For receiving the button event, scroll down to the bottom and take a look at the example
 
+        - - -
+
         Parameters
         ------------------
-        ```py
-        (commands.Bot) client
-        ```
+        client: `commands.Bot`
             The discord bot client
+
+        - - -
 
         Example
         ------------------
@@ -68,61 +73,38 @@ class Buttons():
         """
         Sends a message to a `discord.TextChannel`
 
+        - - -
+
         Parameters
         -----------------
-        ```py
-        (discord.TextChannel) channel
-        ```
+        channel: `discord.TextChannel`
             The channel where the message is going to be send
-        ```py
-        (str) content
-        ```
+        content: `str`
             The message text content
-        ```py
-        (bool) tts
-        ```
+        tts: `bool`
             Whether text-to-speech should be used
-        ```py
-        (discord.Embed) embed
-        ```
+        embed: `discord.Embed`
             The embed in the message
-        ```py
-        (List[discord.Embed]) embeds
-        ```
+        embeds: `List[discord.Embed]`
             A list of embeds for the message
-        ```py
-        (discord.File) file
-        ```
+        file: `discord.File`
             The attached file for the message
-        ```py
-        (List[discord.File]) file
-        ```
+        file: `List[discord.File]`
             A list of Files which are going to be attached to the messaeg
-        ```py
-        (float) delete_after
-        ```
+        delete_after: `float`
             The numbers of seconds after which the message should be deleted
-        ```py
-        (int) nonce
-        ```
+        nonce: `int`
             The nonce to use for sending this message
-        ```py
-        (List[discord.AllowedMentions])
-        ```
+        allowed_mentions: `discord.AllowedMentions`
             The mentions proceeded in the message
-        ```py
-        (discord.MessageReference or discord.Message) reference
-        ```
+        reference: `discord.MessageReference or discord.Message`
             The message to refer to
-        ```py
-        (bool) mention_author
-        ```
+        mention_author: `bool`
             Whether the author should be mentioned
-        ```py
-        (List[Button]) buttons
-        ```
+        buttons: `List[Button]`
             A list of buttons included in the message
 
+        - - -
 
         Returns
         ---------------------

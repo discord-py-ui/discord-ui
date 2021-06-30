@@ -11,12 +11,17 @@ url = "https://discord.com/api/v8"
 class V8Route(Route):
     BASE = "https://discord.com/api/v8"
 
-def jsonifyMessage(content = None, *, tts=False,
-                embed: discord.Embed = None, embeds: List[discord.Embed], nonce: int = None,
-                allowed_mentions: discord.AllowedMentions = None, reference: discord.MessageReference = None, mention_author: bool = None, buttons: List[Button] = None):
+def jsonifyMessage(content = None, tts=False,
+                embed: discord.Embed = None, embeds: List[discord.Embed] = None, nonce: int = None,
+                allowed_mentions: discord.AllowedMentions = None, reference: discord.MessageReference = None, mention_author: bool = None, buttons: List[Button] = None, suppress: bool = None, flags = None):
     """Turns parameters from the `discord.TextChannel.send` function into json for requests"""
     payload = { "tts": tts }
     
+    if suppress is not None:
+        flags = discord.MessageFlags._from_value(flags or discord.MessageFlags.DEFAULT_VALUE)
+        flags.suppress_embeds = suppress
+        payload['flags'] = flags.value
+
     if content is not None:
         payload["content"] = content
     
@@ -24,7 +29,7 @@ def jsonifyMessage(content = None, *, tts=False,
         payload["nonce"] = nonce
     
     if embed is not None and embeds is not None:
-        raise discord.InvalidArgument("cannot pass both 'embed' and 'embeds' parameter")
+        raise discord.InvalidArgument("cannot pass both 'embed' and 'embeds' Parameters")
 
     if embed is not None:
         if type(embed) is not discord.Embed:

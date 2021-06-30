@@ -199,7 +199,7 @@ Buttons(client: discord.ext.commands.client)
     <summary><b>send</b></summary>
 
     ```py
-    async def send(self, channel, content=None, *, tts=False, embed=None,
+    async def send(channel, content=None, *, tts=False, embed=None,
                 embeds=None, file=None, files = None, delete_after = None, nonce = None,
                 allowed_mentions=None, reference=None, mention_author=None, buttons=None
             ) -> Message:
@@ -480,6 +480,53 @@ Extends the `discord.Message` object
 </details>
 
 <details>
+<summary><b>Methods</b></summary>
+
+-   <details>
+    <summary>edit*: <code>function</code></summary>
+    
+    _* Modified original function_
+
+    Edits the message
+
+    ```py
+    async def edit(*, content = None, embed = None, embeds = None, attachments = None, suppress = None, delete_after = None, allowed_mentions = None, buttons = None):
+    ```
+
+    
+
+    _| coroutine |_
+
+
+    #### **Parameters**
+
+    - content: `str`
+        > The new text content of the message
+
+    - embed: `discord.Embed`
+        > The new embed included in the message
+
+    - embeds: `List[discord.Embed]`
+        > The new embeds included in the message
+    
+    - attachments: `discord.Attachments`
+        > A list of discord attachments included in the message
+    
+    - supress: `bool`
+        > Whether the embeds in the message should be shown (False) or not (True)
+
+    - delete_after: `float`
+        > The numbers of seconds after which the message will be deleted in the background
+
+    - allowed_mentions: `discord.Allowed_mentions`
+        > Mentions allowed in this message
+
+    - buttons: `List[Button]`
+        > A list of buttons in this message
+
+</details>
+
+<details>
 <summary><b>Super</b></summary>
     
 > [discord.Message properties](https://discordpy.readthedocs.io/en/stable/api.html?highlight=message#discord.Message)
@@ -511,7 +558,7 @@ Extends the `Message` object
 -   <details>
     <summary>defer: <code>function</code></summary>
     
-    defers that the interaction was received
+    defers the interaction
 
     ```py
     async def defer(hidden = False):
@@ -530,10 +577,10 @@ Extends the `Message` object
 
 -   <details>
     <summary>respond: <code>function</code></summary>
-    Responds to the interaction and sends a message
+    Responds to the interaction
 
     ```py
-    async def respond(self, content=None, *, tts=False,
+    async def respond(content=None, *, tts=False,
             embed = None, embeds=None, file=None, files=None, nonce=None,
             allowed_mentions=None, mention_author=None, buttons=None, hidden=False,
         ninjaMode = False) -> Message or None:
