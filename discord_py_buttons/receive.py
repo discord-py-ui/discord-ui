@@ -220,7 +220,7 @@ class Message(discord.Message):
             self.buttons.append(Button._fromData(data["components"][0]["components"][0]) if "url" not in data["components"][0]["components"][0] else LinkButton._fromData(data["components"][0]["components"][0]))
     def _update(self, data):
         super()._update(data)
-        self._update_components
+        self._update_components(data)
 
     async def edit(self, *, content: str = None, embed: discord.Embed = None, embeds: List[discord.Embed] = None, attachments: List[discord.Attachment] = None, suppress: bool = None, delete_after: float = None, allowed_mentions: discord.AllowedMentions = None, buttons: List[Button or LinkButton] = None):
         """
