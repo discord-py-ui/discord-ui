@@ -1,5 +1,3 @@
-# discord.py button docs
-
 https://pypi.org/project/discord-py-buttons/
 
 
