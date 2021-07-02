@@ -6,8 +6,12 @@ version: 2
 sphinx:
   configuration: docs/conf.py
 
-# Explicitly set the version of Python and its requirements
 python:
-  version: 3.8
+  version: 3.7
   install:
-    - requirements: docs/requirements.txt
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs
+    - method: setuptools
+      path: discord_message_components
