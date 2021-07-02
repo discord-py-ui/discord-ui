@@ -14,4 +14,4 @@ python:
       extra_requirements:
         - docs
     - method: setuptools
-      path: discord_message_components
+      path: .
