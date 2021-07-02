@@ -1,1 +1,1 @@
-discord-message-components==1.2.1
+discord-message-components
