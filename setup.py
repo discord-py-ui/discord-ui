@@ -1,3 +1,4 @@
+import os
 import setuptools
 from setuptools import version
 
@@ -19,7 +20,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/KusoRedsto/discord_py_buttons",
     packages=setuptools.find_packages(),
-    python_requires='>=3.9',
+    python_requires='>=3.9' if 'READTHEDOCS' not in os.environ else None,
     classifiers=[
         "Programming Language :: Python :: 3"
     ]
