@@ -27,7 +27,6 @@ Here is a small example, that will respond to the pressed button with the conten
 import discord
 from discord.ext import commands
 from discord_message_components import *
-from config import token
 
 client = commands.Bot(" ")
 client.components = Components(client)
@@ -79,14 +78,15 @@ client.run(token)
 
 # Changelog
 
--   <details>
-    <summary>1.2.0</summmary>
 
-    ### Added
+-   <details>
+    <summary>1.2.0</summary>
+
+    ### **Added**
     - Complete message component suppport
     - Select menus
-    - documentation
-
+    - [documentation](https://discord-message-components.readthedocs.io/en/latest/)
+    
     </details>
 
 -   <details>
