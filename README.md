@@ -7,6 +7,17 @@ This is a [discord.py](https://github.com/Rapptz/discord.py) message component e
 
 > We got some features for you like **send buttons**, **send select menus**, **receive a press or selection** and **edit messages** with buttons and selection menus and everything is compatible with discord.py
 
+
+## Installation
+
+```cmd
+# windows
+py -m install discord-message-components
+
+# linux
+python3 -m pip install discord-message-components
+```
+
 ## Docs
 
 You can read the docs [here](https://discord-message-components.readthedocs.io/)

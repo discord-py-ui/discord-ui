@@ -26,9 +26,9 @@ To install this package, open your terminal or command line and type
 .. code-block::
 
    # windows
-   py -m install https://pypi.org/project/discord-message-components/
+   py -m install discord-message-components
    # linux
-   python3 -m pip install https://pypi.org/project/discord-message-components/
+   python3 -m pip install discord-message-components
 
 
 Docs
