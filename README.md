@@ -20,7 +20,6 @@ This project is under MIT License
 
 ## Example
 
-### Buttons
 
 Here is a small example, that will respond to the pressed button with the content of it or will respond with the content and value of the selected element in an select menu
 
