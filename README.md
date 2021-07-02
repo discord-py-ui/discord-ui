@@ -89,6 +89,13 @@ client.run(token)
 
 # Changelog
 
+-   <details>
+    <summary>1.2.2</summary>
+
+    ### **Fixed**
+    - Doc fixed
+
+    </details>
 
 -   <details>
     <summary>1.2.1</summary>

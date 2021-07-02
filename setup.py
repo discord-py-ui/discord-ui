@@ -15,7 +15,7 @@ setuptools.setup(
     version=getVersion(),
     author="404kuso, RedstoneZockt",
     author_email="bellou9022@gmail.com, redstoneprofihd@gmail.com",
-    description="A discord button handler for discord.py",
+    description="A discord message component handler for discord.py",
     long_description=getReadme(),
     long_description_content_type="text/markdown",
     url="https://github.com/KusoRedsto/discord_py_buttons",

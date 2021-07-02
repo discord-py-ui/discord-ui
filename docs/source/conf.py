@@ -22,7 +22,7 @@ copyright = '2021, 404kuso, RedstoneZockt'
 author = '404kuso, RedstoneZockt'
 
 # The full version, including alpha/beta/rc tags
-release = '1.2.1'
+release = '1.2.2'
 
 
 # -- General configuration ---------------------------------------------------
