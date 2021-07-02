@@ -1,4 +1,4 @@
-https://pypi.org/project/discord-py-buttons/
+https://pypi.org/project/discord-message-components/
 
 
 ## Introduction
