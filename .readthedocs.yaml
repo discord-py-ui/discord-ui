@@ -15,4 +15,3 @@ python:
         - docs
     - method: setuptools
       path: .
-  setup_py_install: true
