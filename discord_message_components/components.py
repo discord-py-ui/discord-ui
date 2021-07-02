@@ -189,9 +189,9 @@ class SelectMenu():
     max_values: :class:`int`, optional
         The maximum number of items that can be chosen; default 1, max 25
     placeholder: :class:`str`, optional
-        A custom placeholder text if nothing is selected, max 100 characters, ; default MISSING
+        A custom placeholder text if nothing is selected, max 100 characters; default MISSING
     default: :class:`int`, optional
-        The position of the option that should be selected by default, ; default MISSING
+        The position of the option that should be selected by default; default MISSING
 
     Raises
     ------
@@ -398,7 +398,7 @@ class Button():
     label: :class:`str`, optional
         Text that appears on the button, max 80 characters; default MISSING
     color: :class:`str` | :class:`int`, optional
-        The color of the button, ; default "blurple"
+        The color of the button; default "blurple"
     emoji: :class:`discord.Emoji` | :class:`str`, optional
         The emoji displayed before the text; default MISSING
     new_line: :class:`bool`, optional
