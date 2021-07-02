@@ -39,7 +39,8 @@ The docs are `here <./classes.html/>`__
 .. toctree::
    :maxdepth: 1
 
-   classes.rst
+   usage.rst
+   api.rst
  
 
 Links

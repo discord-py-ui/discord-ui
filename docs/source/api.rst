@@ -1,10 +1,16 @@
 .. currentmodule:: discord_message_components
 
+
+Code-Docs
+===================
+Yes, here are the real docs
+
+
 Setup
-============
+====================
 
 Components
-~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: Components
     :members:
@@ -12,6 +18,7 @@ Components
 
 
 .. sourcecode::
+
     import discord
     from discord.ext import commands
     from discord_message_components import Components
@@ -20,12 +27,12 @@ Components
     client.components = Components(client) 
 
 Events
-============
+================
 
 We got 2 events to listen for your client
 
 ``button_press``
-~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
     
 This event will be dispatched whenever a button was pressed
 
@@ -46,7 +53,7 @@ Two parameters will be passed:
 
 
 ``menu_select``
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 This event will be dispatched whenever a value was selected in a :class:`~SelectedMenu`
 
@@ -67,17 +74,17 @@ Two parameters will be passed
 
 
 Components
-=============
+====================
 
 Button
-~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: Button
     :members:
     :exclude-members: to_dict
 
 LinkButton
-~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: LinkButton
     :members:
@@ -85,7 +92,7 @@ LinkButton
 
 
 Colors
-~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: Colors
 
@@ -101,38 +108,38 @@ Colors
     
 
 SelectMenu
-~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: SelectMenu
     :members:
     :exclude-members: to_dict
 
 SelectMenuOption
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: SelectMenuOption
     :members:
     :exclude-members: to_dict
 
 Interactions
-===============
+=================
 
 Message
-~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: Message()
     :members:
 
 
 ResponseMessage
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: ResponseMessage()
     :members:
 
 
 PressedButton
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: PressedButton()
     :members:
@@ -141,7 +148,7 @@ PressedButton
 
 
 SelectedMenu
-~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: SelectedMenu
     :members:
