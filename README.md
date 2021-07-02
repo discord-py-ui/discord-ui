@@ -91,6 +91,14 @@ client.run(token)
 
 
 -   <details>
+    <summary>1.2.1</summary>
+
+    ### **Fixed**
+    - Small code fixes
+
+    </details>
+
+-   <details>
     <summary>1.2.0</summary>
 
     ### **Added**
