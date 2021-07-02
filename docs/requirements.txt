@@ -1,2 +1,3 @@
-discord-message-components
 mock
+discord
+discord-message-components
