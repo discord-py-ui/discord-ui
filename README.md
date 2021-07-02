@@ -93,7 +93,7 @@ client.run(token)
     <summary>1.2.2</summary>
 
     ### **Fixed**
-    - Doc fixed
+    - Docs fixed
 
     </details>
 

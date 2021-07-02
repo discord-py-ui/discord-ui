@@ -5,9 +5,9 @@ Welcome to the discord message components docs!
 This is a "extension" (I guess) or whatever you want to call it for `discord.py <https://github.com/Rapptz/discord.py>`__
 
 We (`Redstone <https://github.com/RedstoneZockt>`__ and me) decided to create a pip package for the 
-new message components for discord to use, until discord.py v2.0 is out
+new message components, until discord.py v2.0 is out
 
-Anyways, we got some cool features for you like:
+We got some cool features for you like:
 
 .. note::
 
