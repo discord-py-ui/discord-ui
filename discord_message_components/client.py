@@ -7,23 +7,23 @@ import discord
 from discord.ext import commands
 
 
-class Components():
+class Components:
     """A component listener instance for using components in discord
-    
+
     Example
     ------------------
     Example for using the listener
 
-    
+
     .. code-block::
 
         ...
         # Your bot declaration should be here
         client.components = components(client)
-        
-    
+
+
     for listening to button presses, use
-    
+
     .. code-block::
 
         ...
@@ -32,7 +32,7 @@ class Components():
             pass
 
     for listening to select menu selections, use
-    
+
 
     .. code-block::
 
@@ -40,12 +40,13 @@ class Components():
         @client.event("on_menu_select")
         async def on_select(seletedMenu, message):
             pass
-        
-    
+
+
     """
+
     def __init__(self, client: commands.Bot):
         """Creates a new compnent listener
-        
+
         Example
         ```py
         Components(client)
@@ -53,32 +54,48 @@ class Components():
         """
         self._discord = client
         self._discord.add_listener(self.on_socket_response)
-    
+
     async def on_socket_response(self, msg):
         """Will be executed if the bot receives a socket response"""
         if msg["t"] != "INTERACTION_CREATE":
             return
         data = msg["d"]
 
-        #print(data)
+        # print(data)
         if data["type"] != 3:
             return
-        
+
         guild = await self._discord.fetch_guild(data["guild_id"])
-        user = discord.Member(data=data["member"], guild=guild, state=self._discord._connection)
-        
-        msg = getResponseMessage(self._discord._get_state(), data, user, True, self._discord.user.id)
+        user = discord.Member(
+            data=data["member"], guild=guild, state=self._discord._connection
+        )
+
+        msg = getResponseMessage(
+            self._discord._get_state(), data, user, True, self._discord.user.id
+        )
 
         if data["data"]["component_type"] == 2:
             self._discord.dispatch("button_press", msg.interaction_component, msg)
         elif data["data"]["component_type"] == 3:
-            self._discord.dispatch("menu_select", msg.interaction_component , msg)
-    
+            self._discord.dispatch("menu_select", msg.interaction_component, msg)
 
-    async def send(self, channel, content=MISSING, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, 
-            files=MISSING, delete_after=MISSING, nonce=MISSING, allowed_mentions=MISSING, reference=MISSING, 
-            mention_author=MISSING, components=MISSING
-        ) -> Message:
+    async def send(
+        self,
+        channel,
+        content=MISSING,
+        *,
+        tts=False,
+        embed=MISSING,
+        embeds=MISSING,
+        file=MISSING,
+        files=MISSING,
+        delete_after=MISSING,
+        nonce=MISSING,
+        allowed_mentions=MISSING,
+        reference=MISSING,
+        mention_author=MISSING,
+        components=MISSING,
+    ) -> Message:
         """Sends a message to a textchannel
 
         Parameters
@@ -123,14 +140,26 @@ class Components():
         if type(channel) != discord.TextChannel:
             raise discord.InvalidArgument("Channel must be of type discord.TextChannel")
 
-        payload = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference, mention_author=mention_author, components=components)
+        payload = jsonifyMessage(
+            content=content,
+            tts=tts,
+            embed=embed,
+            embeds=embeds,
+            nonce=nonce,
+            allowed_mentions=allowed_mentions,
+            reference=reference,
+            mention_author=mention_author,
+            components=components,
+        )
 
         route = V8Route("POST", f"/channels/{channel.id}/messages")
-        
+
         r = await self._discord.http.request(route, json=payload)
-        msg = getResponseMessage(self._discord._get_state(), r, response=False, bot_id=self._discord.user.id)
-            
+        msg = getResponseMessage(
+            self._discord._get_state(), r, response=False, bot_id=self._discord.user.id
+        )
+
         if delete_after is not None:
             await msg.delete(delay=delete_after)
-        
+
         return msg
