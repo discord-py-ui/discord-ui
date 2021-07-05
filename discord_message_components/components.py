@@ -815,14 +815,24 @@ class LinkButton():
         b.new_line = new_line
         return b
 
+
+class ComponentType:
+    """
+    A list of component types
+    """
+    actionrow = 1
+    button = 2
+    select = 3
+
 class Colors:
     """
-    A class for button styles (colors) in message components
+    A list of button styles (colors) in message components
     """
     Primary = blurple = 1
     Secondary = grey = 2
     Succes = green = 3
     Danger = red = 4
+    URL = 5
 
     @classmethod
     def getColor(cls, s):

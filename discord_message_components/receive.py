@@ -1,19 +1,112 @@
-from .tools import V8Route, jsonifyMessage
+from discord.errors import InvalidArgument
+from discord.state import ConnectionState
+from .tools import MISSING, V8Route, jsonifyMessage
 from .components import Button, LinkButton, SelectMenu, SelectMenuOption
 
 import discord
 
 from typing import List
 
-class SelectedMenu(SelectMenu):
-    """A `SelectMenu` in which an item was selected"""
-    def __init__(self, data, user, s: SelectMenu) -> None:
-        super().__init__("no", [SelectMenuOption("EMPTY", "EMPTY")], 0, 0)
-        self._json = s.to_dict()
+class Interaction():
+    def __init__(self, client, data) -> None:
+        self._client = client
+        self._state = client._get_state()
+        self._application_id = client.user.id
+        self.defered = False
         self.interaction = {
             "token": data["token"],
             "id": data["id"]
         }
+
+    async def defer(self, hidden=False):
+        """
+        ``| coro |``
+
+        This will acknowledge the interaction. This will show the (*Bot* is thinking...) Dialog
+
+        This function should be used if the Bot needs more than 15 seconds to respond
+        
+        Parameters
+        ----------
+            hidden: :class:`bool`, optional
+                Whether the loading thing should be only visible to the user; default False.
+        
+        """
+        body = {"type": 5}
+        if hidden:
+            body["flags"] = 64
+        
+        await self._state.http.request(V8Route("POST", f'/interactions/{self.interaction["id"]}/{self.interaction["token"]}/callback'), json=body)
+        self.deferred = True
+    async def respond(self, content=None, *, tts=False, embed=None, embeds=None, file=None, files=None, nonce=None,
+    allowed_mentions=None, mention_author=None, components=None, hidden=False,
+    ninjaMode = False) -> 'Message' or None:
+        """
+        ``| coro |`` 
+
+        Responds to the interaction
+        
+        Parameters
+        ----------
+        content: :class:`str`, optional
+            The raw message content
+        tts: `bool` 
+            Whether the message should be send with text-to-speech
+        embed: :class:`discord.Embed`
+            The embed for the message
+        embeds: List[:class:`discord.Embed`]
+            A list of embeds for the message
+        file: :class:`discord.File`
+            The file which will be attached to the message
+        files: List[:class:`discord.File`]
+            A list of files which will be attached to the message
+        nonce: :class:`int`
+            The nonce to use for sending this message
+        allowed_mentions: :class:`discord.AllowedMentions`
+            Controls the mentions being processed in this message
+        mention_author: :class:`bool`
+            Whether the author should be mentioned
+        components: List[:class:`~Button` | :class:`~LinkButton` | :class:`~SelectMenu`]
+            A list of message components to be included
+        hidden: :class:`bool`
+            Whether the response should be visible only to the user 
+        ninjaMode: :class:`bool`
+            If true, the client will respond to the button interaction with almost nothing and returns nothing
+        
+        Returns
+        -------
+        :return: Returns the sent message
+        :type: :class:`~Message` | :class:`None`
+
+            .. note::
+                If the response is hidden, no message will be returned
+
+        """
+        
+        if ninjaMode:
+            await self._state.http.request(V8Route("POST", f'/interactions/{self.interaction["id"]}/{self.interaction["token"]}/callback'), json={
+                "type": 6
+            })
+            return
+        body = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components)
+        
+        if hidden:
+            body["flags"] = 64
+
+        await self._state.http.request(V8Route("POST", f'/interactions/{self.interaction["id"]}/{self.interaction["token"]}/callback'), json={
+            "type": 4,
+            "data": body
+        })
+        if not hidden:
+            responseMSG = await self._state.http.request(V8Route("GET", f"/webhooks/{self._application_id}/{self.interaction['token']}/messages/@original"))
+            return getResponseMessage(self._client, data=responseMSG, response=False)    
+
+class SelectedMenu(Interaction, SelectMenu):
+    """A `SelectMenu` in which an item was selected"""
+    def __init__(self, data, user, s, client) -> None:
+        Interaction.__init__(self, client, data)
+        SelectMenu.__init__(self, "EMPTY", [SelectMenuOption("EMPTY", "EMPTY")], 0, 0)
+        self._json = s.to_dict()
         self.values: List[SelectMenuOption] = []
         """The list of values which were selected
         
@@ -28,15 +121,13 @@ class SelectedMenu(SelectMenu):
         self.member: discord.Member = user
         """The member who selected the value"""
 
-class PressedButton(Button):
+class PressedButton(Interaction, Button):
     """A pressed button"""
-    def __init__(self, data, user, b) -> None:
-        super().__init__("empty", "empty")
+    def __init__(self, data, user, b, client) -> None:
+        Interaction.__init__(self, client, data)
+        Button.__init__(self, "empty", "empty")
         self._json = b.to_dict()
-        self.interaction = {
-            "token": data["token"],
-            "id": data["id"]
-        }
+
         """interaction: :class:`dict`
         
         The most important stuff from the received interaction
@@ -45,11 +136,13 @@ class PressedButton(Button):
                 The interaction token
         *   ``id``
                 The ID for the interaction
-"""
+        """
         self.member: discord.Member = user
         """The user who pressed the button"""
 
-def getResponseMessage(state, data, user=None, response = True, bot_id = None):
+
+
+def getResponseMessage(client, data, user=None, response = True):
     """
     Async function to get the Response Message
 
@@ -73,21 +166,23 @@ def getResponseMessage(state, data, user=None, response = True, bot_id = None):
     .. note::
             If the message comes from an interaction, it will be of type :class:`~ResponseMessage`, if it is sent to a textchannel, it will be of type :class:`~Message`
     """
-    channel = state.get_channel(data["channel_id"])
+    channel = client._get_state().get_channel(data["channel_id"])
     if response and user:
-        return ResponseMessage(state=state, channel=channel, data=data, user=user, bot_id=bot_id)
+        return ResponseMessage(client=client, channel=channel, data=data, user=user)
 
-    return Message(state=state, channel=channel, data=data)
+    return Message(client=client, channel=channel, data=data)
 
 class Message(discord.Message):
     r"""A fixed discord.Message optimized for components"""
-    def __init__(self, *, state, channel, data):
-        super().__init__(state=state, channel=channel, data=data)
+    def __init__(self, *, client, channel, data):
+        super().__init__(state=client._get_state(), channel=channel, data=data)
 
+        self.client = client
         self.components = []
         
         self._update_components(data)
 
+    #region attributes
     @property
     def buttons(self):
         """The button components in the message
@@ -102,6 +197,7 @@ class Message(discord.Message):
         :type: List[:class:`~SelectMenu`]
         """
         return [x for x in self.components if type(x) is SelectMenu]
+    #endregion
 
     def _update_components(self, data):
         """Updates the message components"""
@@ -145,7 +241,7 @@ class Message(discord.Message):
         super()._update(data)
         self._update_components(data)
 
-    async def edit(self, *, content=None, embed=None, embeds=None, attachments=None, suppress=None, delete_after=None, 
+    async def edit(self, *, content=None, embed=None, embeds=None, suppress=None, delete_after=None, 
         allowed_mentions=None, components=None):
         """
         
@@ -161,8 +257,6 @@ class Message(discord.Message):
             The new discord embed
         embeds: List[:class:`discord.Embed`]
             The new list of discord embeds
-        attachments: List[:class:`discord.Attachments`]
-            A list of new attachments
         supress: :class:`bool`
             Whether the embeds should be shown
         delete_after: :class:`float`
@@ -178,105 +272,53 @@ class Message(discord.Message):
 
         if delete_after is not None:
             await self.delete(delay=delete_after)
-class ResponseMessage(Message):
+
+    async def wait_for(self, event_name, custom_id = MISSING) -> PressedButton or SelectedMenu:
+        """
+        ``| coro |``
+
+        Waits for a message component activation on the message
+
+        Parameters
+        -----------
+        event_name: :class:`str`
+            The name of the event which will be awaited
+
+            .. note::
+
+                The event_name must be ``select`` for a select menu selection and ``button`` for a button press
+
+        Returns
+        ----------
+        :returns: The component was waited waited for
+        :type: :class:`~PressedButton` | :class:`~SelectedMenu`
+        """
+        if event_name == "button" or event_name == "select":
+            def check(btn, msg):
+                if msg.id == self.id:
+                    if custom_id is not MISSING:
+                        if btn.custom_id == custom_id:
+                            return True
+                    return True
+            return (await self.client.wait_for('button_press' if event_name == "button" else "menu_select", check=check))[0]
+        else:
+            raise InvalidArgument("Invalid event name, event must be 'button' or 'select', not " + str(event_name))
+
+class ResponseMessage(Interaction, Message):
     r"""A message Object which extends the `Message` Object optimized for an interaction component"""
-    def __init__(self, *, state, channel, data, user, bot_id):
-        super().__init__(state=state, channel=channel, data=data["message"])
+    def __init__(self, *, client, channel, data, user):
+        Interaction.__init__(self, client, data)
+        Message.__init__(self, client=client, channel=channel, data=data["message"])
         
-        self._bot_id = bot_id
-        self.deferred = False
+        self._application_id = client.user.id
         self.interaction_component = None
 
         if int(data["data"]["component_type"]) == 2:
             for x in self.buttons:
                 if hasattr(x, 'custom_id') and x.custom_id == data["data"]["custom_id"]:
-                    self.interaction_component = PressedButton(data, user, x)
+                    self.interaction_component = PressedButton(data, user, x, self._client)
         elif int(data["data"]["component_type"]) == 3:
             for x in self.select_menus:
                 if x.custom_id == data["data"]["custom_id"]:
-                    self.interaction_component = SelectedMenu(data, user, x)
-            
-    async def defer(self, hidden=False):
-        """
-        ``| coro |``
-
-        This will acknowledge the interaction. This will show the (*Bot* is thinking...) Dialog
-
-        This function should be used if the Bot needs more than 15 seconds to respond
-        
-        Parameters
-        ----------
-            hidden: :class:`bool`, optional
-                Whether the loading thing should be only visible to the user; default False.
-        
-        """
-        body = {"type": 5}
-        if hidden:
-            body["flags"] = 64
-        
-        await self._state.http.request(V8Route("POST", f'/interactions/{self.interaction_component.interaction["id"]}/{self.interaction_component.interaction["token"]}/callback'), json=body)
-        self.deferred = True
-
-    async def respond(self, content=None, *, tts=False, embed=None, embeds=None, file=None, files=None, nonce=None,
-        allowed_mentions=None, mention_author=None, components=None, hidden=False,
-        ninjaMode = False) -> Message or None:
-        """
-        ``| coro |`` 
-
-        Responds to the interaction
-        
-        Parameters
-        ----------
-        content: :class:`str`, optional
-            The raw message content
-        tts: `bool` 
-            Whether the message should be send with text-to-speech
-        embed: :class:`discord.Embed`
-            The embed for the message
-        embeds: List[:class:`discord.Embed`]
-            A list of embeds for the message
-        file: :class:`discord.File`
-            The file which will be attached to the message
-        files: List[:class:`discord.File`]
-            A list of files which will be attached to the message
-        nonce: :class:`int`
-            The nonce to use for sending this message
-        allowed_mentions: :class:`discord.AllowedMentions`
-            Controls the mentions being processed in this message
-        mention_author: :class:`bool`
-            Whether the author should be mentioned
-        components: List[:class:`~Button` | :class:`~LinkButton` | :class:`~SelectMenu`]
-            A list of message components to be included
-        hidden: :class:`bool`
-            Whether the response should be visible only to the user 
-        ninjaMode: :class:`bool`
-            If true, the client will respond to the button interaction with almost nothing and returns nothing
-        
-        Returns
-        -------
-        :return: Returns the sent message
-        :type: :class:`~Message` | :class:`None`
-
-            .. note::
-                If the response is hidden, no message will be returned
-    
-        """
-        
-        if ninjaMode:
-            await self._state.http.request(V8Route("POST", f'/interactions/{self.interaction_component.interaction["id"]}/{self.interaction_component.interaction["token"]}/callback'), json={
-                "type": 6
-            })
-            return
-        body = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components)
-        
-        if hidden:
-            body["flags"] = 64
-
-        await self._state.http.request(V8Route("POST", f'/interactions/{self.interaction_component.interaction["id"]}/{self.interaction_component.interaction["token"]}/callback'), json={
-            "type": 4,
-            "data": body
-        })
-        if not hidden:
-            responseMSG = await self._state.http.request(V8Route("GET", f"/webhooks/{self._bot_id}/{self.interaction_component.interaction['token']}/messages/@original"))
-            
-            return getResponseMessage(self._state, responseMSG, response=False, bot_id=self._bot_id)
+                    self.interaction_component = SelectedMenu(data, user, x, self._client)
+      

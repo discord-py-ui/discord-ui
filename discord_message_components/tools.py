@@ -1,5 +1,5 @@
+import json
 import discord
-
 
 from discord.http import Route
 from typing import Any, List
@@ -10,6 +10,30 @@ MISSING = None
 
 class V8Route(Route):
     BASE = "https://discord.com/api/v8"
+
+async def send_files(route, files, payload, http):
+    form = []
+    form.append({'name': 'payload_json', 'value': json.dumps(payload, separators=(',', ':'), ensure_ascii=True)})
+
+    if len(files) == 1:
+        file = files[0]
+        form.append({
+            'name': 'file',
+            'value': file.fp,
+            'filename': file.filename,
+            'content_type': 'application/octet-stream'
+        })
+    else:
+        for index, file in enumerate(files):
+            form.append({
+                'name': 'file%s' % index,
+                'value': file.fp,
+                'filename': file.filename,
+                'content_type': 'application/octet-stream'
+            })
+
+    r = await http.request(route, form=form, files=files)
+    print(r)
 
 def jsonifyMessage(content = MISSING, tts=False,
                 embed: discord.Embed = MISSING, embeds: List[discord.Embed] = MISSING, nonce: int = MISSING,
