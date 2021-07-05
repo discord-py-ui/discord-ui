@@ -7,16 +7,14 @@ import discord
 
 from typing import List
 
-class Interaction():
+
+class Interaction:
     def __init__(self, client, data) -> None:
         self._client = client
         self._state = client._get_state()
         self._application_id = client.user.id
         self.defered = False
-        self.interaction = {
-            "token": data["token"],
-            "id": data["id"]
-        }
+        self.interaction = {"token": data["token"], "id": data["id"]}
 
     async def defer(self, hidden=False):
         """
@@ -25,32 +23,52 @@ class Interaction():
         This will acknowledge the interaction. This will show the (*Bot* is thinking...) Dialog
 
         This function should be used if the Bot needs more than 15 seconds to respond
-        
+
         Parameters
         ----------
             hidden: :class:`bool`, optional
                 Whether the loading thing should be only visible to the user; default False.
-        
+
         """
         body = {"type": 5}
         if hidden:
             body["flags"] = 64
-        
-        await self._state.http.request(V8Route("POST", f'/interactions/{self.interaction["id"]}/{self.interaction["token"]}/callback'), json=body)
+
+        await self._state.http.request(
+            V8Route(
+                "POST",
+                f'/interactions/{self.interaction["id"]}/{self.interaction["token"]}/callback',
+            ),
+            json=body,
+        )
         self.deferred = True
-    async def respond(self, content=None, *, tts=False, embed=None, embeds=None, file=None, files=None, nonce=None,
-    allowed_mentions=None, mention_author=None, components=None, hidden=False,
-    ninjaMode = False) -> 'Message' or None:
+
+    async def respond(
+        self,
+        content=None,
+        *,
+        tts=False,
+        embed=None,
+        embeds=None,
+        file=None,
+        files=None,
+        nonce=None,
+        allowed_mentions=None,
+        mention_author=None,
+        components=None,
+        hidden=False,
+        ninjaMode=False,
+    ) -> "Message" or None:
         """
-        ``| coro |`` 
+        ``| coro |``
 
         Responds to the interaction
-        
+
         Parameters
         ----------
         content: :class:`str`, optional
             The raw message content
-        tts: `bool` 
+        tts: `bool`
             Whether the message should be send with text-to-speech
         embed: :class:`discord.Embed`
             The embed for the message
@@ -69,10 +87,10 @@ class Interaction():
         components: List[:class:`~Button` | :class:`~LinkButton` | :class:`~SelectMenu`]
             A list of message components to be included
         hidden: :class:`bool`
-            Whether the response should be visible only to the user 
+            Whether the response should be visible only to the user
         ninjaMode: :class:`bool`
             If true, the client will respond to the button interaction with almost nothing and returns nothing
-        
+
         Returns
         -------
         :return: Returns the sent message
@@ -82,27 +100,50 @@ class Interaction():
                 If the response is hidden, no message will be returned
 
         """
-        
+
         if ninjaMode:
-            await self._state.http.request(V8Route("POST", f'/interactions/{self.interaction["id"]}/{self.interaction["token"]}/callback'), json={
-                "type": 6
-            })
+            await self._state.http.request(
+                V8Route(
+                    "POST",
+                    f'/interactions/{self.interaction["id"]}/{self.interaction["token"]}/callback',
+                ),
+                json={"type": 6},
+            )
             return
-        body = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components)
-        
+        body = jsonifyMessage(
+            content=content,
+            tts=tts,
+            embed=embed,
+            embeds=embeds,
+            nonce=nonce,
+            allowed_mentions=allowed_mentions,
+            mention_author=mention_author,
+            components=components,
+        )
+
         if hidden:
             body["flags"] = 64
 
-        await self._state.http.request(V8Route("POST", f'/interactions/{self.interaction["id"]}/{self.interaction["token"]}/callback'), json={
-            "type": 4,
-            "data": body
-        })
+        await self._state.http.request(
+            V8Route(
+                "POST",
+                f'/interactions/{self.interaction["id"]}/{self.interaction["token"]}/callback',
+            ),
+            json={"type": 4, "data": body},
+        )
         if not hidden:
-            responseMSG = await self._state.http.request(V8Route("GET", f"/webhooks/{self._application_id}/{self.interaction['token']}/messages/@original"))
-            return getResponseMessage(self._client, data=responseMSG, response=False)    
+            responseMSG = await self._state.http.request(
+                V8Route(
+                    "GET",
+                    f"/webhooks/{self._application_id}/{self.interaction['token']}/messages/@original",
+                )
+            )
+            return getResponseMessage(self._client, data=responseMSG, response=False)
+
 
 class SelectedMenu(Interaction, SelectMenu):
     """A `SelectMenu` in which an item was selected"""
+
     def __init__(self, data, user, s, client) -> None:
         Interaction.__init__(self, client, data)
         SelectMenu.__init__(self, "EMPTY", [SelectMenuOption("EMPTY", "EMPTY")], 0, 0)
@@ -112,7 +153,7 @@ class SelectedMenu(Interaction, SelectMenu):
         
         :type: :class:`~SelectMenuOption`
         """
-        
+
         for val in data["data"]["values"]:
             for x in self.options:
                 if x.value == val:
@@ -121,8 +162,10 @@ class SelectedMenu(Interaction, SelectMenu):
         self.member: discord.Member = user
         """The member who selected the value"""
 
+
 class PressedButton(Interaction, Button):
     """A pressed button"""
+
     def __init__(self, data, user, b, client) -> None:
         Interaction.__init__(self, client, data)
         Button.__init__(self, "empty", "empty")
@@ -141,8 +184,7 @@ class PressedButton(Interaction, Button):
         """The user who pressed the button"""
 
 
-
-def getResponseMessage(client, data, user=None, response = True):
+def getResponseMessage(client, data, user=None, response=True):
     """
     Async function to get the Response Message
 
@@ -172,24 +214,27 @@ def getResponseMessage(client, data, user=None, response = True):
 
     return Message(client=client, channel=channel, data=data)
 
+
 class Message(discord.Message):
     r"""A fixed discord.Message optimized for components"""
+
     def __init__(self, *, client, channel, data):
         super().__init__(state=client._get_state(), channel=channel, data=data)
 
         self.client = client
         self.components = []
-        
+
         self._update_components(data)
 
-    #region attributes
+    # region attributes
     @property
     def buttons(self):
         """The button components in the message
-        
+
         :type: List[:class:`~Button` | :class:`~LinkButton`]
         """
         return [x for x in self.components if type(x) in [Button, LinkButton]]
+
     @property
     def select_menus(self):
         """The select menus components in the message
@@ -197,7 +242,8 @@ class Message(discord.Message):
         :type: List[:class:`~SelectMenu`]
         """
         return [x for x in self.components if type(x) is SelectMenu]
-    #endregion
+
+    # endregion
 
     def _update_components(self, data):
         """Updates the message components"""
@@ -211,18 +257,20 @@ class Message(discord.Message):
                     if com["type"] == 2:
                         self.components.append(
                             Button._fromData(com, index == 0)
-                                if "url" not in com else 
-                            LinkButton._fromData(com, index == 0)
+                            if "url" not in com
+                            else LinkButton._fromData(com, index == 0)
                         )
                     elif com["type"] == 3:
-                        self.components.append(
-                            SelectMenu._fromData(com)
-                        )
+                        self.components.append(SelectMenu._fromData(com))
         elif len(data["components"][0]["components"]) > 1:
             # All inline
             for index, com in enumerate(data["components"][0]["components"]):
                 if com["type"] == 2:
-                    self.components.append(Button._fromData(com, index == 0) if "url" not in com else LinkButton._fromData(com, index == 0))
+                    self.components.append(
+                        Button._fromData(com, index == 0)
+                        if "url" not in com
+                        else LinkButton._fromData(com, index == 0)
+                    )
                 elif com["type"] == 3:
                     self.components.append(SelectedMenu._fromData(com))
         else:
@@ -231,7 +279,11 @@ class Message(discord.Message):
             component = data["components"][0]["components"][0]
 
             if type == 2:
-                self.components.append(Button._fromData(component) if "url" not in component else LinkButton._fromData(component))
+                self.components.append(
+                    Button._fromData(component)
+                    if "url" not in component
+                    else LinkButton._fromData(component)
+                )
             elif type == 3:
                 self.components.append(SelectedMenu._fromData(component))
             else:
@@ -241,12 +293,21 @@ class Message(discord.Message):
         super()._update(data)
         self._update_components(data)
 
-    async def edit(self, *, content=None, embed=None, embeds=None, suppress=None, delete_after=None, 
-        allowed_mentions=None, components=None):
+    async def edit(
+        self,
+        *,
+        content=None,
+        embed=None,
+        embeds=None,
+        suppress=None,
+        delete_after=None,
+        allowed_mentions=None,
+        components=None,
+    ):
         """
-        
-        ``| coro |`` 
-        
+
+        ``| coro |``
+
         Edits the message and updates its properties
 
         Parameters
@@ -266,14 +327,24 @@ class Message(discord.Message):
         components: List[:class:`~Button` | :class:`~LinkButton` | :class:`~SelectMenu`]
             A list of components to be included the message
         """
-        payload = jsonifyMessage(content, embed=embed, embeds=embeds, allowed_mentions=allowed_mentions, suppress=suppress, flags=self.flags.value, components=components)
+        payload = jsonifyMessage(
+            content,
+            embed=embed,
+            embeds=embeds,
+            allowed_mentions=allowed_mentions,
+            suppress=suppress,
+            flags=self.flags.value,
+            components=components,
+        )
         data = await self._state.http.edit_message(self.channel.id, self.id, **payload)
         self._update(data)
 
         if delete_after is not None:
             await self.delete(delay=delete_after)
 
-    async def wait_for(self, event_name, custom_id = MISSING) -> PressedButton or SelectedMenu:
+    async def wait_for(
+        self, event_name, custom_id=MISSING
+    ) -> PressedButton or SelectedMenu:
         """
         ``| coro |``
 
@@ -294,31 +365,46 @@ class Message(discord.Message):
         :type: :class:`~PressedButton` | :class:`~SelectedMenu`
         """
         if event_name == "button" or event_name == "select":
+
             def check(btn, msg):
                 if msg.id == self.id:
                     if custom_id is not MISSING:
                         if btn.custom_id == custom_id:
                             return True
                     return True
-            return (await self.client.wait_for('button_press' if event_name == "button" else "menu_select", check=check))[0]
+
+            return (
+                await self.client.wait_for(
+                    "button_press" if event_name == "button" else "menu_select",
+                    check=check,
+                )
+            )[0]
         else:
-            raise InvalidArgument("Invalid event name, event must be 'button' or 'select', not " + str(event_name))
+            raise InvalidArgument(
+                "Invalid event name, event must be 'button' or 'select', not "
+                + str(event_name)
+            )
+
 
 class ResponseMessage(Interaction, Message):
     r"""A message Object which extends the `Message` Object optimized for an interaction component"""
+
     def __init__(self, *, client, channel, data, user):
         Interaction.__init__(self, client, data)
         Message.__init__(self, client=client, channel=channel, data=data["message"])
-        
+
         self._application_id = client.user.id
         self.interaction_component = None
 
         if int(data["data"]["component_type"]) == 2:
             for x in self.buttons:
-                if hasattr(x, 'custom_id') and x.custom_id == data["data"]["custom_id"]:
-                    self.interaction_component = PressedButton(data, user, x, self._client)
+                if hasattr(x, "custom_id") and x.custom_id == data["data"]["custom_id"]:
+                    self.interaction_component = PressedButton(
+                        data, user, x, self._client
+                    )
         elif int(data["data"]["component_type"]) == 3:
             for x in self.select_menus:
                 if x.custom_id == data["data"]["custom_id"]:
-                    self.interaction_component = SelectedMenu(data, user, x, self._client)
-      
+                    self.interaction_component = SelectedMenu(
+                        data, user, x, self._client
+                    )

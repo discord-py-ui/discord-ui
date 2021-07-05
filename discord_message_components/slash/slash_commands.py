@@ -1,8 +1,8 @@
 from discord_message_components.tools import MISSING
 
 
-class BaseSlashCommand():
-    def __init__(self, callback, name, description, choices = MISSING) -> None:
+class BaseSlashCommand:
+    def __init__(self, callback, name, description, choices=MISSING) -> None:
         self._json = {
             "name": name,
             "description": description,
@@ -10,18 +10,20 @@ class BaseSlashCommand():
         if choices is not MISSING:
             self._json["choices"] = [x.to_dict() for x in choices]
         self.callback = callback
-    
+
     def to_dict(self):
         return self._json
 
 
-class SlashCommandOption():
-    def __init__(self, type, name, description, required = False, choices = MISSING, options = MISSING) -> None:
+class SlashCommandOption:
+    def __init__(
+        self, type, name, description, required=False, choices=MISSING, options=MISSING
+    ) -> None:
         self._json = {
             "type": type,
             "name": name,
             "description": description,
-            "required": required
+            "required": required,
         }
         if options is not MISSING:
             self._json["options"] = [x.to_dict() for x in options]
@@ -30,8 +32,7 @@ class SlashCommandOption():
 
     def to_dict(self):
         return self._json
-        
-        
+
 
 class ApplicationCommandType:
     SUB_COMMAND = 1

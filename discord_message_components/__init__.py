@@ -1,4 +1,4 @@
-from .client import Components #, Slash
+from .client import Components  # , Slash
 from .components import Button, LinkButton, SelectMenu, SelectMenuOption, Colors
 from .receive import ResponseMessage, Message, PressedButton, SelectedMenu
 
