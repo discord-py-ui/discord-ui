@@ -880,13 +880,13 @@ class ActionRow():
         ActionRow([Button(...), Button(...)])
         ```
         """
-        self.items = [[x for x in i] for i in items] if all(type(i) is list for i in items) else items
+        self.items = items[0] if all(type(i) is list for i in items) else items
         """The componetns in the action row"""
         self.component_type = 1
         
     def disable(self, disable=True) -> 'ActionRow':
-        for i in range(len(self.items)):
-            self.items[i].disabled = True
+        for i, _ in enumerate(self.items):
+            self.items[i].disabled = disable
         return self
     def filter(self, check = lambda x: ...):
         """Filters all components

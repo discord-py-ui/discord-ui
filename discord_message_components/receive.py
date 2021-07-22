@@ -8,7 +8,7 @@ from .http import BetterRoute, jsonifyMessage, send_files
 from .components import ActionRow, Button, LinkButton, SelectMenu, SelectOption
 
 import discord
-from discord.ext import commands
+from discord.ext import commands as com
 from discord.errors import HTTPException, InvalidArgument
 import typing
 
@@ -147,7 +147,7 @@ class Interaction():
             await self._state.http.request(route, json=payload)
         self._responded = True
 
-        if file is not MISSING and files is not MISSING:     
+        if file is not MISSING and files is not MISSING:
             await send_files(route=BetterRoute("PATCH", f"/webhooks/{self._application_id}/{self.interaction['token']}/messages/@original"), 
                 files=[file] if files is MISSING else files, payload=payload, http=self._state.http)
         
@@ -209,10 +209,15 @@ class Interaction():
 
         route = BetterRoute("POST", f'/webhooks/{self._application_id}/{self.interaction["token"]}')
         r = await self._state.http.request(route, json=payload)
+
+        if file is not MISSING and files is not MISSING:
+            await send_files(route=BetterRoute("PATCH", f"/webhooks/{self._application_id}/{self.interaction['token']}/messages/@original"), 
+                files=[file] if files is MISSING else files, payload=payload, http=self._state.http)
+
         if hidden:
             return EphemeralMessage()
-        else:
-            return await getResponseMessage(self._client, r, response=False)
+
+        return await getResponseMessage(self._client, r, response=False)
 
 class EphemeralComponent(Interaction):
     """A component that will be received when a hidden response was sent"""
@@ -286,7 +291,7 @@ class SlashedSubCommand(SlashedCommand, SubSlashCommand):
         SubSlashCommand.__init__(self, None, "EMPTY", "EMPTY")
 
 
-async def getResponseMessage(client: commands.Bot, data, user=None, response = True):
+async def getResponseMessage(client: com.Bot, data, user=None, response = True):
     """
     Async function to get the response message
 
@@ -342,8 +347,7 @@ class Message(discord.Message):
         """
         if hasattr(self, "components") and self.components is not None:
             return [x for x in self.components if type(x) in [Button, LinkButton]]
-        else:
-            return []
+        return []
     @property
     def select_menus(self):
         """The select menus components in the message
@@ -352,8 +356,7 @@ class Message(discord.Message):
         """
         if hasattr(self, "components") and self.components is not None:
             return [x for x in self.components if type(x) is SelectMenu]
-        else:
-            return []
+        return []
     # endregion
 
     def _update_components(self, data):
@@ -475,7 +478,7 @@ class Message(discord.Message):
         """
         comps = []
         if type(row) is range:
-            for i in range(len(self.action_rows)):
+            for i, _ in enumerate(self.action_rows):
                 if i > len(self.action_rows) - 1 or i < 0:
                     raise InvalidArgument("the specified range is invalid! It has to be between 0 and " + str(len(self.action_rows) - 1))
                 for comp in self.action_rows[i]:
@@ -483,7 +486,7 @@ class Message(discord.Message):
                         comp.disabled = disable
                     comps.append(comp)
         else:
-            for i in range(len(self.action_rows)):
+            for i, _ in enumerate(self.action_rows):
                 if i > len(self.action_rows) - 1 or i < 0:
                     raise InvalidArgument("the specified row is invalid! It has to be between 0 and " + str(len(self.action_rows) - 1))
                 for comp in self.action_rows[i]:
@@ -570,9 +573,8 @@ class Message(discord.Message):
         if event_name.lower() in ["button", "select"]:
             def check(btn, msg):
                 if msg.id == self.id:
-                    if custom_id is not MISSING:
-                        if btn.custom_id == custom_id:
-                            return True
+                    if custom_id is not MISSING and btn.custom_id == custom_id:
+                        return True
                     return True
             return (await self.client.wait_for('button_press' if event_name.lower() == "button" else "menu_select", check=check, timeout=timeout))[0]
         

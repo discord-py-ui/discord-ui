@@ -8,7 +8,7 @@ from .receive import EphemeralComponent, Message, SlashedCommand, SlashedSubComm
 
 import discord
 from discord.errors import Forbidden, InvalidArgument
-from discord.ext import commands
+from discord.ext import commands as com
 
 import asyncio
 from typing import Dict, List, Tuple, Union
@@ -87,7 +87,7 @@ class Slash():
         self.delete_unused: bool = delete_unused
         self.wait_sync: float = wait_sync
 
-        self._discord: commands.Bot = client
+        self._discord: com.Bot = client
         self.commands: Dict[(str, SlashCommand)] = {}
         self.subcommands: Dict[(str, Dict[(str, SubSlashCommand)])] = {}
         self.subcommand_groups: Dict[(str, Dict[(str, SubSlashCommandGroup)])] = {}
@@ -161,7 +161,7 @@ class Slash():
                     elif op["type"] == OptionTypes.CHANNEL:
                         options[op["name"]] = await self._discord.fetch_channel(op["value"])
                     elif op["type"] == OptionTypes.ROLE:
-                        options[op["name"]] = get(await (await self._discord.fetch_guild(data["guild_id"])).fetch_roles(), op["value"], lambda x: getattr(x, "id"))
+                        options[op["name"]] = get(await (await self._discord.fetch_guild(data["guild_id"])).fetch_roles(), op["value"], lambda x: getattr(x, "id", None))
                     else:
                         options[op["name"]] = op["value"]
             if x:
@@ -577,7 +577,7 @@ class Components():
         async def my_func(component, msg):
             ...
     """
-    def __init__(self, client: commands.Bot):
+    def __init__(self, client: com.Bot):
         """Creates a new compnent listener
         
         Example

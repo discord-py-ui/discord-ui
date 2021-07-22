@@ -28,14 +28,13 @@ calculator = [
     LinkButton("https://github.com/KusoRedsto/discord-message-components/tree/main/examples/calculator.py", "ヾ(≧▽≦*) click here for source code ヾ(≧▽≦*)")
 ]
 
-# The current query in the calculator
-query = ""
+
 
 # Create a slash command
 @extension.slash.slashcommand(name="calculator", description="opens a calculator, that will automatically close when no input was provided after 20 seconds", guild_ids=["785567635802816595"])
 async def test(ctx: SlashedCommand):
-    # Make sure that the global variable is used instead of a local
-    global query
+    # The current query for the calculator
+    query = ""
     # Send the calculato, \u200b is an 'empty' char
     msg = await ctx.send("```\n\u200b```", components=calculator)
 

@@ -35,7 +35,7 @@ async def send_files(route, files, payload, http):
                 'content_type': 'application/octet-stream'
             })
 
-    r = await http.request(route, form=form, files=files)
+    return await http.request(route, form=form, files=files)
 
 def jsonifyMessage(content=MISSING, tts=False,
                 embed: discord.Embed=MISSING, embeds: List[discord.Embed]=MISSING, attachments: List[discord.Attachment]=MISSING, nonce: int=MISSING,
