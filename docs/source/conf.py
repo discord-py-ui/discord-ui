@@ -19,7 +19,7 @@ import mock
 
 MOCK_MODULES = ['discord-message-components']
 for mod_name in MOCK_MODULES:
-   sys.modules[mod_name] = mock.Mock()
+    sys.modules[mod_name] = mock.Mock()
 
 # -- Project information -----------------------------------------------------
 

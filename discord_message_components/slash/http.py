@@ -21,14 +21,14 @@ async def get_id(command_name, client: commands.bot, guild_id=MISSING):
 async def delete_global_commands(client: commands.Bot):
     commands = await client.http.request(BetterRoute("GET", f"/applications/{client.user.id}/commands"))
     for x in commands:
-       await delete_global_command(client, x["id"])
+        await delete_global_command(client, x["id"])
        
 async def delete_guild_commands(client: commands.Bot, guild_id):
     try:
         commands = await client.http.request(BetterRoute("GET", f"/applications/{client.user.id}/guilds/{guild_id}/commands"))
         for x in commands:
             await delete_guild_command(client, x["id"], guild_id)
-    except Forbidden as ex:
+    except Forbidden:
         print("got forbidden in", guild_id)
 
 async def delete_global_command(client: commands.Bot, command_id):

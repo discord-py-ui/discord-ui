@@ -276,7 +276,7 @@ class SelectMenu():
         """
         return SelectMenu("empty", [SelectOption("EMPTY", "EMPTY", "EMPTY")], 0, 0)
 
-    #region props
+    # region props
     @property
     def component_type(self) -> int:
         """
@@ -394,12 +394,12 @@ class SelectMenu():
         :type: :class:`str`
         """
         return self._json.get("hash")
-    #endregion
+    # endregion
 
     def to_dict(self) -> dict:
         return self._json
 
-#region Button
+# region Button
 class Button():
     """A discord-ui button
 
@@ -487,7 +487,7 @@ class Button():
     def to_dict(self):
         return self._json
 
-    #region props
+    # region props
     @property
     def component_type(self) -> int:
         """
@@ -618,7 +618,7 @@ class Button():
         :type: :class:`str`
         """
         return self._json.get('hash', None)
-    #endregion
+    # endregion
     
     @classmethod
     def _empty(cls):
@@ -715,7 +715,7 @@ class LinkButton():
     def to_dict(self):
         return self._json
 
-    #region props
+    # region props
     @property
     def component_type(self) -> int:
         """The message component type for this component
@@ -819,7 +819,7 @@ class LinkButton():
     @disabled.setter
     def disabled(self, val):
         self._json["disabled"] = val
-    #endregion
+    # endregion
 
     @classmethod
     def _empty(cls):
@@ -857,7 +857,7 @@ class Colors:
             return cls.green
         if s in ("red", "danger"):
             return cls.red
-#endregion
+# endregion
 
 
 class ActionRow():
@@ -880,7 +880,7 @@ class ActionRow():
         ActionRow([Button(...), Button(...)])
         ```
         """
-        self.items = [[x for x in i] for i in items] if all([type(i) is list for i in items]) else items
+        self.items = [[x for x in i] for i in items] if all(type(i) is list for i in items) else items
         """The componetns in the action row"""
         self.component_type = 1
         

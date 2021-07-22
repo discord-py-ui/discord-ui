@@ -68,7 +68,7 @@ def jsonifyMessage(content = MISSING, tts=False,
         payload["embeds"] = [em.to_dict() for em in embeds]
 
     if attachments is not MISSING:
-        if not all([type(x) is discord.Attachment for x in attachments]):
+        if not all(type(x) is discord.Attachment for x in attachments):
             raise TypeError("attachments must be of type List[discord.attachment], not " + str(type(attachments)))
         payload["attachments"] = [x.to_dict() for x in attachments]
 

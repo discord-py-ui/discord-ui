@@ -112,9 +112,9 @@ class SlashOption():
         return [SlashOption(x["type"], x["name"], x["description"], x.get("required", False), x.get("choices"), x.get("options")) for x in self._json.get("options")]
     @options.setter
     def options(self, options):
-        if type(options) is list and all([type(x) is SlashOption for x in options]):
+        if type(options) is list and all(type(x) is SlashOption for x in options):
             self._json["options"] = [x.to_dict() for x in options]
-        elif type(options) is list and all([type(x) is dict for x in options]):
+        elif type(options) is list and all(type(x) is dict for x in options):
             self._json["options"] = options
         else:
             raise InvalidArgument("'options' has to be of type List[dict] or List[dict], not " + str(type(options)))
@@ -309,7 +309,7 @@ class SlashCommand():
         
         self.guild_ids = guild_ids
 
-    #region command
+    # region command
     @property
     def name(self) -> str:
         """The name of the slash command
@@ -343,21 +343,21 @@ class SlashCommand():
         return self._json.get("options")
     @options.setter
     def options(self, options):
-        if all([type(x) is SlashOption for x in options]):
+        if all(type(x) is SlashOption for x in options):
             self._json["options"] = [x.to_dict() for x in options]
-        elif all([type(x) is dict for x in options]):
+        elif all(type(x) is dict for x in options):
             self._json["options"] = options
         else:
             raise InvalidArgument("options must be of type List[dict] or List[SlashOptions] not " + str(type(options)))
-    #endregion
-    #region permissions
+    # endregion
+    # region permissions
     @property
     def default_permission(self):
         return self._json["default_permission"]
     @default_permission.setter
     def default_permission(self, value):
         self._json["default_permission"] = value
-    #endregion
+    # endregion
 
     def to_dict(self):
         return self._json
@@ -375,6 +375,8 @@ class SlashCommand():
                 and o.description == self.description
                 and o.options == self.options
             )
+        else:
+            return False
 
 
 class SubSlashCommand(SlashCommand):

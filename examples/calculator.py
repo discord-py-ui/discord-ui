@@ -7,6 +7,7 @@
 #       If you want to test this, replace '785567635802816595' in guild_ids=[] with a guild id of 
 #       your choice, because guild slash commands are way faster than globals
 
+import ast
 import asyncio
 from discord.ext import commands
 from discord_message_components import SlashedCommand, Extension, Button
@@ -49,7 +50,7 @@ async def test(ctx: SlashedCommand):
             if btn.custom_id == "equ":
                 try:
                     # Execute the current calculation query
-                    query += "\n= " + str(eval(query))
+                    query += "\n= " + str(ast.literal_eval(query))
                 # When trying to divide by zero
                 except ZeroDivisionError:
                     # Indicate that an error appeared

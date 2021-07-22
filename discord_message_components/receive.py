@@ -333,7 +333,7 @@ class Message(discord.Message):
         
         self._update_components(data)
 
-    #region attributes
+    # region attributes
     @property
     def buttons(self):
         """The button components in the message
@@ -354,7 +354,7 @@ class Message(discord.Message):
             return [x for x in self.components if type(x) is SelectMenu]
         else:
             return []
-    #endregion
+    # endregion
 
     def _update_components(self, data):
         """Updates the message components"""
@@ -580,8 +580,8 @@ class Message(discord.Message):
 
 class EphemeralMessage():
     def __init__(self, _id = MISSING) -> None:
-       if _id is not MISSING:
-           self.id = _id
+        if _id is not MISSING:
+            self.id = _id
 
 class ResponseMessage(Interaction, Message):
     r"""A message Object which extends the `Message` Object optimized for an interaction component"""
