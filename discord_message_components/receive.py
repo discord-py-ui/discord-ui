@@ -14,7 +14,7 @@ import typing
 
 
 class Interaction():
-    def __init__(self, client, data, user = MISSING) -> None:
+    def __init__(self, client, data, user=MISSING) -> None:
         self._client = client
         self._state = client._get_state()
         self._application_id = client.user.id
@@ -61,7 +61,7 @@ class Interaction():
 
     async def respond(self, content=None, *, tts=False, embed=None, embeds=None, file=None, files=None, nonce=None,
     allowed_mentions=None, mention_author=None, components=None, delete_after=None, hidden=False,
-    ninja_mode = False) -> typing.Union['Message', 'EphemeralMessage']:
+    ninja_mode=False) -> typing.Union['Message', 'EphemeralMessage']:
         """Responds to the interaction
         
         Parameters
@@ -539,7 +539,7 @@ class Message(discord.Message):
     async def wait_for(self, event_name, timeout) -> PressedButton: ...
     @typing.overload
     async def wait_for(self, event_name, timeout) -> SelectedMenu: ...
-    async def wait_for(self, event_name, custom_id = MISSING, timeout = MISSING) -> typing.Union[PressedButton, SelectedMenu]:
+    async def wait_for(self, event_name, custom_id=MISSING, timeout=MISSING) -> typing.Union[PressedButton, SelectedMenu]:
         """Waits for a message component to be invoked in this message
 
         Parameters
@@ -579,7 +579,7 @@ class Message(discord.Message):
         raise InvalidArgument("Invalid event name, event must be 'button' or 'select', not " + str(event_name))
 
 class EphemeralMessage():
-    def __init__(self, _id = MISSING) -> None:
+    def __init__(self, _id=MISSING) -> None:
         if _id is not MISSING:
             self.id = _id
 

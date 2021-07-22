@@ -53,7 +53,7 @@ def get(l: list, elem: Any, mapping = lambda x: x, default: Any = None):
     -------
         :returns: The found element
         :type: :class:`Any`
-    
+
 
     Example:
     ```py
@@ -62,5 +62,6 @@ def get(l: list, elem: Any, mapping = lambda x: x, default: Any = None):
     ```
     """
     for x in l: 
-        if mapping(x) == elem: return x
+        if mapping(x) == elem: 
+            return x
     return default

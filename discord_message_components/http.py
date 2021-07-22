@@ -37,12 +37,12 @@ async def send_files(route, files, payload, http):
 
     r = await http.request(route, form=form, files=files)
 
-def jsonifyMessage(content = MISSING, tts=False,
-                embed: discord.Embed = MISSING, embeds: List[discord.Embed] = MISSING, attachments: List[discord.Attachment] = MISSING, nonce: int = MISSING,
-                allowed_mentions: discord.AllowedMentions = MISSING, reference: discord.MessageReference = MISSING, mention_author: bool = MISSING, components: list = MISSING, suppress: bool = MISSING, flags = MISSING):
+def jsonifyMessage(content=MISSING, tts=False,
+                embed: discord.Embed=MISSING, embeds: List[discord.Embed]=MISSING, attachments: List[discord.Attachment]=MISSING, nonce: int=MISSING,
+                allowed_mentions: discord.AllowedMentions=MISSING, reference: discord.MessageReference=MISSING, mention_author: bool=MISSING, components: list=MISSING, suppress: bool=MISSING, flags=MISSING):
     """Turns parameters from the `discord.TextChannel.send` function into json for requests"""
     
-    payload = { "tts": tts }
+    payload = {"tts": tts}
 
     if content is not MISSING:
         payload["content"] = str(content)
@@ -61,7 +61,7 @@ def jsonifyMessage(content = MISSING, tts=False,
     if embed is not MISSING:
         if type(embed) is not discord.Embed:
             raise TypeError("embed must be of type 'discord.Embed', not " + str(type(embed)))
-        payload["embeds"] = [ embed.to_dict() ]
+        payload["embeds"] = [embed.to_dict()]
     if embeds is not MISSING:
         if type(embeds) is not list:
             raise TypeError("embeds must be of type 'list', not " + str(type(embeds)))
@@ -126,4 +126,3 @@ def jsonifyMessage(content = MISSING, tts=False,
         payload["components"] = componentsList 
 
     return payload
-

@@ -9,6 +9,7 @@ def getReadme():
     with open("./README.md", "r", encoding="utf-8") as f:
         return f.read()
 
+
 setuptools.setup(
     name="discord-message-components",
     version=getVersion(),

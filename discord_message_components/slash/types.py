@@ -29,8 +29,8 @@ class SlashOption():
             options: :class:`~SlashOption`
                 This parameter is only for subcommands to work, you shouldn't need to use that, unless you know what you're doing 
         """
-    def __init__(self, argument_type, name, description = MISSING, required = False, choices = MISSING, options = MISSING) -> None:
-        self._json = { }
+    def __init__(self, argument_type, name, description=MISSING, required=False, choices=MISSING, options=MISSING) -> None:
+        self._json = {}
         self.argument_type = argument_type
         self.name = name
         self.description = description or name
@@ -97,9 +97,9 @@ class SlashOption():
         """Choices for string and int types for the user to pick from
         
         .. note::
-            
+    
             Choices are formated like this: ``[{"name": "name of the choice", "value": "the real value"}, ...]`` 
-        
+    
         :type: List[:class:`dict`]
         """
         return self._json.get("choices")
@@ -125,7 +125,7 @@ class SlashOption():
 
 class OptionTypes:
     """The list of possible slash command option types"""
-    
+
     SUB_COMMAND = 1
     SUB_COMMAND_GROUP = 2
     STRING = 3
@@ -191,7 +191,7 @@ class SlashPermission():
 
                 You can use ``SlashPermission.ROLE`` and ``SlashPermission.USER`` instead
         """
-    def __init__(self, allowed_ids: dict = MISSING, forbidden_ids = MISSING) -> None:
+    def __init__(self, allowed_ids: dict=MISSING, forbidden_ids=MISSING) -> None:
         """Creates a new permission
         
         Example
@@ -265,7 +265,7 @@ class SlashCommand():
 
 
     """
-    def __init__(self, callback, name, description = MISSING, options = MISSING, guild_ids = MISSING, default_permission = MISSING, guild_permissions = MISSING) -> None:
+    def __init__(self, callback, name, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
         """
         Creates a new base slash command
         
@@ -380,7 +380,7 @@ class SlashCommand():
 
 
 class SubSlashCommand(SlashCommand):
-    def __init__(self, callback, base_name, name, description = MISSING, options = MISSING, guild_ids = MISSING, default_permission = MISSING, guild_permissions = MISSING) -> None:
+    def __init__(self, callback, base_name, name, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
         SlashCommand.__init__(self, callback, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
         self.base_name = base_name.replace(" ", "-").lower()
 
@@ -389,7 +389,7 @@ class SubSlashCommand(SlashCommand):
         return SlashOption(OptionTypes.SUB_COMMAND, self.name, self.description, options=self.options).to_dict()
 
 class SubSlashCommandGroup(SlashCommand):
-    def __init__(self, callback, base_names, name, description = MISSING, options = MISSING, guild_ids = MISSING, default_permission = MISSING, guild_permissions = MISSING) -> None:
+    def __init__(self, callback, base_names, name, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
         if len(base_names) > 2:
             raise InvalidArgument("subcommand groups are currently limited to 2 bases")
         if any([len(x) > 32 or len(x) < 1 for x in base_names]):
@@ -399,4 +399,3 @@ class SubSlashCommandGroup(SlashCommand):
         
     def to_dict(self):
         return SlashOption(OptionTypes.SUB_COMMAND, self.name, self.description, options=self.options).to_dict()
-

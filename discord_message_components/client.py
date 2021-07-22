@@ -225,7 +225,7 @@ class Slash():
                     subs[i]["options"] = [subs[i + 1]]
 
                 if subs[0]["name"] not in [x["name"] for x in base.options]:
-                    base.options += [ subs[0] ]
+                    base.options += [subs[0]]
                 else:
                     b = base.options
                     b[get_index(b, subs[0]["name"], lambda x: x.get('name'))]["options"].append(subs[1])
@@ -332,7 +332,7 @@ class Slash():
         elif api_command != base:
             await edit_guild_command(api_command["id"], self._discord, target_guild, base.to_dict(), base.permissions.to_dict())
 
-    async def make_sub_command(self, base: SlashCommand, guild_id = MISSING):
+    async def make_sub_command(self, base: SlashCommand, guild_id=MISSING):
         """Creates a new sub command and edits it if the base already exsits
 
         Parameters
@@ -375,7 +375,7 @@ class Slash():
         print("nuked")
 
 
-    def slashcommand(self, name, description = MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
+    def slashcommand(self, name, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
         """A decorator for a slash command
         
         command in discord:
@@ -432,7 +432,7 @@ class Slash():
         def wrapper(callback):
             self.commands[name] = SlashCommand(callback, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
         return wrapper
-    def subcommand(self, base_name, name, description = MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
+    def subcommand(self, base_name, name, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
         """A decotator for a subcommand
         
         command in discord
@@ -481,7 +481,7 @@ class Slash():
 
             self.subcommands[base_name][name] = SubSlashCommand(callback, base_name, name, description, options=options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
         return wrapper
-    def subcommand_group(self, base_names, name, description = MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permission=MISSING):
+    def subcommand_group(self, base_names, name, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permission=MISSING):
         """A decorator for a subcommand group
         
         command in discord
@@ -618,8 +618,7 @@ class Components():
 
     async def send(self, channel, content=MISSING, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, 
             files=MISSING, delete_after=MISSING, nonce=MISSING, allowed_mentions=MISSING, reference=MISSING, 
-            mention_author=MISSING, components=MISSING
-        ) -> Message:
+            mention_author=MISSING, components=MISSING ) -> Message:
         """Sends a message to a textchannel
 
         Parameters
@@ -714,5 +713,6 @@ class Components():
         def wrapper(callback):
             if len([x for x in self._listening_components if x[1] == custom_id]) > 0:
                 raise Exception("custom_id " + str(custom_id) + " is already in use! Use another custom_id")
-            self._listening_components.append( (callback, custom_id) )
+            self._listening_components.append((callback, custom_id))
         return wrapper
+    

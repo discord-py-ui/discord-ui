@@ -44,7 +44,7 @@ class SelectOption():
         if description is not MISSING and len(description) > 50:
             raise InvalidArgument("description must be 50 or fewer in length (" + str(len(description)) + ")")
 
-        self._json = { }
+        self._json = {}
         
         self.label = label
         self.value = value
@@ -448,7 +448,7 @@ class Button():
         if type(disabled) is not bool:
             raise InvalidArgument("disabled must be of type bool") 
         if emoji is not MISSING and type(emoji) not in [Emoji, str, dict]:
-            raise InvalidArgument("emoji must be of type discord.Emoji or str, not "+ str(type(emoji)))
+            raise InvalidArgument("emoji must be of type discord.Emoji or str, not " + str(type(emoji)))
         if len(custom_id) > 100:
             raise InvalidArgument("custom_id maximum character limit (100) exceeded")
         if len(custom_id) < 1:
@@ -579,7 +579,7 @@ class Button():
     @emoji.setter
     def emoji(self, val: Union[Emoji, str]):
         if type(val) not in [Emoji, str]:
-            raise InvalidArgument("emoji msut be of type discord.Emoji or str, not "+ str(type(val)))
+            raise InvalidArgument("emoji msut be of type discord.Emoji or str, not " + str(type(val)))
         if type(val) is str:
             self._json["emoji"] = {
                 "id": None,

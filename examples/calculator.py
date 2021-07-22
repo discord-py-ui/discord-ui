@@ -38,7 +38,7 @@ async def test(ctx: SlashedCommand):
     global query
     # Send the calculato, \u200b is an 'empty' char
     msg = await ctx.send("```\n\u200b```", components=calculator)
-    
+
     # Infinite loop
     while True:
         try:
