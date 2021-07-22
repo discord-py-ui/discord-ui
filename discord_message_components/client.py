@@ -618,7 +618,7 @@ class Components():
 
     async def send(self, channel, content=MISSING, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, 
             files=MISSING, delete_after=MISSING, nonce=MISSING, allowed_mentions=MISSING, reference=MISSING, 
-            mention_author=MISSING, components=MISSING ) -> Message:
+            mention_author=MISSING, components=MISSING) -> Message:
         """Sends a message to a textchannel
 
         Parameters
