@@ -4,7 +4,7 @@
 #       This example will send a working calculator to the text channel with buttons
 #
 # Note:
-#       If you want to test this, replace '785567635802816595' in guild_ids=[] with a guild id of 
+#       If you want to test this, replace '785567635802816595' in guild_ids=[] with a guild id of
 #       your choice, because guild slash commands are way faster than globals
 
 import ast
@@ -21,17 +21,47 @@ extension = Extension(client)
 
 # A component list for the calculator
 calculator = [
-    [Button("num_7", "7", "blurple"), Button("num_8", "8", "blurple"), Button("num_9", "9", "blurple"), Button("plu", "+", "green"), Button("close", ")", "green")],
-    [Button("num_4", "4", "blurple"), Button("num_5", "5", "blurple"), Button("num_6", "6", "blurple"), Button("sub", "-", "green"), Button("open", "(", "green")],
-    [Button("num_1", "1", "blurple"), Button("num_2", "2", "blurple"), Button("num_3", "3", "blurple"), Button("mult", "*", "green"), Button("backs", "⌫", "red")],
-    [Button("pun", ".", "green"), Button("num_0", "0", "blurple"), Button("equ", "=", "gray"), Button("div", "/", "green"), Button("cls", "C", "red")],
-    LinkButton("https://github.com/KusoRedsto/discord-message-components/tree/main/examples/calculator.py", "ヾ(≧▽≦*) click here for source code ヾ(≧▽≦*)")
+    [
+        Button("num_7", "7", "blurple"),
+        Button("num_8", "8", "blurple"),
+        Button("num_9", "9", "blurple"),
+        Button("plu", "+", "green"),
+        Button("close", ")", "green"),
+    ],
+    [
+        Button("num_4", "4", "blurple"),
+        Button("num_5", "5", "blurple"),
+        Button("num_6", "6", "blurple"),
+        Button("sub", "-", "green"),
+        Button("open", "(", "green"),
+    ],
+    [
+        Button("num_1", "1", "blurple"),
+        Button("num_2", "2", "blurple"),
+        Button("num_3", "3", "blurple"),
+        Button("mult", "*", "green"),
+        Button("backs", "⌫", "red"),
+    ],
+    [
+        Button("pun", ".", "green"),
+        Button("num_0", "0", "blurple"),
+        Button("equ", "=", "gray"),
+        Button("div", "/", "green"),
+        Button("cls", "C", "red"),
+    ],
+    LinkButton(
+        "https://github.com/KusoRedsto/discord-message-components/tree/main/examples/calculator.py",
+        "ヾ(≧▽≦*) click here for source code ヾ(≧▽≦*)",
+    ),
 ]
 
 
-
 # Create a slash command
-@extension.slash.slashcommand(name="calculator", description="opens a calculator, that will automatically close when no input was provided after 20 seconds", guild_ids=["785567635802816595"])
+@extension.slash.slashcommand(
+    name="calculator",
+    description="opens a calculator, that will automatically close when no input was provided after 20 seconds",
+    guild_ids=["785567635802816595"],
+)
 async def test(ctx: SlashedCommand):
     # The current query for the calculator
     query = ""
@@ -68,7 +98,9 @@ async def test(ctx: SlashedCommand):
                 query += btn.label
 
             # Show the current query, if the query is empty, send the 'empty' character
-            await msg.edit(content="```python\n" + (query if query != "" else "\u200b") + "```")
+            await msg.edit(
+                content="```python\n" + (query if query != "" else "\u200b") + "```"
+            )
             # If the equal button was pessed
             if btn.custom_id == "equ":
                 # clear the query
@@ -79,6 +111,7 @@ async def test(ctx: SlashedCommand):
             await msg.delete()
             # Break out of the inifite loop
             break
+
 
 # Start the bot, replace 'bot_token_here' with your bot token
 client.run("bot_token_here")
