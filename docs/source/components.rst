@@ -1,9 +1,9 @@
 .. currentmodule:: discord_message_components
 
 
-Code-Docs
-===================
-Yes, here are the real docs
+====================
+Message-components
+====================
 
 
 Setup
@@ -14,10 +14,9 @@ Components
 
 .. autoclass:: Components
     :members:
-    :exclude-members: on_socket_response
 
 
-.. sourcecode::
+.. code-block::
 
     import discord
     from discord.ext import commands
@@ -41,13 +40,13 @@ Two parameters will be passed:
 *  :class:`~PressedButton`
 *  :class:`~ResponseMessage`
 
-.. sourcecode::
+.. code-block::
 
     @client.listen('on_button_press')
     def on_button(btn: PressedButton, msg: ResponseMessage):
         ...
 
-.. sourcecode::
+.. code-block::
 
     await client.wait_for('button_press', check=lambda btn, msg: ...)
 
@@ -62,13 +61,13 @@ Two parameters will be passed
 *  :class:`~SelectedMenu`
 *  :class:`~ResponseMessage`
 
-.. sourcecode::
+.. code-block::
 
     @client.listen('on_menu_select')
     def on_button(menu: SelectedMenu, msg: ResponseMessage):
         ...
 
-.. sourcecode::
+.. code-block::
 
     await client.wait_for('menu_select', check=lambda menu, message: ...)
 
@@ -114,15 +113,24 @@ SelectMenu
     :members:
     :exclude-members: to_dict
 
-SelectMenuOption
+
+SelectOption
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: SelectMenuOption
+.. autoclass:: SelectOption
     :members:
     :exclude-members: to_dict
 
+
+ActionRow
+~~~~~~~~~~
+
+.. autoclass:: ActionRow
+    :members:
+
 Interactions
 =================
+
 
 Message
 ~~~~~~~~~~~~~~~~~~~~~~

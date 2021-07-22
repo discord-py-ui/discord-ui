@@ -12,7 +12,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../discoord_message_components'))
+sys.path.insert(0, os.path.abspath('../..'))
 
 
 import mock
@@ -28,7 +28,7 @@ copyright = '2021, 404kuso, RedstoneZockt'
 author = '404kuso, RedstoneZockt'
 
 # The full version, including alpha/beta/rc tags
-release = '1.2.2'
+release = '2.0.0'
 
 
 # -- General configuration ---------------------------------------------------
