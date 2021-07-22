@@ -7,74 +7,98 @@ from .receive import Message
 from .http import jsonifyMessage, BetterRoute, send_files
 
 import sys
+
 module = sys.modules["discord"]
 
 
+async def send(
+    self: TextChannel,
+    content=None,
+    *,
+    tts=False,
+    embed=None,
+    embeds=None,
+    file=None,
+    files=None,
+    delete_after=None,
+    nonce=None,
+    allowed_mentions=None,
+    reference=None,
+    mention_author=None,
+    components=None,
+) -> Message:
+    """Sends a message to a textchannel
 
-async def send(self: TextChannel, content=None, *, tts=False, embed=None, embeds=None, file=None, 
-            files=None, delete_after=None, nonce=None, allowed_mentions=None, reference=None, 
-            mention_author=None, components=None) -> Message:
-        """Sends a message to a textchannel
+    Parameters
+    ----------
+    content: :class:`str`, optional
+        The message text content; default None
+    tts: :class:`bool`, optional
+        True if this is a text-to-speech message; default False
+    embed: :class:`discord.Embed`, optional
+        Embedded rich content; default None
+    embeds: List[:class:`discord.Embed`], optional
+        embedded rich content (up to 6000 characters); default None
+    file: :class:`discord.File`, optional
+        A file sent as an attachment to the message; default None
+    files: List[:class:`discord.File`], optional
+        A list of file attachments; default None
+    delete_after: :class:`float`, optional
+        After how many seconds the message should be deleted; default None
+    nonce: :class:`int`, optional
+        The nonce to use for sending this message. If the message was successfully sent, then the message will have a nonce with this value; default None
+    allowed_mentions: :class:`discord.AllowedMentions`, optional
+        A list of mentions proceeded in the message; default None
+    reference: :class:`discord.MessageReference` | :class:`discord.Message`, optional
+        A message to refer to (reply); default None
+    mention_author: :class:`bool`, optional
+        True if the author should be mentioned; default None
+    components: List[:class:`~Button` | :class:`~LinkButton` | :class:`~SelectMenu`], optional
+        A list of message components included in this message; default None
 
-        Parameters
-        ----------
-        content: :class:`str`, optional
-            The message text content; default None
-        tts: :class:`bool`, optional
-            True if this is a text-to-speech message; default False
-        embed: :class:`discord.Embed`, optional
-            Embedded rich content; default None
-        embeds: List[:class:`discord.Embed`], optional
-            embedded rich content (up to 6000 characters); default None
-        file: :class:`discord.File`, optional
-            A file sent as an attachment to the message; default None
-        files: List[:class:`discord.File`], optional
-            A list of file attachments; default None
-        delete_after: :class:`float`, optional
-            After how many seconds the message should be deleted; default None
-        nonce: :class:`int`, optional
-            The nonce to use for sending this message. If the message was successfully sent, then the message will have a nonce with this value; default None
-        allowed_mentions: :class:`discord.AllowedMentions`, optional
-            A list of mentions proceeded in the message; default None
-        reference: :class:`discord.MessageReference` | :class:`discord.Message`, optional
-            A message to refer to (reply); default None
-        mention_author: :class:`bool`, optional
-            True if the author should be mentioned; default None
-        components: List[:class:`~Button` | :class:`~LinkButton` | :class:`~SelectMenu`], optional
-            A list of message components included in this message; default None
+    Returns
+    -------
+    :return: Returns the sent message
+    :type: :class:`~Message`
 
-        Returns
-        -------
-        :return: Returns the sent message
-        :type: :class:`~Message`
+    Raises
+    ------
+    :raises: :class:`discord.InvalidArgument`: A passed argument was invalid
+    """
+    payload = jsonifyMessage(
+        content=content,
+        tts=tts,
+        embed=embed,
+        embeds=embeds,
+        nonce=nonce,
+        allowed_mentions=allowed_mentions,
+        reference=reference,
+        mention_author=mention_author,
+        components=components,
+    )
 
-        Raises
-        ------
-        :raises: :class:`discord.InvalidArgument`: A passed argument was invalid
-        """
-        payload = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference, mention_author=mention_author, components=components)
+    route = BetterRoute("POST", f"/channels/{self.id}/messages")
 
-        route = BetterRoute("POST", f"/channels/{self.id}/messages")
-        
-        r = None
-        if file is None and files is None:
-            r = await self._state.http.request(route, json=payload)
-        else:
-            r = await send_files(route, files=files or [file], payload=payload, http=self._state.http)
-        
-        msg = Message(state=self._state, channel=self, data=r)
-        if delete_after is not None:
-            await msg.delete(delay=delete_after)
-    
-        return msg
+    r = None
+    if file is None and files is None:
+        r = await self._state.http.request(route, json=payload)
+    else:
+        r = await send_files(
+            route, files=files or [file], payload=payload, http=self._state.http
+        )
+
+    msg = Message(state=self._state, channel=self, data=r)
+    if delete_after is not None:
+        await msg.delete(delay=delete_after)
+
+    return msg
+
 
 def message_overrride(cls, *args, **kwargs):
     if cls is discord.message.Message:
         return object.__new__(Message)
     else:
         return object.__new__(cls)
-
-
 
 
 module.abc.Messageable.send = send
@@ -154,11 +178,26 @@ class Overriden_Bot(commands.bot.Bot):
 
         .. versionadded:: 1.7
     """
-    def __init__(self, command_prefix, help_command = None, description = None, slash_settings = None, **options):
-        commands.bot.Bot.__init__(self, command_prefix, help_command=help_command, description=description, **options)
-        
+
+    def __init__(
+        self,
+        command_prefix,
+        help_command=None,
+        description=None,
+        slash_settings=None,
+        **options,
+    ):
+        commands.bot.Bot.__init__(
+            self,
+            command_prefix,
+            help_command=help_command,
+            description=description,
+            **options,
+        )
+
         self.slash = Slash(self, slash_settings)
         self.components = Components(self)
+
 
 def client_override(cls, *args, **kwargs):
     if cls is commands.bot.Bot:
@@ -166,17 +205,18 @@ def client_override(cls, *args, **kwargs):
     else:
         return object.__new__(cls)
 
+
 def override_client():
-    """Overrides the default :class:`discord.ext.commands.Bot` client with a custom one, 
+    """Overrides the default :class:`discord.ext.commands.Bot` client with a custom one,
     which automatically initalizes the :class:`~Slash` and :class:`~Component` classes and adds them
     to the client's attributes
 
     Without overriding
-    
+
     ```py
         from discord.ext import commands
         from discord_message_components import Extension
-        
+
         client = commands.Bot(...)
         extension = Extension(client)
     ```
@@ -187,7 +227,7 @@ def override_client():
 
         from discord.ext import commands
         from discord_message_components import override_client
-        
+
         override_client()
         client = commands.Bot(...)
     ```
