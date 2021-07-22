@@ -2,9 +2,10 @@ from typing import Any
 
 MISSING = None
 
-def get_index(l: list, elem: Any, mapping = lambda x: x, default: int = -1) -> int:
+
+def get_index(l: list, elem: Any, mapping=lambda x: x, default: int = -1) -> int:
     """Returns the index of an element in the list
-    
+
     Parameters
     ----------
         l: :class:`List`
@@ -20,7 +21,7 @@ def get_index(l: list, elem: Any, mapping = lambda x: x, default: int = -1) -> i
     -------
         :returns: The found element
         :type: :class:`Any`
-    
+
 
     Example:
     ```py
@@ -29,15 +30,16 @@ def get_index(l: list, elem: Any, mapping = lambda x: x, default: int = -1) -> i
     ```
     """
     i = 0
-    for x in l: 
-        if mapping(x) == elem: 
+    for x in l:
+        if mapping(x) == elem:
             return i
         i += 1
     return default
 
-def get(l: list, elem: Any, mapping = lambda x: x, default: Any = None):
+
+def get(l: list, elem: Any, mapping=lambda x: x, default: Any = None):
     """Gets a element from a list
-    
+
     Parameters
     ----------
         l: :class:`List`
@@ -53,7 +55,7 @@ def get(l: list, elem: Any, mapping = lambda x: x, default: Any = None):
     -------
         :returns: The found element
         :type: :class:`Any`
-    
+
 
     Example:
     ```py
@@ -61,6 +63,7 @@ def get(l: list, elem: Any, mapping = lambda x: x, default: Any = None):
     get(any_list, 4, lambda x: x[1])
     ```
     """
-    for x in l: 
-        if mapping(x) == elem: return x
+    for x in l:
+        if mapping(x) == elem:
+            return x
     return default
