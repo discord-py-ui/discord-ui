@@ -181,7 +181,7 @@ def override_client():
         extension = Extension(client)
     ```
 
-    With overridding
+    With overriding
 
     ```py
 

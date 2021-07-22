@@ -5,7 +5,21 @@ https://pypi.org/project/discord-message-components/
 
 This is a [discord.py](https://github.com/Rapptz/discord.py) message component extension made by [404kuso](https://github.com/404kuso) and [RedstoneZockt](https://github.com/RedstoneZockt), which you can use until discord.py v2.0 is out
 
-We also added override support for the `discord.ext.commands.Bot` client, so you don't have to initialize everything by your own
+We also added override support for the `discord.ext.commands.Bot` client, so you don't have to initialize everything on your own
+
+To override the standart Bot client, add the following to your code
+
+```py
+from discord.ext import commands
+from discord_message_components import override_client
+override_client()
+
+client = commands.Bot(...)
+```
+This will add `.components` and `.slash` to the client, and you don't need the 
+`extension = Extension(client)` thing anymore
+
+And the standart `TextChannel.send` function is automatically overridden 
 
 > We got some features for you like **send buttons**, **send select menus**, **receive a press or selection** and **edit messages** with buttons and selection menus and everything is compatible with discord.py
 
