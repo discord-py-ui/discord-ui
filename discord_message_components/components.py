@@ -1,10 +1,11 @@
+from .tools import MISSING
 
-from typing import Any, List
+from typing import Any, List, Union
 from discord import Emoji
-from discord_message_components.tools import MISSING
 from discord.errors import InvalidArgument
 
-class SelectMenuOption():
+
+class SelectOption():
     """
     An option for a select menu
     
@@ -25,11 +26,11 @@ class SelectMenuOption():
     """
     def __init__(self, label, value, description=MISSING, emoji=MISSING) -> None:
         """
-        Creates a new SelectMenuOption
+        Creates a new SelectOption
 
         Example:
         ```py
-        SelectMenuOption(label="This is a option", value="my_value", description="This is the description of the option")
+        SelectOption(label="This is a option", value="my_value", description="This is the description of the option")
         ```
         """
         if label is MISSING and emoji is MISSING:
@@ -43,26 +44,15 @@ class SelectMenuOption():
         if description is not MISSING and len(description) > 50:
             raise InvalidArgument("description must be 50 or fewer in length (" + str(len(description)) + ")")
 
-        self._json = {
-            "label": label,
-            "value": value,
-        }
+        self._json = { }
+        
+        self.label = label
+        self.value = value
         if description is not MISSING:
-            self._json["description"] = description
+            self.description = description
         if emoji is not MISSING:
-            if type(emoji) is str:
-                self._json["emoji"] = {
-                    "id": None,
-                    "name": emoji
-                }
-            elif type(emoji) is Emoji:
-                self._json["emoji"] = {
-                    "id": emoji.id,
-                    "name": emoji.name,
-                    "animated": emoji.animated
-                }
-            elif type(emoji) is dict:
-                self._json["emoji"] = emoji
+            self.emoji = emoji
+           
 
     @property
     def content(self) -> str:
@@ -136,30 +126,29 @@ class SelectMenuOption():
             return self._json["emoji"]["name"]
         return f'<{"a" if "animated" in self._json["emoji"] else ""}:{self._json["emoji"]["name"]}:{self._json["emoji"]["id"]}>'
     @emoji.setter
-    def emoji(self, val: Emoji or str):
+    def emoji(self, val: Union[Emoji, str]):
         """The emoji appearing before the label"""
-        if type(val) not in [Emoji, str]:
-            raise InvalidArgument("emoji msut be of type discord.Emoji or str, not "+ str(type(val)))
-        if type(val) is str:
+        if type(emoji) is str:
             self._json["emoji"] = {
                 "id": None,
-                "name": val
+                "name": emoji
             }
-        elif type(val) is Emoji:
+        elif type(emoji) is Emoji:
             self._json["emoji"] = {
-                "id": val.id,
-                "name": val.name,
-                "animated": val.animated
+                "id": emoji.id,
+                "name": emoji.name,
+                "animated": emoji.animated
             }
-    
+        elif type(emoji) is dict:
+            self._json["emoji"] = emoji
+
 
     def to_dict(self) -> dict:
-        """Turns the instance into a dict"""
         return self._json
 
     @classmethod
-    def _fromData(cls, data) -> "SelectMenuOption":
-        """Initializes a new SelectMenuOption from a dict
+    def _fromData(cls, data) -> "SelectOption":
+        """Initializes a new SelectOption from a dict
         
         Parameters
         ----------
@@ -167,37 +156,47 @@ class SelectMenuOption():
                 The data to initialize from
         Returns
         -------
-            :class:`~SelectMenuOption`
+            :class:`~SelectOption`
                 The new Option generated from the dict
         
         """
-        x = SelectMenuOption("EMPTY", "EMPTY")
+        x = SelectOption("EMPTY", "EMPTY")
         x._json = data
         return x
 
 class SelectMenu():
-    """A discord-ui select menu
+    """A select menu
 
     Parameters
     ----------
     custom_id: :class:`str`
         The custom_id for identifying the menu, max 100 characters
-    options: List[:class:`~SelectMenuOption`]
+    options: List[:class:`~SelectOption`]
         A list of optionns to select from
     min_values: :class:`int`, optional
-        The minimum number of items that must be chosen; default 1, min 0, max 25
+        The minimum number of items that must be chosen; default ``1``, min 0, max 25
     max_values: :class:`int`, optional
-        The maximum number of items that can be chosen; default 1, max 25
+        The maximum number of items that can be chosen; default ``1``, max 25
     placeholder: :class:`str`, optional
         A custom placeholder text if nothing is selected, max 100 characters; default MISSING
     default: :class:`int`, optional
         The position of the option that should be selected by default; default MISSING
+    disabled: :class:`bool`, optional
+        Whether the select menu should be disabled or not; default ``False``
 
     Raises
     ------
     :raises: :class:`discord.InvalidArgument`: A passed argument was invalid
     """
-    def __init__(self, custom_id, options, min_values = 1, max_values = 1, placeholder=MISSING, default=MISSING) -> None:
+    def __init__(self, custom_id, options, min_values = 1, max_values = 1, placeholder=MISSING, default=MISSING, disabled=False) -> None:
+        """
+        Creates a new ui select menu
+
+        Example:
+        ```py
+        SelectMenu(custom_id="my_id", options=[SelectOption(...)], min_values=2, placeholder="select something", default=0)
+        ```
+        """
         if type(custom_id) is not str:
             raise InvalidArgument("custom_id must be of type str, not " + str(type(custom_id)))
         if len(custom_id) > 100:
@@ -205,21 +204,22 @@ class SelectMenu():
         if len(custom_id) < 1:
             raise InvalidArgument("custom_id cannot be empty")
         self._json = {
-            "type": 3,
-            "custom_id": custom_id
+            "type": ComponentType.SELECT_MENU,
+            "custom_id": custom_id,
+            "disabled": disabled
         }
 
         if type(options) is list:
             if len(options) > 25 or len(options) == 0:
                 raise InvalidArgument("You need to specify at least 1 option and at most 25 (" + str(len(options)) + ")")
-            if len(options) != [x for x in options if type(x) is SelectMenuOption]:
+            if len(options) != [x for x in options if type(x) is SelectOption]:
                 self._json["options"] = [x.to_dict() for x in options]
             elif len(options) != [x for x in options if type(x) is dict]:
                 self._json["options"] = options
             else:
-                raise InvalidArgument("options must be of type SelectMenuOption or dict, not " + str(type(options[0])))
+                raise InvalidArgument("options must be of type SelectOption or dict, not " + str(type(options[0])))
         else:
-            raise InvalidArgument("options must be of type List[SelectMenuOption], not " + str(type(options)))
+            raise InvalidArgument("options must be of type List[SelectOption], not " + str(type(options)))
 
         if min_values is not MISSING and max_values is MISSING:
             if min_values < 0 or min_values > 25:
@@ -274,7 +274,7 @@ class SelectMenu():
             :class:`~SelectMenu`
                 An "empty" SelectMenu
         """
-        return SelectMenu("empty", [SelectMenuOption("EMPTY", "EMPTY", "EMPTY")], 0, 0)
+        return SelectMenu("empty", [SelectOption("EMPTY", "EMPTY", "EMPTY")], 0, 0)
 
     #region props
     @property
@@ -301,23 +301,23 @@ class SelectMenu():
         self._json["custom_id"] = value
 
     @property
-    def options(self) -> List[SelectMenuOption]:
+    def options(self) -> List[SelectOption]:
         """
         The choices in the select menu to select from
 
-        :type: List[:class:`~SelectMenuOption`]
+        :type: List[:class:`~SelectOption`]
         """
-        return [SelectMenuOption._fromData(x) for x in self._json["options"]]
+        return [SelectOption._fromData(x) for x in self._json["options"]]
     @options.setter
-    def options(self, value: List[SelectMenuOption]):
+    def options(self, value: List[SelectOption]):
         self._json["options"] = [x.to_dict() for x in value]
 
     @property
-    def default_option(self) -> SelectMenuOption or None:
+    def default_option(self) -> Union[SelectOption, None]:
         """
         The option selected by default
 
-        :type: :class:`~SelectMenuOption` | :class:`None`
+        :type: :class:`~SelectOption` | :class:`None`
         """
         x = [x for x in self.options if x.default]
         if len(x) == 1:
@@ -340,7 +340,7 @@ class SelectMenu():
         return self
     
     @property
-    def placeholder(self) -> str or None:
+    def placeholder(self) -> Union[str, None]:
         """
         Custom placeholder text if nothing is selected
 
@@ -376,6 +376,18 @@ class SelectMenu():
         self._json["max_values"] = value
     
     @property
+    def disabled(self) -> bool:
+        """
+        Whether the selectmenu is disabled or not
+
+        :type: :class:`bool`
+        """
+        return self._json.get('disabled', False)
+    @disabled.setter
+    def disabled(self, value):
+        self._json["disabled"] = value
+
+    @property
     def hash(self):
         """Hash for the selectmenu
 
@@ -399,6 +411,14 @@ class Button():
         Text that appears on the button, max 80 characters; default MISSING
     color: :class:`str` | :class:`int`, optional
         The color of the button; default "blurple"
+
+        .. tip:
+
+            You can either use a string for a color or an int. Color strings are: 
+            (`primary`, `blurple`), (`secondary`, `grey`), (`succes`, `green`) and (`danger`, `Red`)
+            
+            If you want to use integers, take a lot at the :class:`~Colors` class
+
     emoji: :class:`discord.Emoji` | :class:`str`, optional
         The emoji displayed before the text; default MISSING
     new_line: :class:`bool`, optional
@@ -442,7 +462,7 @@ class Button():
 
         self.new_line = new_line
         self._json = {
-            "type": 2,
+            "type": ComponentType.BUTTON,
             "custom_id": custom_id,
             "style": Colors.getColor(color),
             "disabled": bool(disabled),
@@ -465,7 +485,6 @@ class Button():
                 self._json["emoji"] = emoji
 
     def to_dict(self):
-        """Converts the button to a dict"""
         return self._json
 
     #region props
@@ -558,7 +577,7 @@ class Button():
             return self._json["emoji"]["name"]
         return f'<{"a" if "animated" in self._json["emoji"] else ""}:{self._json["emoji"]["name"]}:{self._json["emoji"]["id"]}>'
     @emoji.setter
-    def emoji(self, val: Emoji or str):
+    def emoji(self, val: Union[Emoji, str]):
         if type(val) not in [Emoji, str]:
             raise InvalidArgument("emoji msut be of type discord.Emoji or str, not "+ str(type(val)))
         if type(val) is str:
@@ -671,7 +690,7 @@ class LinkButton():
 
         self.new_line = new_line
         self._json = {
-            "type": 2,
+            "type": ComponentType.BUTTON,
             "url": url,
             "style": 5,
             "disabled": disabled
@@ -694,7 +713,6 @@ class LinkButton():
                 self._json["emoji"] = emoji
 
     def to_dict(self):
-        """Turns the button to a dict"""
         return self._json
 
     #region props
@@ -763,7 +781,7 @@ class LinkButton():
             return self._json["emoji"]["name"]
         return f'<{"a" if "animated" in self._json["emoji"] else ""}:{self._json["emoji"]["name"]}:{self._json["emoji"]["id"]}>'
     @emoji.setter
-    def emoji(self, val: Emoji or str):
+    def emoji(self, val: Union[Emoji, str]):
         if type(val) not in [Emoji, str]:
             raise InvalidArgument("emoji msut be of type discord.Emoji or str, not " + str(type(val)))
         if type(val) is str:
@@ -816,14 +834,6 @@ class LinkButton():
         return b
 
 
-class ComponentType:
-    """
-    A list of component types
-    """
-    actionrow = 1
-    button = 2
-    select = 3
-
 class Colors:
     """
     A list of button styles (colors) in message components
@@ -841,10 +851,63 @@ class Colors:
         s = s.lower()
         if s in ("blurple", "primary"):
             return cls.blurple
-        if s in ("grey", "secondary"):
+        if s in ("grey", "gray", "secondary"):
             return cls.grey
         if s in ("green", "succes"):
             return cls.green
         if s in ("red", "danger"):
             return cls.red
 #endregion
+
+
+class ActionRow():
+    """Alternative to setting ``new_line`` in a full component list or putting the components in a list 
+    
+    Only works for :class:`~Button` and :class:`~LinkButton`, because :class:`~SelectMenu` is always in a new line
+    
+    Parameters
+    ----------
+        disbaled: :class:`bool`, optional
+            Whether all components should be disabled; default False   
+    """
+    def __init__(self, *items, disbaled = False):
+        """Creates a new component list
+
+        Examples
+        ```py
+        ActionRow(Button(...), Button(...))
+        
+        ActionRow([Button(...), Button(...)])
+        ```
+        """
+        self.items = [[x for x in i] for i in items] if all([type(i) is list for i in items]) else items
+        """The componetns in the action row"""
+        self.component_type = 1
+        
+    def disable(self, disable=True) -> 'ActionRow':
+        for i in range(len(self.items)):
+            self.items[i].disabled = True
+        return self
+    def filter(self, check = lambda x: ...):
+        """Filters all components
+        
+        Parameters
+        ----------
+            check: :class:`lambda`
+                What condition has to be True that the component will pass the filter
+        Returns
+        -------
+            :returns: The filtered components
+            :type: List[:class:`~Button` | :class:`~LinkButton`]
+        
+        """
+        return [x for x in self.items if check(x)]
+
+
+class ComponentType:
+    """
+    A list of component types
+    """
+    ACTION_ROW = 1
+    BUTTON = 2
+    SELECT_MENU = 3

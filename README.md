@@ -29,6 +29,13 @@ You can read the docs [here](https://discord-message-components.readthedocs.io/)
 This project is under MIT License
 
 
+## Note
+
+If you want to use slash commands, in the oauth2 invite link generation, 
+you have to check both `bot` and `application.commands` fields
+
+![](./docs/source/images/slash/invite_scope.png)
+
 ## Example
 
 
@@ -40,42 +47,24 @@ from discord.ext import commands
 from discord_message_components import *
 
 client = commands.Bot(" ")
-client.components = Components(client)
+extension = Extension(client)
+
+@extension.slash.subcommand_group(base_names=["generate", "link"], name="button", description="sends a button and a linkbutton", options=[
+        SlashOption(str, "message content", "the content of the message"), 
+        SlashOption(str, "name", "the name of the button"), 
+        SlashOption(str, "link", "the link for the button"), 
+        SlashOption(str, "emoji", "a emoji appearing before the text")
+    ], guild_ids=["785567635802816595"])
+async def command(ctx, message_content="cool, right?", name="click me", link="https://github.com/KusoRedsto/discord-message-components", emoji=None):
+    if not link.startswith("http://") and not link.startswith("https://"):
+        return await ctx.respond("The link has to start with `http://` or `https://`", hidden=True)
+        
+    await ctx.respond(content=message_content, components=[LinkButton(link, label=name, emoji=emoji)])
+
 
 @client.listen("ready")
 async def on_ready():
     print("ready")
-
-@client.listen('on_message')
-async def on_message(message):
-    if message.content == "!btn":
-        await client.components.send(message.channel, "Ayo this is really cool, right?", components=[
-            Button(custom_id="yes", label="yes!", color="green", emoji="😁"), 
-            Button(custom_id="no", label="no", emoji="😐", new_line=True)]
-        )
-    elif message.content == "!sel":
-        await client.components.send(message.channel, "This is really cool too, right?", components=[
-            SelectMenu(custom_id="select_menus_cool", options=[
-                SelectMenuOption(label="yes", value=1, description="I think this is really cool"),
-                SelectMenuOption(label="no", value=2, description="Nah this is really boring"),
-                SelectMenuOption(label="i don't really know", value=3, emoji="😐")
-            ], max_values = 3, default=2)
-        ])
-    elif message.content == "!mix":
-        print("mix")
-        await client.components.send(message.channel, 
-            content="You can even mix things", 
-            embed=discord.Embed(description="nice!"), 
-            components=[
-                LinkButton("https://discord.com", "discord is really nice"),
-                SelectMenu(custom_id="custom_ids", options=[
-                    SelectMenuOption("yeess", 4),
-                    SelectMenuOption("hello_there", 5, "I really love it")
-                ], min_values=1, placeholder="I like everything"),
-                Button("again_a_custom_id", "niceu diceu"),
-                Button("cool", "lookin good", color="green", new_line=True),
-                Button("hehe", "here too", color="red")
-        ])
 
 @client.listen('on_button_press')
 async def on_button(btn: PressedButton, msg: ResponseMessage):
@@ -87,7 +76,21 @@ async def on_select(menu: SelectedMenu, msg: ResponseMessage):
 client.run(token)
 ```
 
+You can find more examples [here](./examples)
+
 # Changelog
+
+-   <details>
+    <summary>2.0.0</summary>
+    
+    ### **Added**
+    - Slashcomamnd support
+    - ``Message``
+        - disable_action_row(row_numbers: `int` | `range`, disable: `bool`)
+        - disable_components(disable: `bool`)
+        - set_edit
+
+    </details>
 
 -   <details>
     <summary>1.2.2</summary>
@@ -175,7 +178,7 @@ client.run(token)
         > respond() function is now async and needs to be awaited
 
     - `ResponseMessage.respond() -> None` => `ResponseMessage.respond() -> Message or None`
-        > respond() now returns the sent message or None if ninjaMode is true 
+        > respond() now returns the sent message or None if ninja_mode is true 
 
     </details>
 
@@ -195,3 +198,4 @@ You can contact us on discord
 
 - RedstoneZockt#2510
 - ! DaKuso#4214
+- [a shitty support server](https://discord.gg/pwUvz5PbrE)

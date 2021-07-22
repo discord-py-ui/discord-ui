@@ -1,6 +1,5 @@
 import os
 import setuptools
-from setuptools import version
 
 
 def getVersion():
