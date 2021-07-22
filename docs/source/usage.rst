@@ -67,7 +67,7 @@ And to send them, we use
 .. code-block::
 
     ...
-    await extension.components.send(message.channel, "Hello World", components=[
+    await message.channel.send(message.channel, "Hello World", components=[
         Button("my_custom_id", "press me", "green"),
         Button("my_other_custom_id", "or press me!", emoji="😁", new_line=True),
         SelectMenu("another_custom_id", options=[
@@ -174,7 +174,7 @@ You can send a message and directly wait for a button press and respond to it
     async def on_message(message):
         if message.content == "!test":
             btn = await (
-                await extension.components.send(message.channel, "hello", components=[
+                await message.channel.send(message.channel, "hello", components=[
                     Button("custom_id", "there")
                 ])
             ).wait_for("button")
@@ -193,7 +193,7 @@ And we got listening components with a function that will always be executed if 
     @client.listen
     async def on_message(message):
         if message.content == "!test":
-            await extension.components.send(message.channel, "listening", components=[
+            await message.channel.send(message.channel, "listening", components=[
                     Button("listening", "hi there"),
                     SelectMenu("listening", options=[SelectOption(label="This is a option", value="my_value", description="This is the description of the option")]
                 ]

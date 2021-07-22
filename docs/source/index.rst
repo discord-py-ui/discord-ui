@@ -33,7 +33,12 @@ We got some cool features for you like:
 
    and some more things
 
+.. important::
 
+   We added a function that overrides the normal `discord.ext.commands.Bot` client.
+   You can now acces the slash extension and the components extension via `client.slash` and `client.components`,
+   and for sending components, you can now use `message.channel.send`, this will use the custom 
+   method of our libary, instead of the discord.py method
 
 
 Installation

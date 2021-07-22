@@ -1,7 +1,7 @@
 from .tools import MISSING
 
 from typing import Any, List, Union
-from discord import Emoji
+from discord import Emoji, emoji
 from discord.errors import InvalidArgument
 
 

@@ -5,6 +5,8 @@ https://pypi.org/project/discord-message-components/
 
 This is a [discord.py](https://github.com/Rapptz/discord.py) message component extension made by [404kuso](https://github.com/404kuso) and [RedstoneZockt](https://github.com/RedstoneZockt), which you can use until discord.py v2.0 is out
 
+We also added override support for the `discord.ext.commands.Bot` client, so you don't have to initialize everything by your own
+
 > We got some features for you like **send buttons**, **send select menus**, **receive a press or selection** and **edit messages** with buttons and selection menus and everything is compatible with discord.py
 
 
@@ -62,9 +64,17 @@ async def command(ctx, message_content="cool, right?", name="click me", link="ht
     await ctx.respond(content=message_content, components=[LinkButton(link, label=name, emoji=emoji)])
 
 
-@client.listen("ready")
+@client.listen("on_ready")
 async def on_ready():
     print("ready")
+
+@client.listen("on_message"):
+async def on_message(message: Message):
+    if message.content = "!test":
+        await message.channel.send("hello", components=[
+                [Button("custom", "hello"), Button("custom_2", "world", "green")]
+                Button("custom", "yeahhh", "red")
+            ])
 
 @client.listen('on_button_press')
 async def on_button(btn: PressedButton, msg: ResponseMessage):

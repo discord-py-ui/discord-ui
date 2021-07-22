@@ -14,10 +14,8 @@ import typing
 
 
 class Interaction():
-    def __init__(self, client, data, user=MISSING) -> None:
-        self._client = client
-        self._state = client._get_state()
-        self._application_id = client.user.id
+    def __init__(self, state, data, user=MISSING) -> None:
+        self._state: ConnectionState = state
 
         self._deferred = False
         self._deferred_hidden = False
@@ -143,17 +141,17 @@ class Interaction():
                     "data": payload
                 })
         else:
-            route = BetterRoute("PATCH", f'/webhooks/{self._application_id}/{self.interaction["token"]}/messages/@original')
+            route = BetterRoute("PATCH", f'/webhooks/{self._state.application_id}/{self.interaction["token"]}/messages/@original')
             await self._state.http.request(route, json=payload)
         self._responded = True
 
         if file is not MISSING and files is not MISSING:
-            await send_files(route=BetterRoute("PATCH", f"/webhooks/{self._application_id}/{self.interaction['token']}/messages/@original"), 
+            await send_files(route=BetterRoute("PATCH", f"/webhooks/{self._state.application_id}/{self.interaction['token']}/messages/@original"), 
                 files=[file] if files is MISSING else files, payload=payload, http=self._state.http)
         
         if not hide_message:
-            responseMSG = await self._state.http.request(BetterRoute("GET", f"/webhooks/{self._application_id}/{self.interaction['token']}/messages/@original"))
-            msg = await getResponseMessage(self._client, data=responseMSG, response=False)
+            responseMSG = await self._state.http.request(BetterRoute("GET", f"/webhooks/{self._state.application_id}/{self.interaction['token']}/messages/@original"))
+            msg = await getResponseMessage(self._state, data=responseMSG, response=False)
             if delete_after is not MISSING:
                 await msg.delete(delete_after)
             return msg
@@ -207,17 +205,17 @@ class Interaction():
         if hidden:
             payload["flags"] = 64
 
-        route = BetterRoute("POST", f'/webhooks/{self._application_id}/{self.interaction["token"]}')
+        route = BetterRoute("POST", f'/webhooks/{self._state.application_id}/{self.interaction["token"]}')
         r = await self._state.http.request(route, json=payload)
 
         if file is not MISSING and files is not MISSING:
-            await send_files(route=BetterRoute("PATCH", f"/webhooks/{self._application_id}/{self.interaction['token']}/messages/@original"), 
+            await send_files(route=BetterRoute("PATCH", f"/webhooks/{self._state.application_id}/{self.interaction['token']}/messages/@original"), 
                 files=[file] if files is MISSING else files, payload=payload, http=self._state.http)
 
         if hidden:
             return EphemeralMessage()
 
-        return await getResponseMessage(self._client, r, response=False)
+        return await getResponseMessage(self._state, r, response=False)
 
 class EphemeralComponent(Interaction):
     """A component that will be received when a hidden response was sent"""
@@ -321,14 +319,14 @@ async def getResponseMessage(client: com.Bot, data, user=None, response = True):
             return EphemeralMessage(data["message"])
         return ResponseMessage(client=client, channel=channel, data=data, user=user)
 
-    return Message(client=client, channel=channel, data=data)
+    return Message(statee=client._get_state(), channel=channel, data=data)
 
 class Message(discord.Message):
     """A fixed :class:`discord.Message` optimized for components"""
-    def __init__(self, *, client, channel, data):
-        super().__init__(state=client._get_state(), channel=channel, data=data)
-
-        self.client = client
+    def __init__(self, *, state, channel, data):
+        self.__slots__ = discord.Message.__slots__ + ("components", "supressed")
+    
+        super().__init__(state=state, channel=channel, data=data)
         self.components: typing.List[typing.Union[Button, LinkButton, SelectMenu]] = []
         """The components in the message
         
@@ -587,11 +585,10 @@ class EphemeralMessage():
 
 class ResponseMessage(Interaction, Message):
     r"""A message Object which extends the `Message` Object optimized for an interaction component"""
-    def __init__(self, *, client, channel, data, user):
-        Interaction.__init__(self, client, data)
-        Message.__init__(self, client=client, channel=channel, data=data["message"])
+    def __init__(self, *, state, channel, data, user):
+        Interaction.__init__(self, state, data)
+        Message.__init__(self, state=state, channel=channel, data=data["message"])
 
-        self._application_id = client.user.id
         self.interaction_component = None
 
         if int(data["data"]["component_type"]) == 2:
