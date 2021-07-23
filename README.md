@@ -100,7 +100,7 @@ async def on_select(menu: SelectedMenu, msg: ResponseMessage):
 client.run(token)
 ```
 
-You can find more examples [here](./examples)
+You can find more examples [here](https://github.com/KusoRedsto/discord-message-components/tree/main/examples)
 
 # Changelog
 
