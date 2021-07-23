@@ -327,7 +327,8 @@ class Slash():
             if api_command is not None:
                 await delete_global_command(self._discord, api_command["id"])
             await create_guild_command(base.to_dict(), self._discord, target_guild, base.permissions.to_dict())
-        elif api_command != base:
+        else:
+        # elif api_command != base:
             await edit_guild_command(api_command["id"], self._discord, target_guild, base.to_dict(), base.permissions.to_dict())
 
     async def make_sub_command(self, base: SlashCommand, guild_id=MISSING):
