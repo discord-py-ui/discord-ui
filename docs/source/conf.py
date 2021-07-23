@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 import mock
 
-MOCK_MODULES = ['discord-message-components']
+MOCK_MODULES = ['discord-message-components', 'discord_message_components']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
 
@@ -28,7 +28,7 @@ copyright = '2021, 404kuso, RedstoneZockt'
 author = '404kuso, RedstoneZockt'
 
 # The full version, including alpha/beta/rc tags
-release = '2.0.0'
+release = '2.0.1'
 
 
 # -- General configuration ---------------------------------------------------
