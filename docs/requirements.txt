@@ -1,3 +1,2 @@
 mock
 discord.py
-discord_message_components==2.0.1
