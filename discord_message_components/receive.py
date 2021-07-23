@@ -1,7 +1,5 @@
 import asyncio
 from discord.state import ConnectionState
-from discord.types.interactions import InteractionApplicationCommandCallbackData
-from discord.webhook.async_ import WebhookMessage
 from .slash.types import SlashCommand, SubSlashCommand
 from .tools import MISSING
 from .http import BetterRoute, jsonifyMessage, send_files
