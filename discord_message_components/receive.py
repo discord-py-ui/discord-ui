@@ -156,7 +156,7 @@ class Interaction():
             return msg
 
     async def send(self,  content=None, *, tts=False, embed=None, embeds=None, file=None, files=None, nonce=None,
-    allowed_mentions=None, mention_author=None, components=None, hidden=False):
+    allowed_mentions=None, mention_author=None, components=None, hidden=False) -> typing.Union['Message', 'EphemeralMessage']:
         """Sends a message to the interaction using a webhook
         
         Parameters
