@@ -105,6 +105,16 @@ You can find more examples [here](https://github.com/KusoRedsto/discord-message-
 # Changelog
 
 -   <details>
+    <summary>2.0.2</summary>
+
+    ## **Fixed**
+
+    - SelectOption
+    > Select option threw an exception if it was smaller than 1 or higher than 100
+
+    </details>
+
+-   <details>
     <summary>2.0.0</summary>
     
     ### **Added**

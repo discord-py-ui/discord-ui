@@ -243,8 +243,6 @@ class SelectMenu():
             self._json["placeholder"] = placeholder
         
         if default is not MISSING:
-            if default < 1 or default > 100:
-                raise InvalidArgument("default character length needs to be between 1 and 100")
             self.set_default_option(default)
 
     def __str__(self) -> str:
