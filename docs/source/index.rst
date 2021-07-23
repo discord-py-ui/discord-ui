@@ -10,6 +10,7 @@ new message components, until discord.py v2.0 is out
 
 We added slash command support to, you can now use slashcommands together with buttons and selectmenus
 
+
 .. important::
 
    If you want to use slash commands, in the oauth2 invite link generation, 
@@ -29,7 +30,7 @@ We got some cool features for you like:
    *  Receiving them and respond to them, including message components
    *  Setting up permissions for slash commmands
    *  Deleting unused slash commands
-   *  Nuking all accesable commands
+   *  Nuking all accesable slash commands
 
    and some more things
 
@@ -57,7 +58,7 @@ To install this package, open your terminal or command line and type
 Examples
 ---------------------
 
-we have some examples `here <https://github.com/KusoRedsto/discord-message-components/tree/main//examples>`__
+we have some examples `here <https://github.com/KusoRedsto/discord-message-components/tree/main/examples>`__
 
 
 Docs
