@@ -332,6 +332,8 @@ class SelectMenu():
         ------
         :raises: :class:`discord.InvalidArgument`: A passed argument was invalid
         """
+        if type(position) is not int:
+            raise InvalidArgument("position has to be of type int, not " + str(type(position)))
         if position < 0 or position > len(self.options):
             raise InvalidArgument("default option position needs to be between 0 and " + str(len(self.options) - 1) + "(length of options)")
         self._json["options"][position]["default"] = True
