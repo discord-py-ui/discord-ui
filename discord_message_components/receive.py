@@ -588,7 +588,14 @@ class ResponseMessage(Interaction, Message):
 
 
 class EphemeralComponent(Interaction):
-    """A component that will be received when it was created in a hidden response"""
+    """Represents a component in a hidden message
+    
+    .. note::
+    
+        You will only get this class for components if you set a component on a hidden response in an interaction and the component was used
+    
+    This class only has the custom_id of the used component, the component type and values
+    """
     def __init__(self, application_id, state, user, data) -> None:
         Interaction.__init__(self, application_id, state, data, user)
         self.custom_id = data["data"]["custom_id"]
@@ -602,9 +609,15 @@ class EphemeralComponent(Interaction):
 
 
 class EphemeralMessage(Message):
-    """A hidden Message
+    """Represents a hidden (ephemeral) message
+    
+    .. note::
+        
+        You will get this class for a message only if you sent a hidden response
 
     This class is almost the same as the :class:`~Message` class, but you can't edit, delete or reply to the message
+    
+    If you want to "reply" to id, use the `interaction.send` method instead
     """
     def __init__(self, *, state, channel, data):
         if data.get("attachments") is None:

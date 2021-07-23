@@ -256,7 +256,7 @@ class Slash():
                     if commands["guilds"].get(_id) is None or commands["guilds"][_id].get(apic["name"]) is None:
                         await delete_guild_command(self._discord, apic["id"], _id)
 
-        print("synchronized slash commands")
+        # print("synchronized slash commands")
     
     async def _get_api_command(self, name) -> Union[dict, None]:
         for x in await self._get_commands():

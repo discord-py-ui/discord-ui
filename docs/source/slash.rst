@@ -33,3 +33,22 @@ SlashedCommand
 .. autoclass:: SlashedCommand()
     :members:
     :inherited-members:
+
+
+Ephemeral (hidden) classes
+---------------------------
+
+EphemeralComponent
+~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: EphemeralComponent()
+    :members:
+    :inherited-members:
+
+
+EphemeralMessage
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: EphemeralMessage()
+    :members:
+    :inherited-members:
