@@ -10,7 +10,7 @@ from discord.errors import HTTPException, InvalidArgument
 import typing
 
 
-class Interaction():
+class Interaction:
     def __init__(self, application_id, state, data, user=MISSING) -> None:
         self._application_id = application_id
         self._state: ConnectionState = state
@@ -25,46 +25,62 @@ class Interaction():
             
             :type: :class:`discord.Member`
             """
-        self.interaction = {
-            "token": data["token"],
-            "id": data["id"]
-        }
-
+        self.interaction = {"token": data["token"], "id": data["id"]}
 
     async def defer(self, hidden=False):
         """This will acknowledge the interaction. This will show the (*Bot* is thinking...) Dialog
 
         .. note::
-            
+
             This function should be used if the bot needs more than 15 seconds to respond
-        
+
         Parameters
         ----------
             hidden: :class:`bool`, optional
                 Whether the loading thing should be only visible to the user; default False.
-        
+
         """
         if self._deferred:
             raise Exception("interaction was already deferred")
         body = {"type": 5}
-        
+
         if hidden is True:
             body["data"] = {"flags": 64}
             self._deferred_hidden = True
-        
-        await self._state.http.request(BetterRoute("POST", f'/interactions/{self.interaction["id"]}/{self.interaction["token"]}/callback'), json=body)
+
+        await self._state.http.request(
+            BetterRoute(
+                "POST",
+                f'/interactions/{self.interaction["id"]}/{self.interaction["token"]}/callback',
+            ),
+            json=body,
+        )
         self._deferred = True
 
-    async def respond(self, content=None, *, tts=False, embed=None, embeds=None, file=None, files=None, nonce=None,
-    allowed_mentions=None, mention_author=None, components=None, delete_after=None, hidden=False,
-    ninja_mode=False) -> typing.Union['Message', 'EphemeralMessage']:
+    async def respond(
+        self,
+        content=None,
+        *,
+        tts=False,
+        embed=None,
+        embeds=None,
+        file=None,
+        files=None,
+        nonce=None,
+        allowed_mentions=None,
+        mention_author=None,
+        components=None,
+        delete_after=None,
+        hidden=False,
+        ninja_mode=False,
+    ) -> typing.Union["Message", "EphemeralMessage"]:
         """Responds to the interaction
-        
+
         Parameters
         ----------
         content: :class:`str`, optional
             The raw message content
-        tts: `bool` 
+        tts: `bool`
             Whether the message should be send with text-to-speech
         embed: :class:`discord.Embed`
             The embed for the message
@@ -85,85 +101,153 @@ class Interaction():
         delete_after: :class:`float`
             After how many seconds the message should be deleted, only works for non-hiddend messages; default MISSING
         hidden: :class:`bool`
-            Whether the response should be visible only to the user 
+            Whether the response should be visible only to the user
         ninja_mode: :class:`bool`
             If true, the client will respond to the button interaction with almost nothing and returns nothing
-        
+
         Returns
         -------
         :return: Returns the sent message
         :type: :class:`~Message` | :class:`EphemeralMessage`
 
             .. note::
-                
+
                 If the response is hidden, a EphemeralMessage will be returned, which is an empty class
 
         """
-        
+
         if ninja_mode:
             try:
-                await self._state.http.request(BetterRoute("POST", f'/interactions/{self.interaction["id"]}/{self.interaction["token"]}/callback'), json={
-                    "type": 6
-                })
+                await self._state.http.request(
+                    BetterRoute(
+                        "POST",
+                        f'/interactions/{self.interaction["id"]}/{self.interaction["token"]}/callback',
+                    ),
+                    json={"type": 6},
+                )
             except HTTPException as x:
                 if "value must be one of (4, 5)" in str(x).lower():
-                    print(x, "The 'ninja_mode' parameter is not supported for slash commands!")
+                    print(
+                        x,
+                        "The 'ninja_mode' parameter is not supported for slash commands!",
+                    )
                 else:
                     print(x)
             finally:
                 return
 
         if self._responded:
-            await self.send(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components, hidden=hidden)
+            await self.send(
+                content=content,
+                tts=tts,
+                embed=embed,
+                embeds=embeds,
+                nonce=nonce,
+                allowed_mentions=allowed_mentions,
+                mention_author=mention_author,
+                components=components,
+                hidden=hidden,
+            )
             return
 
-        
-        payload = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components)
-        
-        hide_message = self._deferred_hidden or not self._deferred and hidden 
+        payload = jsonifyMessage(
+            content=content,
+            tts=tts,
+            embed=embed,
+            embeds=embeds,
+            nonce=nonce,
+            allowed_mentions=allowed_mentions,
+            mention_author=mention_author,
+            components=components,
+        )
+
+        hide_message = self._deferred_hidden or not self._deferred and hidden
 
         if delete_after is not MISSING and hide_message is True:
-            raise InvalidArgument("Cannot delete hidden message (delete_after won't work)")
+            raise InvalidArgument(
+                "Cannot delete hidden message (delete_after won't work)"
+            )
 
         if hide_message:
             payload["flags"] = 64
 
-        if (file is not MISSING or files is not MISSING) and self._deferred is False or (hide_message is True and not self._deferred):
+        if (
+            (file is not MISSING or files is not MISSING)
+            and self._deferred is False
+            or (hide_message is True and not self._deferred)
+        ):
             await self.defer(hidden=hide_message)
-                
+
         if not self._deferred:
-            route = BetterRoute("POST", f'/interactions/{self.interaction["id"]}/{self.interaction["token"]}/callback')
-            await self._state.http.request(route, json={
-                    "type": 4,
-                    "data": payload
-                })
+            route = BetterRoute(
+                "POST",
+                f'/interactions/{self.interaction["id"]}/{self.interaction["token"]}/callback',
+            )
+            await self._state.http.request(route, json={"type": 4, "data": payload})
         else:
-            route = BetterRoute("PATCH", f'/webhooks/{self._application_id}/{self.interaction["token"]}/messages/@original')
+            route = BetterRoute(
+                "PATCH",
+                f'/webhooks/{self._application_id}/{self.interaction["token"]}/messages/@original',
+            )
             r = await self._state.http.request(route, json=payload)
             if hide_message:
                 self._responded = True
-                return EphemeralMessage(state=self._state, channel=self._state.get_channel(int(r["channel_id"])), data=r)
+                return EphemeralMessage(
+                    state=self._state,
+                    channel=self._state.get_channel(int(r["channel_id"])),
+                    data=r,
+                )
 
         if file is not MISSING and files is not MISSING:
-            await send_files(route=BetterRoute("PATCH", f"/webhooks/{self._application_id}/{self.interaction['token']}/messages/@original"), 
-                files=[file] if files is MISSING else files, payload=payload, http=self._state.http)
-        
+            await send_files(
+                route=BetterRoute(
+                    "PATCH",
+                    f"/webhooks/{self._application_id}/{self.interaction['token']}/messages/@original",
+                ),
+                files=[file] if files is MISSING else files,
+                payload=payload,
+                http=self._state.http,
+            )
+
         if not hide_message:
-            responseMSG = await self._state.http.request(BetterRoute("GET", f"/webhooks/{self._application_id}/{self.interaction['token']}/messages/@original"))
-            msg = await getResponseMessage(self._state, data=responseMSG, application_id=self._application_id, response=False)
+            responseMSG = await self._state.http.request(
+                BetterRoute(
+                    "GET",
+                    f"/webhooks/{self._application_id}/{self.interaction['token']}/messages/@original",
+                )
+            )
+            msg = await getResponseMessage(
+                self._state,
+                data=responseMSG,
+                application_id=self._application_id,
+                response=False,
+            )
             if delete_after is not MISSING:
                 await msg.delete(delete_after)
             return msg
 
-    async def send(self,  content=None, *, tts=False, embed=None, embeds=None, file=None, files=None, nonce=None,
-    allowed_mentions=None, mention_author=None, components=None, hidden=False) -> typing.Union['Message', 'EphemeralMessage']:
+    async def send(
+        self,
+        content=None,
+        *,
+        tts=False,
+        embed=None,
+        embeds=None,
+        file=None,
+        files=None,
+        nonce=None,
+        allowed_mentions=None,
+        mention_author=None,
+        components=None,
+        hidden=False,
+    ) -> typing.Union["Message", "EphemeralMessage"]:
         """Sends a message to the interaction using a webhook
-        
+
         Parameters
         ----------
         content: :class:`str`, optional
             The raw message content
-        tts: `bool` 
+        tts: `bool`
             Whether the message should be send with text-to-speech
         embed: :class:`discord.Embed`
             The embed for the message
@@ -182,10 +266,10 @@ class Interaction():
         components: List[:class:`~Button` | :class:`~LinkButton` | :class:`~SelectMenu`]
             A list of message components to be included
         hidden: :class:`bool`
-            Whether the response should be visible only to the user 
+            Whether the response should be visible only to the user
         ninja_mode: :class:`bool`
             If true, the client will respond to the button interaction with almost nothing and returns nothing
-        
+
         Returns
         -------
         :return: Returns the sent message
@@ -195,29 +279,61 @@ class Interaction():
                 If the response is hidden, a EphemeralMessage will be returned, which is an empty class
         """
         if self._responded is False:
-            return await self.respond(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components, hidden=hidden)
+            return await self.respond(
+                content=content,
+                tts=tts,
+                embed=embed,
+                embeds=embeds,
+                nonce=nonce,
+                allowed_mentions=allowed_mentions,
+                mention_author=mention_author,
+                components=components,
+                hidden=hidden,
+            )
 
-        payload = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components)
-        
+        payload = jsonifyMessage(
+            content=content,
+            tts=tts,
+            embed=embed,
+            embeds=embeds,
+            nonce=nonce,
+            allowed_mentions=allowed_mentions,
+            mention_author=mention_author,
+            components=components,
+        )
+
         if hidden:
             payload["flags"] = 64
 
-        route = BetterRoute("POST", f'/webhooks/{self._application_id}/{self.interaction["token"]}')
+        route = BetterRoute(
+            "POST", f'/webhooks/{self._application_id}/{self.interaction["token"]}'
+        )
         r = await self._state.http.request(route, json=payload)
 
         if file is not MISSING and files is not MISSING:
-            await send_files(route=BetterRoute("PATCH", f"/webhooks/{self._application_id}/{self.interaction['token']}/messages/@original"), 
-                files=[file] if files is MISSING else files, payload=payload, http=self._state.http)
+            await send_files(
+                route=BetterRoute(
+                    "PATCH",
+                    f"/webhooks/{self._application_id}/{self.interaction['token']}/messages/@original",
+                ),
+                files=[file] if files is MISSING else files,
+                payload=payload,
+                http=self._state.http,
+            )
 
         if hidden:
-            return EphemeralMessage(state=self._state, channel=self._state.get_channel(int(r["channel_id"])), data=r)
+            return EphemeralMessage(
+                state=self._state,
+                channel=self._state.get_channel(int(r["channel_id"])),
+                data=r,
+            )
 
         return await getResponseMessage(self._state, r, response=False)
 
-        
 
 class SelectedMenu(Interaction, SelectMenu):
     """A :class:`~SelectMenu` object in which an item was selected"""
+
     def __init__(self, data, application_id, user, s, state) -> None:
         Interaction.__init__(self, application_id, state, data)
         SelectMenu.__init__(self, "EMPTY", [SelectOption("EMPTY", "EMPTY")], 0, 0)
@@ -227,7 +343,7 @@ class SelectedMenu(Interaction, SelectMenu):
         
         :type: :class:`~SelectOption`
         """
-        
+
         for val in data["data"]["values"]:
             for x in self.options:
                 if x.value == val:
@@ -236,8 +352,10 @@ class SelectedMenu(Interaction, SelectMenu):
         self.member: discord.Member = user
         """The member who selected the value"""
 
+
 class PressedButton(Interaction, Button):
     """A :class:`~Button` object that was pressed"""
+
     def __init__(self, data, application_id, user, b, state) -> None:
         Interaction.__init__(self, application_id, state, data)
         Button.__init__(self, "empty", "empty")
@@ -255,9 +373,13 @@ class PressedButton(Interaction, Button):
         self.member: discord.Member = user
         """The user who pressed the button"""
 
+
 class SlashedCommand(Interaction, SlashCommand):
     """A :class:`~SlashCommand` object that was used"""
-    def __init__(self, client, command: SlashCommand, data, user, channel, guild_ids = None) -> None:
+
+    def __init__(
+        self, client, command: SlashCommand, data, user, channel, guild_ids=None
+    ) -> None:
         Interaction.__init__(self, client.user.id, client._connection, data, user)
         SlashCommand.__init__(self, None, "EMPTY", guild_ids)
         self._json = command.to_dict()
@@ -266,14 +388,20 @@ class SlashedCommand(Interaction, SlashCommand):
         self.channel: discord.TextChannel = channel
         """The channel where the slash command was used"""
 
+
 class SlashedSubCommand(SlashedCommand, SubSlashCommand):
     """A Sub-:class:`~SlashCommand` command that was used"""
+
     def __init__(self, client, command, data, user, channel, guild_ids) -> None:
-        SlashedCommand.__init__(self, client, command, data, user, channel, guild_ids=guild_ids)
+        SlashedCommand.__init__(
+            self, client, command, data, user, channel, guild_ids=guild_ids
+        )
         SubSlashCommand.__init__(self, None, "EMPTY", "EMPTY")
 
 
-async def getResponseMessage(state: ConnectionState, data, application_id = None, user=None, response = True):
+async def getResponseMessage(
+    state: ConnectionState, data, application_id=None, user=None, response=True
+):
     """
     Async function to get the response message
 
@@ -301,15 +429,23 @@ async def getResponseMessage(state: ConnectionState, data, application_id = None
     if response and user:
         if data["message"]["flags"] == 64:
             return EphemeralMessage(state=state, channel=channel, data=data["message"])
-        return ResponseMessage(state=state, application_id=application_id, channel=channel, data=data, user=user)
+        return ResponseMessage(
+            state=state,
+            application_id=application_id,
+            channel=channel,
+            data=data,
+            user=user,
+        )
 
     return Message(state=state, channel=channel, data=data)
 
+
 class Message(discord.Message):
     """A fixed :class:`discord.Message` optimized for components"""
+
     def __init__(self, *, state, channel, data):
         self.__slots__ = discord.Message.__slots__ + ("components", "supressed")
-    
+
         super().__init__(state=state, channel=channel, data=data)
         self.components: typing.List[typing.Union[Button, LinkButton, SelectMenu]] = []
         """The components in the message
@@ -317,19 +453,20 @@ class Message(discord.Message):
         :type: List[]:class:`~Button` | :class:`~LinkButton` | :class:`SelectMenu`]
         """
         self.suppressed = False
-        
+
         self._update_components(data)
 
     # region attributes
     @property
     def buttons(self):
         """The button components in the message
-        
+
         :type: List[:class:`~Button` | :class:`~LinkButton`]
         """
         if hasattr(self, "components") and self.components is not None:
             return [x for x in self.components if type(x) in [Button, LinkButton]]
         return []
+
     @property
     def select_menus(self):
         """The select menus components in the message
@@ -339,6 +476,7 @@ class Message(discord.Message):
         if hasattr(self, "components") and self.components is not None:
             return [x for x in self.components if type(x) is SelectMenu]
         return []
+
     # endregion
 
     def _update_components(self, data):
@@ -355,18 +493,20 @@ class Message(discord.Message):
                     if com["type"] == 2:
                         self.components.append(
                             Button._fromData(com, index == 0)
-                                if "url" not in com else 
-                            LinkButton._fromData(com, index == 0)
+                            if "url" not in com
+                            else LinkButton._fromData(com, index == 0)
                         )
                     elif com["type"] == 3:
-                        self.components.append(
-                            SelectMenu._fromData(com)
-                        )
+                        self.components.append(SelectMenu._fromData(com))
         elif len(data["components"][0]["components"]) > 1:
             # All inline
             for index, com in enumerate(data["components"][0]["components"]):
                 if com["type"] == 2:
-                    self.components.append(Button._fromData(com, index == 0) if "url" not in com else LinkButton._fromData(com, index == 0))
+                    self.components.append(
+                        Button._fromData(com, index == 0)
+                        if "url" not in com
+                        else LinkButton._fromData(com, index == 0)
+                    )
                 elif com["type"] == 3:
                     self.components.append(SelectedMenu._fromData(com))
         else:
@@ -375,7 +515,11 @@ class Message(discord.Message):
             component = data["components"][0]["components"][0]
 
             if component_type == 2:
-                self.components.append(Button._fromData(component) if "url" not in component else LinkButton._fromData(component))
+                self.components.append(
+                    Button._fromData(component)
+                    if "url" not in component
+                    else LinkButton._fromData(component)
+                )
             elif component_type == 3:
                 self.components.append(SelectedMenu._fromData(component))
             else:
@@ -385,7 +529,18 @@ class Message(discord.Message):
         super()._update(data)
         self._update_components(data)
 
-    async def edit(self, *, content=MISSING, embed=MISSING, embeds=MISSING, attachments=MISSING, suppress=MISSING, delete_after=MISSING, allowed_mentions=MISSING, components=MISSING):
+    async def edit(
+        self,
+        *,
+        content=MISSING,
+        embed=MISSING,
+        embeds=MISSING,
+        attachments=MISSING,
+        suppress=MISSING,
+        delete_after=MISSING,
+        allowed_mentions=MISSING,
+        components=MISSING,
+    ):
         """Edits the message and updates its properties
 
         .. note::
@@ -411,7 +566,16 @@ class Message(discord.Message):
         components: List[:class:`~Button` | :class:`~LinkButton` | :class:`~SelectMenu`]
             A list of components to be included the message
         """
-        payload = jsonifyMessage(content, embed=embed, embeds=embeds, allowed_mentions=allowed_mentions, attachments=attachments, suppress=suppress, flags=self.flags.value, components=components)
+        payload = jsonifyMessage(
+            content,
+            embed=embed,
+            embeds=embeds,
+            allowed_mentions=allowed_mentions,
+            attachments=attachments,
+            suppress=suppress,
+            flags=self.flags.value,
+            components=components,
+        )
         if suppress:
             self.suppressed = suppress
         data = await self._state.http.edit_message(self.channel.id, self.id, **payload)
@@ -420,9 +584,20 @@ class Message(discord.Message):
         if delete_after is not MISSING:
             await self.delete(delay=delete_after)
 
-    async def set_edit(self, *, content=MISSING, embed=MISSING, embeds=MISSING, attachments=MISSING, suppress=MISSING, delete_after=MISSING, allowed_mentions=MISSING, components=MISSING):
+    async def set_edit(
+        self,
+        *,
+        content=MISSING,
+        embed=MISSING,
+        embeds=MISSING,
+        attachments=MISSING,
+        suppress=MISSING,
+        delete_after=MISSING,
+        allowed_mentions=MISSING,
+        components=MISSING,
+    ):
         """Sets passed components to their value and leaves the rest like they were
-        
+
         Parameters
         ----------
             content: :class:`str`, optional
@@ -439,13 +614,22 @@ class Message(discord.Message):
                 The allowed mentions in the message to set; default MISSING
             components: List[:class:`Button` | :class:`LinkButton` | :class:`SelectMenu`], optional
                 The new components in the message; default MISSING
-        
-        """
-        await self.edit(content=content or self.content, embed=embed, embeds=embeds or self.embeds, attachmenets=attachments or self.attachments, suppress=suppress or self.suppressed, delete_after=delete_after, allowed_mentions=allowed_mentions, components=components or self.components)
 
-    async def disable_action_row(self, row, disable = True):
+        """
+        await self.edit(
+            content=content or self.content,
+            embed=embed,
+            embeds=embeds or self.embeds,
+            attachmenets=attachments or self.attachments,
+            suppress=suppress or self.suppressed,
+            delete_after=delete_after,
+            allowed_mentions=allowed_mentions,
+            components=components or self.components,
+        )
+
+    async def disable_action_row(self, row, disable=True):
         """Disables an action row of components in the message
-        
+
         Parameters
         ----------
             row: :class:`int` |  :class:`range`
@@ -456,15 +640,18 @@ class Message(discord.Message):
 
         Raises
         ------
-            :raises: :class:`InvalidArgument` : The specified range was out of the possible range of the component rows 
-            :raises: :class:`InvalidArgument` : The specified row was out of the possible range of the component rows 
-        
+            :raises: :class:`InvalidArgument` : The specified range was out of the possible range of the component rows
+            :raises: :class:`InvalidArgument` : The specified row was out of the possible range of the component rows
+
         """
         comps = []
         if type(row) is range:
             for i, _ in enumerate(self.action_rows):
                 if i > len(self.action_rows) - 1 or i < 0:
-                    raise InvalidArgument("the specified range is invalid! It has to be between 0 and " + str(len(self.action_rows) - 1))
+                    raise InvalidArgument(
+                        "the specified range is invalid! It has to be between 0 and "
+                        + str(len(self.action_rows) - 1)
+                    )
                 for comp in self.action_rows[i]:
                     if i in row:
                         comp.disabled = disable
@@ -472,21 +659,24 @@ class Message(discord.Message):
         else:
             for i, _ in enumerate(self.action_rows):
                 if i > len(self.action_rows) - 1 or i < 0:
-                    raise InvalidArgument("the specified row is invalid! It has to be between 0 and " + str(len(self.action_rows) - 1))
+                    raise InvalidArgument(
+                        "the specified row is invalid! It has to be between 0 and "
+                        + str(len(self.action_rows) - 1)
+                    )
                 for comp in self.action_rows[i]:
                     if i == row:
                         comp.disabled = disable
                     comps.append(comp)
         await self.set_edit(components=comps)
 
-    async def disable_components(self, disable = True):
+    async def disable_components(self, disable=True):
         """Disables all component in the message
-        
+
         Parameters
         ----------
             disable: :class:`bool`, optional
                 Whether to disable (``True``) or enable (``False``) als components; default True
-        
+
         """
         fixed = []
         for x in self.components:
@@ -500,33 +690,49 @@ class Message(discord.Message):
 
         :type: List[:class:`~Button` | :class:`LinkButton` | :class:`SelectMenu`]
         """
-        rows: typing.List[typing.List[typing.Union[Button, LinkButton, SelectMenu]]] = []
+        rows: typing.List[
+            typing.List[typing.Union[Button, LinkButton, SelectMenu]]
+        ] = []
 
         c_row = []
         i = 0
         for x in self.components:
-            if getattr(x, 'new_line', True) == True and i > 0:
+            if getattr(x, "new_line", True) == True and i > 0:
                 rows.append(ActionRow(c_row))
                 c_row = []
             c_row.append(x)
             i += 1
         if len(c_row) > 0:
-            rows.append(c_row) 
+            rows.append(c_row)
         return rows
 
     @typing.overload
-    async def wait_for(self, client, event_name="button") -> PressedButton: ...
-    @typing.overload 
-    async def wait_for(self, client, event_name="select") -> SelectedMenu: ...
+    async def wait_for(self, client, event_name="button") -> PressedButton:
+        ...
+
     @typing.overload
-    async def wait_for(self, client, event_name, custom_id) -> PressedButton: ...
+    async def wait_for(self, client, event_name="select") -> SelectedMenu:
+        ...
+
     @typing.overload
-    async def wait_for(self, client, event_name, custom_id) -> SelectedMenu: ...
+    async def wait_for(self, client, event_name, custom_id) -> PressedButton:
+        ...
+
     @typing.overload
-    async def wait_for(self, client, event_name, timeout) -> PressedButton: ...
+    async def wait_for(self, client, event_name, custom_id) -> SelectedMenu:
+        ...
+
     @typing.overload
-    async def wait_for(self, client, event_name, timeout) -> SelectedMenu: ...
-    async def wait_for(self, client, event_name, custom_id=MISSING, timeout=MISSING) -> typing.Union[PressedButton, SelectedMenu]:
+    async def wait_for(self, client, event_name, timeout) -> PressedButton:
+        ...
+
+    @typing.overload
+    async def wait_for(self, client, event_name, timeout) -> SelectedMenu:
+        ...
+
+    async def wait_for(
+        self, client, event_name, custom_id=MISSING, timeout=MISSING
+    ) -> typing.Union[PressedButton, SelectedMenu]:
         """Waits for a message component to be invoked in this message
 
         Parameters
@@ -534,22 +740,22 @@ class Message(discord.Message):
         client: :class:`discord.ext.commands.Bot`
             The discord client
         event_name: :class:`str`
-            The name of the event which will be awaited [``"select"`` | ``"button"``] 
+            The name of the event which will be awaited [``"select"`` | ``"button"``]
 
             .. note::
 
                 The event_name must be ``select`` for a select menu selection and ``button`` for a button press
-        
+
         custom_id: :class:`str`
             Filters the waiting for a custom_id
-        
+
         timeout: :class:`float`
-            After how many seconds the waiting should be canceled. 
+            After how many seconds the waiting should be canceled.
             Throws an :class:`asyncio.TimeoutError` Exception
 
         Raises
         ------
-            :raises: :class:`InvalidArgument` : The event name passed was invalid 
+            :raises: :class:`InvalidArgument` : The event name passed was invalid
 
         Returns
         ----------
@@ -557,19 +763,30 @@ class Message(discord.Message):
         :type: :class:`~PressedButton` | :class:`~SelectedMenu`
         """
         if event_name.lower() in ["button", "select"]:
+
             def check(btn, msg):
                 if msg.id == self.id:
                     if custom_id is not MISSING and btn.custom_id == custom_id:
                         return True
                     return True
 
-            return (await client.wait_for('button_press' if event_name.lower() == "button" else "menu_select", check=check, timeout=timeout))[0]
-        
-        raise InvalidArgument("Invalid event name, event must be 'button' or 'select', not " + str(event_name))
+            return (
+                await client.wait_for(
+                    "button_press" if event_name.lower() == "button" else "menu_select",
+                    check=check,
+                    timeout=timeout,
+                )
+            )[0]
+
+        raise InvalidArgument(
+            "Invalid event name, event must be 'button' or 'select', not "
+            + str(event_name)
+        )
 
 
 class ResponseMessage(Interaction, Message):
     r"""A message Object which extends the `Message` Object optimized for an interaction component"""
+
     def __init__(self, *, state, application_id, channel, data, user):
         Interaction.__init__(self, application_id, state, data)
         Message.__init__(self, state=state, channel=channel, data=data["message"])
@@ -578,47 +795,54 @@ class ResponseMessage(Interaction, Message):
 
         if int(data["data"]["component_type"]) == 2:
             for x in self.buttons:
-                if hasattr(x, 'custom_id') and x.custom_id == data["data"]["custom_id"]:
-                    self.interaction_component = PressedButton(data, self._application_id, user, x, self._state)
+                if hasattr(x, "custom_id") and x.custom_id == data["data"]["custom_id"]:
+                    self.interaction_component = PressedButton(
+                        data, self._application_id, user, x, self._state
+                    )
         elif int(data["data"]["component_type"]) == 3:
             for x in self.select_menus:
                 if x.custom_id == data["data"]["custom_id"]:
-                    self.interaction_component = SelectedMenu(data, self._application_id, user, x, self._state)
-
+                    self.interaction_component = SelectedMenu(
+                        data, self._application_id, user, x, self._state
+                    )
 
 
 class EphemeralComponent(Interaction):
     """Represents a component in a hidden message
-    
+
     .. note::
-    
+
         You will only get this class for components if you set a component on a hidden response in an interaction and the component was used
-    
+
     This class only has the custom_id of the used component, the component type and values
     """
+
     def __init__(self, application_id, state, user, data) -> None:
         Interaction.__init__(self, application_id, state, data, user)
         self.custom_id = data["data"]["custom_id"]
         self.component_type = data["data"]["component_type"]
         if self.component_type == 3:
-            class EphemeralValue():
+
+            class EphemeralValue:
                 def __init__(self, value) -> None:
                     self.name = None
                     self.value = value
+
             self.values = [EphemeralValue(x) for x in data["data"]["values"]]
 
 
 class EphemeralMessage(Message):
     """Represents a hidden (ephemeral) message
-    
+
     .. note::
-        
+
         You will get this class for a message only if you sent a hidden response
 
     This class is almost the same as the :class:`~Message` class, but you can't edit, delete or reply to the message
-    
+
     If you want to "reply" to id, use the `interaction.send` method instead
     """
+
     def __init__(self, *, state, channel, data):
         if data.get("attachments") is None:
             data["attachments"] = []
@@ -637,10 +861,14 @@ class EphemeralMessage(Message):
         if data.get("content") is None:
             data["content"] = None
         super().__init__(state=state, channel=channel, data=data)
+
     async def edit(self, **kwargs):
         raise Exception("Cannot edit ephemeral message")
+
     async def delete(self, *, delay):
         raise Exception("Cannot delete ephemeral message")
+
     async def respond(self, **kwargs):
-        raise Exception("Cannot reply to ephemeral message. Instead, use the '.send' function of the interaction")
-    
+        raise Exception(
+            "Cannot reply to ephemeral message. Instead, use the '.send' function of the interaction"
+        )
