@@ -1,6 +1,5 @@
 from .client import Components, Slash
 import discord
-from discord import TextChannel
 from discord.ext import commands
 
 from .receive import Message
@@ -10,8 +9,7 @@ import sys
 module = sys.modules["discord"]
 
 
-
-async def send(self: TextChannel, content=None, *, tts=False, embed=None, embeds=None, file=None, 
+async def send(self: discord.TextChannel, content=None, *, tts=False, embed=None, embeds=None, file=None, 
             files=None, delete_after=None, nonce=None, allowed_mentions=None, reference=None, 
             mention_author=None, components=None) -> Message:
         """Sends a message to a textchannel

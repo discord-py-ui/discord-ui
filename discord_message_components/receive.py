@@ -1,7 +1,4 @@
-import asyncio
 from discord.state import ConnectionState
-from discord.types.interactions import InteractionApplicationCommandCallbackData
-from discord.webhook.async_ import WebhookMessage
 from .slash.types import SlashCommand, SubSlashCommand
 from .tools import MISSING
 from .http import BetterRoute, jsonifyMessage, send_files
@@ -14,7 +11,8 @@ import typing
 
 
 class Interaction():
-    def __init__(self, state, data, user=MISSING) -> None:
+    def __init__(self, application_id, state, data, user=MISSING) -> None:
+        self._application_id = application_id
         self._state: ConnectionState = state
 
         self._deferred = False
@@ -115,7 +113,6 @@ class Interaction():
             finally:
                 return
 
-
         if self._responded:
             await self.send(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components, hidden=hidden)
             return
@@ -131,7 +128,7 @@ class Interaction():
         if hide_message:
             payload["flags"] = 64
 
-        if (file is not MISSING or files is not MISSING) and self._deferred is False:
+        if (file is not MISSING or files is not MISSING) and self._deferred is False or (hide_message is True and not self._deferred):
             await self.defer(hidden=hide_message)
                 
         if not self._deferred:
@@ -141,22 +138,22 @@ class Interaction():
                     "data": payload
                 })
         else:
-            route = BetterRoute("PATCH", f'/webhooks/{self._state.application_id}/{self.interaction["token"]}/messages/@original')
-            await self._state.http.request(route, json=payload)
-        self._responded = True
+            route = BetterRoute("PATCH", f'/webhooks/{self._application_id}/{self.interaction["token"]}/messages/@original')
+            r = await self._state.http.request(route, json=payload)
+            if hide_message:
+                self._responded = True
+                return EphemeralMessage(state=self._state, channel=self._state.get_channel(int(r["channel_id"])), data=r)
 
         if file is not MISSING and files is not MISSING:
-            await send_files(route=BetterRoute("PATCH", f"/webhooks/{self._state.application_id}/{self.interaction['token']}/messages/@original"), 
+            await send_files(route=BetterRoute("PATCH", f"/webhooks/{self._application_id}/{self.interaction['token']}/messages/@original"), 
                 files=[file] if files is MISSING else files, payload=payload, http=self._state.http)
         
         if not hide_message:
-            responseMSG = await self._state.http.request(BetterRoute("GET", f"/webhooks/{self._state.application_id}/{self.interaction['token']}/messages/@original"))
-            msg = await getResponseMessage(self._state, data=responseMSG, response=False)
+            responseMSG = await self._state.http.request(BetterRoute("GET", f"/webhooks/{self._application_id}/{self.interaction['token']}/messages/@original"))
+            msg = await getResponseMessage(self._state, data=responseMSG, application_id=self._application_id, response=False)
             if delete_after is not MISSING:
                 await msg.delete(delete_after)
             return msg
-        
-        return EphemeralMessage()
 
     async def send(self,  content=None, *, tts=False, embed=None, embeds=None, file=None, files=None, nonce=None,
     allowed_mentions=None, mention_author=None, components=None, hidden=False):
@@ -197,7 +194,7 @@ class Interaction():
             .. note::
                 If the response is hidden, a EphemeralMessage will be returned, which is an empty class
         """
-        if not self._responded:
+        if self._responded is False:
             return await self.respond(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components, hidden=hidden)
 
         payload = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components)
@@ -205,37 +202,24 @@ class Interaction():
         if hidden:
             payload["flags"] = 64
 
-        route = BetterRoute("POST", f'/webhooks/{self._state.application_id}/{self.interaction["token"]}')
+        route = BetterRoute("POST", f'/webhooks/{self._application_id}/{self.interaction["token"]}')
         r = await self._state.http.request(route, json=payload)
 
         if file is not MISSING and files is not MISSING:
-            await send_files(route=BetterRoute("PATCH", f"/webhooks/{self._state.application_id}/{self.interaction['token']}/messages/@original"), 
+            await send_files(route=BetterRoute("PATCH", f"/webhooks/{self._application_id}/{self.interaction['token']}/messages/@original"), 
                 files=[file] if files is MISSING else files, payload=payload, http=self._state.http)
 
         if hidden:
-            return EphemeralMessage()
+            return EphemeralMessage(state=self._state, channel=self._state.get_channel(int(r["channel_id"])), data=r)
 
         return await getResponseMessage(self._state, r, response=False)
 
-class EphemeralComponent(Interaction):
-    """A component that will be received when a hidden response was sent"""
-    def __init__(self, client, user, data) -> None:
-        Interaction.__init__(self, client, data, user)
-        self.custom_id = data["data"]["custom_id"]
-        self.component_type = data["data"]["component_type"]
-        if self.component_type == 3:
-            class EphemeralValue():
-                def __init__(self, value) -> None:
-                    self.name = None
-                    self.value = value
-            self.values = [EphemeralValue(x) for x in data["data"]["values"]]
-
-
+        
 
 class SelectedMenu(Interaction, SelectMenu):
     """A :class:`~SelectMenu` object in which an item was selected"""
-    def __init__(self, data, user, s, client) -> None:
-        Interaction.__init__(self, client, data)
+    def __init__(self, data, application_id, user, s, state) -> None:
+        Interaction.__init__(self, application_id, state, data)
         SelectMenu.__init__(self, "EMPTY", [SelectOption("EMPTY", "EMPTY")], 0, 0)
         self._json = s.to_dict()
         self.values: typing.List[SelectOption] = []
@@ -254,8 +238,8 @@ class SelectedMenu(Interaction, SelectMenu):
 
 class PressedButton(Interaction, Button):
     """A :class:`~Button` object that was pressed"""
-    def __init__(self, data, user, b, client) -> None:
-        Interaction.__init__(self, client, data)
+    def __init__(self, data, application_id, user, b, state) -> None:
+        Interaction.__init__(self, application_id, state, data)
         Button.__init__(self, "empty", "empty")
         self._json = b.to_dict()
 
@@ -274,7 +258,7 @@ class PressedButton(Interaction, Button):
 class SlashedCommand(Interaction, SlashCommand):
     """A :class:`~SlashCommand` object that was used"""
     def __init__(self, client, command: SlashCommand, data, user, channel, guild_ids = None) -> None:
-        Interaction.__init__(self, client, data, user)
+        Interaction.__init__(self, client.user.id, client._connection, data, user)
         SlashCommand.__init__(self, None, "EMPTY", guild_ids)
         self._json = command.to_dict()
         self.member: discord.Member = user
@@ -289,7 +273,7 @@ class SlashedSubCommand(SlashedCommand, SubSlashCommand):
         SubSlashCommand.__init__(self, None, "EMPTY", "EMPTY")
 
 
-async def getResponseMessage(client: com.Bot, data, user=None, response = True):
+async def getResponseMessage(state: ConnectionState, data, application_id = None, user=None, response = True):
     """
     Async function to get the response message
 
@@ -313,13 +297,13 @@ async def getResponseMessage(client: com.Bot, data, user=None, response = True):
     .. note::
             If the message comes from an interaction, it will be of type :class:`~ResponseMessage`, if it is sent to a textchannel, it will be of type :class:`~Message`
     """
-    channel = await client.fetch_channel(data["channel_id"])
+    channel = state.get_channel(int(data["channel_id"]))
     if response and user:
         if data["message"]["flags"] == 64:
-            return EphemeralMessage(data["message"])
-        return ResponseMessage(client=client, channel=channel, data=data, user=user)
+            return EphemeralMessage(state=state, channel=channel, data=data["message"])
+        return ResponseMessage(state=state, application_id=application_id, channel=channel, data=data, user=user)
 
-    return Message(statee=client._get_state(), channel=channel, data=data)
+    return Message(state=state, channel=channel, data=data)
 
 class Message(discord.Message):
     """A fixed :class:`discord.Message` optimized for components"""
@@ -359,6 +343,8 @@ class Message(discord.Message):
 
     def _update_components(self, data):
         """Updates the message components"""
+        if data.get("components") is None:
+            return
         if len(data["components"]) == 0:
             self.components = []
         elif len(data["components"]) > 1:
@@ -529,22 +515,24 @@ class Message(discord.Message):
         return rows
 
     @typing.overload
-    async def wait_for(self, event_name="button") -> PressedButton: ...
+    async def wait_for(self, client, event_name="button") -> PressedButton: ...
     @typing.overload 
-    async def wait_for(self, event_name="select") -> SelectedMenu: ...
+    async def wait_for(self, client, event_name="select") -> SelectedMenu: ...
     @typing.overload
-    async def wait_for(self, event_name, custom_id) -> PressedButton: ...
+    async def wait_for(self, client, event_name, custom_id) -> PressedButton: ...
     @typing.overload
-    async def wait_for(self, event_name, custom_id) -> SelectedMenu: ...
+    async def wait_for(self, client, event_name, custom_id) -> SelectedMenu: ...
     @typing.overload
-    async def wait_for(self, event_name, timeout) -> PressedButton: ...
+    async def wait_for(self, client, event_name, timeout) -> PressedButton: ...
     @typing.overload
-    async def wait_for(self, event_name, timeout) -> SelectedMenu: ...
-    async def wait_for(self, event_name, custom_id=MISSING, timeout=MISSING) -> typing.Union[PressedButton, SelectedMenu]:
+    async def wait_for(self, client, event_name, timeout) -> SelectedMenu: ...
+    async def wait_for(self, client, event_name, custom_id=MISSING, timeout=MISSING) -> typing.Union[PressedButton, SelectedMenu]:
         """Waits for a message component to be invoked in this message
 
         Parameters
         -----------
+        client: :class:`discord.ext.commands.Bot`
+            The discord client
         event_name: :class:`str`
             The name of the event which will be awaited [``"select"`` | ``"button"``] 
 
@@ -574,19 +562,16 @@ class Message(discord.Message):
                     if custom_id is not MISSING and btn.custom_id == custom_id:
                         return True
                     return True
-            return (await self.client.wait_for('button_press' if event_name.lower() == "button" else "menu_select", check=check, timeout=timeout))[0]
+
+            return (await client.wait_for('button_press' if event_name.lower() == "button" else "menu_select", check=check, timeout=timeout))[0]
         
         raise InvalidArgument("Invalid event name, event must be 'button' or 'select', not " + str(event_name))
 
-class EphemeralMessage():
-    def __init__(self, _id=MISSING) -> None:
-        if _id is not MISSING:
-            self.id = _id
 
 class ResponseMessage(Interaction, Message):
     r"""A message Object which extends the `Message` Object optimized for an interaction component"""
-    def __init__(self, *, state, channel, data, user):
-        Interaction.__init__(self, state, data)
+    def __init__(self, *, state, application_id, channel, data, user):
+        Interaction.__init__(self, application_id, state, data)
         Message.__init__(self, state=state, channel=channel, data=data["message"])
 
         self.interaction_component = None
@@ -594,8 +579,55 @@ class ResponseMessage(Interaction, Message):
         if int(data["data"]["component_type"]) == 2:
             for x in self.buttons:
                 if hasattr(x, 'custom_id') and x.custom_id == data["data"]["custom_id"]:
-                    self.interaction_component = PressedButton(data, user, x, self._client)
+                    self.interaction_component = PressedButton(data, self._application_id, user, x, self._state)
         elif int(data["data"]["component_type"]) == 3:
             for x in self.select_menus:
                 if x.custom_id == data["data"]["custom_id"]:
-                    self.interaction_component = SelectedMenu(data, user, x, self._client)
+                    self.interaction_component = SelectedMenu(data, self._application_id, user, x, self._state)
+
+
+
+class EphemeralComponent(Interaction):
+    """A component that will be received when it was created in a hidden response"""
+    def __init__(self, application_id, state, user, data) -> None:
+        Interaction.__init__(self, application_id, state, data, user)
+        self.custom_id = data["data"]["custom_id"]
+        self.component_type = data["data"]["component_type"]
+        if self.component_type == 3:
+            class EphemeralValue():
+                def __init__(self, value) -> None:
+                    self.name = None
+                    self.value = value
+            self.values = [EphemeralValue(x) for x in data["data"]["values"]]
+
+
+class EphemeralMessage(Message):
+    """A hidden Message
+
+    This class is almost the same as the :class:`~Message` class, but you can't edit, delete or reply to the message
+    """
+    def __init__(self, *, state, channel, data):
+        if data.get("attachments") is None:
+            data["attachments"] = []
+        if data.get("embeds") is None:
+            data["embeds"] = []
+        if data.get("edited_timestamp") is None:
+            data["edited_timestamp"] = None
+        if data.get("type") is None:
+            data["type"] = 0
+        if data.get("pinned") is None:
+            data["pinned"] = False
+        if data.get("mention_everyone") is None:
+            data["mention_everyone"] = False
+        if data.get("tts") is None:
+            data["tts"] = False
+        if data.get("content") is None:
+            data["content"] = None
+        super().__init__(state=state, channel=channel, data=data)
+    async def edit(self, **kwargs):
+        raise Exception("Cannot edit ephemeral message")
+    async def delete(self, *, delay):
+        raise Exception("Cannot delete ephemeral message")
+    async def respond(self, **kwargs):
+        raise Exception("Cannot reply to ephemeral message. Instead, use the '.send' function of the interaction")
+    

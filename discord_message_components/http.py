@@ -1,13 +1,13 @@
 from discord_message_components.components import ActionRow
 from discord.message import Attachment
 from .tools import MISSING
-import json
-import discord
 
+import discord
 from discord.http import Route
+
+import json
 from typing import Any, List
 
-url = "https://discord.com/api/v8"
 
 class BetterRoute(Route):
     BASE = "https://discord.com/api/v9"

@@ -109,10 +109,39 @@ You can find more examples [here](./examples)
     
     ### **Added**
     - Slashcomamnd support
+        - `Slash` class for slash commands
+        - `Slash.command`, `Slash.subcommand` and `Slash.subcommand_groups` are available for creating slash commands
+        - `SlashedCommand` and `SlashedSubCommand` are there for used slash commands 
+    
     - ``Message``
         - disable_action_row(row_numbers: `int` | `range`, disable: `bool`)
+        > disables (enables) component row(s) in the message
+        
         - disable_components(disable: `bool`)
-        - set_edit
+        > disables (enables) all componentss
+    
+    - overrides
+        - `Messageable.send` returns Message instead of discord.Message and takes components parameter
+        - `override_client` function added
+    
+    - `interaction.send`, creates followup messages which can be hidden
+    
+    - `Component.listening_component`
+    > A listening component with a callback function that will always be executed whenever a component with the specified custom_id 
+    was used
+
+
+    ## **Changed**
+    - Message
+        
+        - All Message objects don't use the client object anymore
+        - Message.wait_for now needs the client as the first parameter
+
+
+    ## **Fixed**
+    - Interaction
+    > All interaction responses work now
+    - A lot of issues I fogor💀
 
     </details>
 

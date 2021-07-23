@@ -219,7 +219,7 @@ In this example, we will create a simple slash command
 
 .. code-block::
 
-    @extension.slash.slashcommand(name="test", description="this is a test command", guild_ids=["785567635802816595"])
+    @extension.slash.command(name="test", description="this is a test command", guild_ids=["785567635802816595"])
     async def command(ctx):
         ...
 
@@ -242,7 +242,7 @@ It acceps a list of :class:`~SlashOption`
 
 .. code-block::
 
-    @extension.slash.slashcommand(name="test", description="this is a test command", options=[
+    @extension.slash.command(name="test", description="this is a test command", options=[
             SlashOption(int, name="parameter1", description="this is a parameter")
         ], guild_ids=["785567635802816595"])
     async def command(ctx, parameter1="nothing"):
@@ -279,7 +279,7 @@ If you want the parameter to be required, in the option, you have to set ``requi
 
 .. code-block::
 
-    @extension.slash.slashcommand(name="test", description="this is a test command", options=[
+    @extension.slash.command(name="test", description="this is a test command", options=[
             SlashOption(int, name="parameter1", description="this is a parameter", required=True)
         ], guild_ids=["785567635802816595"])
     async def command(ctx, parameter1):
@@ -303,7 +303,7 @@ Too add them, where we add the options with the :class:`~SlashOption` class, we 
 
 .. code-block::
 
-    @extension.slash.slashcommand(name="test", description="this is a test command", options=[
+    @extension.slash.command(name="test", description="this is a test command", options=[
                 SlashOption(int, name="parameter1", description="this is a parameter", choices=[
                     {"name": "first choice", "value": 1}, {"name": "second choice", "value": 2}
                 ])
@@ -337,7 +337,7 @@ If the default permission to ``False``, no one can use the command, if it's ``Tr
 
 .. code-block::
 
-    @extension.slash.slashcommand(name="test", description="this is a test command", options=[
+    @extension.slash.command(name="test", description="this is a test command", options=[
             SlashOption(int, name="parameter1", description="this is a parameter")
         ], guild_ids=["785567635802816595"], default_permission=False)
     async def command(ctx, parameter1="nothing"):
@@ -355,7 +355,7 @@ You can add role ids or/and user ids
 
 .. code-block::
 
-    @extension.slash.slashcommand(name="test", description="this is a test command", options=[
+    @extension.slash.command(name="test", description="this is a test command", options=[
             SlashOption(int, name="parameter1", description="this is a parameter")
         ], guild_ids=["785567635802816595"], guild_permissions={
         "785567635802816595": SlashPermission(
@@ -390,7 +390,7 @@ To set the guilds where the command is useable, you need to set the ``guild_id``
 
 .. code-block::
 
-    @extension.slash.slashcommand(name="test", description="this is a test command", guild_ids=["785567635802816595"])
+    @extension.slash.command(name="test", description="this is a test command", guild_ids=["785567635802816595"])
     async def command(ctx, parameter1="nothing"):
         ...
 

@@ -7,7 +7,6 @@
 #       If you want to test this, replace '785567635802816595' in guild_ids=[] with a guild id of 
 #       your choice, because guild slash commands are way faster than globals
 
-import ast
 import asyncio
 from discord.ext import commands
 from discord_message_components import SlashedCommand, Extension, Button
@@ -31,7 +30,7 @@ calculator = [
 
 
 # Create a slash command
-@extension.slash.slashcommand(name="calculator", description="opens a calculator, that will automatically close when no input was provided after 20 seconds", guild_ids=["785567635802816595"])
+@extension.slash.command(name="calculator", description="opens a calculator, that will automatically close when no input was provided after 20 seconds", guild_ids=["785567635802816595"])
 async def test(ctx: SlashedCommand):
     # The current query for the calculator
     query = ""
@@ -42,14 +41,15 @@ async def test(ctx: SlashedCommand):
     while True:
         try:
             # Wait for a button press with a timeout of 20 seconds
-            btn = await msg.wait_for("button", timeout=20)
+            btn = await msg.wait_for(client, "button", timeout=20)
             # Respond to the button, that it was received
             await btn.respond(ninja_mode=True)
             # If the button was the equal button
             if btn.custom_id == "equ":
                 try:
                     # Execute the current calculation query
-                    query += "\n= " + str(ast.literal_eval(query))
+                    # Note: Eval is not a safe function, just to say
+                    query += "\n= " + str(eval(query))
                 # When trying to divide by zero
                 except ZeroDivisionError:
                     # Indicate that an error appeared

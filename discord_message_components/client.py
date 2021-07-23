@@ -1,5 +1,3 @@
-from discord_message_components.components import SelectMenu
-from requests import api
 from .slash.http import create_global_command, create_guild_command, delete_global_command, delete_guild_command, delete_guild_commands, edit_global_command, edit_guild_command, get_command, get_global_commands, get_guild_commands, delete_global_commands, get_id
 from .slash.types import OptionTypes, SlashCommand, SlashOption, SubSlashCommand, SubSlashCommandGroup
 from .tools import MISSING, get, get_index
@@ -51,7 +49,7 @@ class Slash():
     .. code-block::
 
         ...
-        @slash.slashcommand(name="my_command", description="this is my slash command", options=[SlashOption(str, "option", "this is an option")])
+        @slash.command(name="my_command", description="this is my slash command", options=[SlashOption(str, "option", "this is an option")])
         async def command(ctx: SlashedCommand):
             ...
     
@@ -146,14 +144,14 @@ class Slash():
                             # find the key name
                             for op in fixed_options:
                                 if options[op["name"]] == u:
-                                    options[op["name"]] = discord.User(state=self._discord._get_state(), data=resolved_user)
+                                    options[op["name"]] = discord.User(state=self._discord._connection, data=resolved_user)
                     if resolved.get('members'):
                         for m in resolved["members"]:
                             resolved_member = resolved["members"][m]
                             # find the key name
                             for op in fixed_options:
                                 if options[op["name"]] == m:
-                                    options[op["name"]] = discord.Member(state=self._discord._get_state(), data=resolved_member, guild=self._discord.get_guild(data["guild_id"]))
+                                    options[op["name"]] = discord.Member(state=self._discord._connection, data=resolved_member, guild=self._discord.get_guild(data["guild_id"]))
             else:
                 for op in fixed_options:
                     if op["type"] == OptionTypes.USER:
@@ -375,7 +373,7 @@ class Slash():
         print("nuked")
 
 
-    def slashcommand(self, name, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
+    def command(self, name, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
         """A decorator for a slash command
         
         command in discord:
@@ -420,7 +418,7 @@ class Slash():
         -------
         .. code-block::
 
-            @extension.slash.slashcommand(name="hello_world", description="This is a test command", options=[
+            @extension.slash.command(name="hello_world", description="This is a test command", options=[
             SlashOption(str, name="parameter", description="this is a parameter", choices=[{ "name": "choice 1", "value": "test" }])
                 ], guild_ids=["785567635802816595"], default_permission=False, guild_permissions={
                     "785567635802816595": SlashPermission(allowed_ids={"539459006847254542": SlashPermission.USER})
@@ -598,13 +596,13 @@ class Components():
 
         if data["type"] != 3:
             return
-        
+
         guild = await self._discord.fetch_guild(data["guild_id"])
         user = discord.Member(data=data["member"], guild=guild, state=self._discord._connection)
         
 
-        msg = await getResponseMessage(self._discord, data=data, user=user, response=True)
-        component = EphemeralComponent(self._discord, user, data) if data["message"]["flags"] == 64 else msg.interaction_component
+        msg = await getResponseMessage(self._discord._connection, data=data, application_id=self._discord.user.id, user=user, response=True)
+        component = EphemeralComponent(self._discord.user.id, state=self._discord._connection, user=user, data=data) if data["message"]["flags"] == 64 else msg.interaction_component
 
         # Get listening components with the same custom id
         _listening_components = [x for x in self._listening_components if data["data"]["custom_id"] == x[1]]

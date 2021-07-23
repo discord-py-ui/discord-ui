@@ -22,7 +22,7 @@ client = commands.Bot(" ")
 extension = Extension(client, slash_settings={"wait_sync": 2, "delete_unused": True})
 
 # Create a slash command
-@extension.slash.slashcommand(name="role-picker", description="let's you pick roles", guild_ids=["785567635802816595"])
+@extension.slash.command(name="role-picker", description="let's you pick roles", guild_ids=["785567635802816595"])
 async def command(ctx: SlashedCommand):
 
     # The role picker component
@@ -34,15 +34,12 @@ async def command(ctx: SlashedCommand):
         ], placeholder="Select your programming language", max_values=4)
     
     # Send the select menu, only visble to the user
-    await ctx.send("pick your roles", components=[role_picker], hidden=True)
+    msg = await ctx.send("pick your roles", components=[role_picker], hidden=True)
     try:
         # Wait for a selection on a select menu with the custom_id 
         # 'role_picker' by the user who used the slash command, 
         # with a timeout of 20 seconds
-        menu, _ = await client.wait_for("menu_select", 
-            lambda sel, msg: sel.custom_id == role_picker.custom_id and sel.member.id == ctx.member.id, 
-            timeout=20
-        )
+        menu = await msg.wait_for(client, "select", timeout=20)
         # Get all roles in the current guild
         roles = await ctx.channel.guild.fetch_roles()
         given_roles = []
@@ -61,7 +58,7 @@ async def command(ctx: SlashedCommand):
                     given_roles.append(_r.name)
 
         # Send which roles the user got, only visible to the user
-        await menu.send("I gave you following roles: `" + ', `'.join(given_roles) + "`", hidden=True)
+        await menu.respond("I gave you following roles: `" + ', `'.join(given_roles) + "`", hidden=True)
     # When 20 seconds without input have passed (we set the timeout to 20 seconds)
     except asyncio.TimeoutError:
         # Send a hidden message saying that the user took to long to choose
