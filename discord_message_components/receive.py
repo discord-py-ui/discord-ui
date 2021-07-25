@@ -441,7 +441,7 @@ class Message(discord.Message):
                 The new components in the message; default MISSING
         
         """
-        await self.edit(content=content or self.content, embed=embed, embeds=embeds or self.embeds, attachmenets=attachments or self.attachments, suppress=suppress or self.suppressed, delete_after=delete_after, allowed_mentions=allowed_mentions, components=components or self.components)
+        await self.edit(content=content or self.content, embed=embed, embeds=embeds or self.embeds, attachments=attachments or self.attachments, suppress=suppress or self.suppressed, delete_after=delete_after, allowed_mentions=allowed_mentions, components=components or self.components)
 
     async def disable_action_row(self, row, disable = True):
         """Disables an action row of components in the message
