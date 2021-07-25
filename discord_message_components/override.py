@@ -52,7 +52,8 @@ async def send(self: discord.TextChannel, content=None, *, tts=False, embed=None
         """
         payload = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference, mention_author=mention_author, components=components)
 
-        route = BetterRoute("POST", f"/channels/{self.id}/messages")
+        channel_id = self.id if type(self) is not commands.Context else self.channel.id
+        route = BetterRoute("POST", f"/channels/{channel_id}/messages")
         
         r = None
         if file is None and files is None:
@@ -60,7 +61,7 @@ async def send(self: discord.TextChannel, content=None, *, tts=False, embed=None
         else:
             r = await send_files(route, files=files or [file], payload=payload, http=self._state.http)
         
-        msg = Message(state=self._state, channel=self, data=r)
+        msg = Message(state=self._state, channel=self if type(self) is not commands.Context else self.channel, data=r)
         if delete_after is not None:
             await msg.delete(delay=delete_after)
     
