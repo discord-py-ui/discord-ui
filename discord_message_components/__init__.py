@@ -5,4 +5,4 @@ from .receive import ResponseMessage, Message, PressedButton, SelectedMenu, Slas
 from .override import Overriden_Bot, override_client
 
 
-__version__ = "2.0.4"
+__version__ = "2.0.5"
