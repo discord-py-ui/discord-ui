@@ -672,7 +672,7 @@ class Components():
         else:
             r = await send_files(route, files=files or [file], payload=payload, http=self._discord.http)
 
-        msg = Message(state=self._discord._get_state(), channel=self, data=r)
+        msg = Message(state=self._discord._get_state(), channel=channel, data=r)
             
         if delete_after is not None:
             await msg.delete(delay=delete_after)
