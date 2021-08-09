@@ -1,9 +1,10 @@
 from .tools import MISSING
 
-from typing import Any, List, Union
 from discord import Emoji, emoji
 from discord.errors import InvalidArgument
 
+import inspect
+from typing import Any, List, Union
 
 class SelectOption():
     """
@@ -11,10 +12,10 @@ class SelectOption():
     
     Parameters
     ----------
-    label: :class:`str`
-        The user-facing name of the option, max 25 characters
     value: :class:`str`
         The dev-define value of the option, max 100 characters
+    label: :class:`str`
+        The user-facing name of the option, max 25 characters; default \u200b ("empty" char)
     description: :class:`str`, optional
         An additional description of the option, max 50 characters
     emoji : :class:`discord.Emoji` | :class:`str`, optional
@@ -24,7 +25,7 @@ class SelectOption():
     ------
     :raises: :class:`discord.InvalidArgument`: A passed argument was invalid
     """
-    def __init__(self, label, value, description=MISSING, emoji=MISSING) -> None:
+    def __init__(self, value, label="\u200b", description=MISSING, emoji=MISSING) -> None:
         """
         Creates a new SelectOption
 
@@ -33,17 +34,6 @@ class SelectOption():
         SelectOption(label="This is a option", value="my_value", description="This is the description of the option")
         ```
         """
-        if label is MISSING and emoji is MISSING:
-            raise InvalidArgument("You need to pass label or emoji")
-        if label is not MISSING and type(label) is not str:
-            raise InvalidArgument("label must be of type str, not " + str(type(label)))
-        if label is not MISSING and len(label) > 25:
-            raise InvalidArgument("label must be 25 or fewer in length (" + str(len(label)) + ")")
-        if description is not MISSING and type(description) is not str:
-            raise InvalidArgument("description must be of type str, not " + " " + str(type(description)))
-        if description is not MISSING and len(description) > 50:
-            raise InvalidArgument("description must be 50 or fewer in length (" + str(len(description)) + ")")
-
         self._json = {}
         
         self.label = label
@@ -52,7 +42,7 @@ class SelectOption():
             self.description = description
         if emoji is not MISSING:
             self.emoji = emoji
-           
+        
 
     @property
     def content(self) -> str:
@@ -73,6 +63,10 @@ class SelectOption():
         return self._json["label"]
     @label.setter
     def label(self, value: str):
+        if value is not MISSING and type(value) is not str:
+            raise InvalidArgument("label must be of type str, not " + str(type(value)))
+        if value is not MISSING and len(value) > 100 and value > 0:
+            raise InvalidArgument("label must be 100 or fewer and must be higher than 0 in length (" + str(len(value)) + ")")
         self._json["label"] = value
 
     @property
@@ -85,6 +79,8 @@ class SelectOption():
         return self._json["value"]
     @value.setter
     def value(self, value):
+        if inspect.isclass(value):
+            raise Exception()
         self._json["value"] = value
 
     @property
@@ -97,9 +93,12 @@ class SelectOption():
         return self._json.get("description")
     @description.setter
     def description(self, value):
+        if value is not MISSING and type(value) is not str:
+            raise InvalidArgument("description must be of type str, not " + " " + str(type(value)))
+        if value is not MISSING and len(value) > 50:
+            raise InvalidArgument("description must be 50 or fewer in length (" + str(len(value)) + ")")
         self._json["description"] = value
     
-
     @property
     def default(self) -> bool:
         """
@@ -408,7 +407,7 @@ class Button():
     custom_id: :class:`str`
         A identifier for the button, max 100 characters
     label: :class:`str`, optional
-        Text that appears on the button, max 80 characters; default MISSING
+        Text that appears on the button, max 80 characters; default \u200b ("empty" char)
     color: :class:`str` | :class:`int`, optional
         The color of the button; default "blurple"
 
@@ -430,7 +429,7 @@ class Button():
     ------
     :raises: :class:`discord.InvalidArgument`: A passed argument was invalid
     """
-    def __init__(self, custom_id, label=MISSING, color = "blurple", emoji=MISSING, new_line=False, disabled=False) -> None:
+    def __init__(self, custom_id, label="\u200b", color = "blurple", emoji=MISSING, new_line=False, disabled=False) -> None:
         """
         Creates a new ui-button
 
@@ -647,7 +646,7 @@ class LinkButton():
     url: :class:`str`
         A url which will be opened when pressing the button
     label: :class:`str`, optional
-        Text that appears on the button, max 80 characters; default MISSING
+        Text that appears on the button, max 80 characters; default \u200b ("empty" char)
     emoji: :class:`discord.Emoji` | :class:`str`, optional
         Emoji that appears before the label; default MISSING
     new_line: :class:`bool`, optional
@@ -660,7 +659,7 @@ class LinkButton():
     ------
     :raises: :class:`discord.InvalidArgument`: A passed argument was invalid
     """
-    def __init__(self, url, label=MISSING, emoji=MISSING, new_line=False, disabled=False) -> None:
+    def __init__(self, url, label="\u200b", emoji=MISSING, new_line=False, disabled=False) -> None:
         """
         Creates a new LinkButton object
         

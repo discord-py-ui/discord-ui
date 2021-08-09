@@ -37,10 +37,9 @@ async def send_files(route, files, payload, http):
 
     return await http.request(route, form=form, files=files)
 
-def jsonifyMessage(content=MISSING, tts=False,
-                embed: discord.Embed=MISSING, embeds: List[discord.Embed]=MISSING, attachments: List[discord.Attachment]=MISSING, nonce: int=MISSING,
+def jsonifyMessage(content=MISSING, tts=False, embed: discord.Embed=MISSING, embeds: List[discord.Embed]=MISSING, attachments: List[discord.Attachment]=MISSING, nonce: int=MISSING,
                 allowed_mentions: discord.AllowedMentions=MISSING, reference: discord.MessageReference=MISSING, mention_author: bool=MISSING, components: list=MISSING, suppress: bool=MISSING, flags=MISSING):
-    """Turns parameters from the `discord.TextChannel.send` function into json for requests"""
+    """Turns parameters from send functions into a payload for requests"""
     
     payload = {"tts": tts}
 
@@ -55,13 +54,6 @@ def jsonifyMessage(content=MISSING, tts=False,
     if nonce is not MISSING:
         payload["nonce"] = nonce
     
-    if embed is not MISSING and embeds is not MISSING:
-        raise discord.InvalidArgument("cannot pass both 'embed' and 'embeds' Parameters")
-
-    if embed is not MISSING:
-        if type(embed) is not discord.Embed:
-            raise TypeError("embed must be of type 'discord.Embed', not " + str(type(embed)))
-        payload["embeds"] = [embed.to_dict()]
     if embeds is not MISSING:
         if type(embeds) is not list:
             raise TypeError("embeds must be of type 'list', not " + str(type(embeds)))
@@ -81,6 +73,8 @@ def jsonifyMessage(content=MISSING, tts=False,
             payload["message_reference"] = discord.MessageReference.from_message(reference).to_dict()
 
     if allowed_mentions is not MISSING:
+        if type(allowed_mentions) is not discord.AllowedMentions:
+            raise TypeError("allowed_mentions must be of type `discord.AllowedMentions`, not " + str(type(allowed_mentions)))
         payload["allowed_mentions"] = allowed_mentions.to_dict()
     if mention_author is not MISSING:
         allowed_mentions = payload["allowed_mentions"] if "allowed_mentions" in payload else discord.AllowedMentions().to_dict()
@@ -121,6 +115,8 @@ def jsonifyMessage(content=MISSING, tts=False,
             wrappers = [components]
 
         for wrap in wrappers:
+            if all(hasattr(x, "to_dict") for x in wrap):
+                raise Exception("Components with types " + [str(type(x)) for x in wrap] + "are missing to_dict() method")
             componentsList.append({"type": 1, "components": [x.to_dict() for x in wrap]})
         
         payload["components"] = componentsList 

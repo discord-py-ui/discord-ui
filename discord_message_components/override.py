@@ -1,83 +1,66 @@
+from discord_message_components.tools import MISSING
 from .client import Components, Slash
 import discord
 from discord.ext import commands
 
-from .receive import Message
+from .receive import Message, WebhookMessage
 from .http import jsonifyMessage, BetterRoute, send_files
 
 import sys
 module = sys.modules["discord"]
 
 
-async def send(self: discord.TextChannel, content=None, *, tts=False, embed=None, embeds=None, file=None, 
-            files=None, delete_after=None, nonce=None, allowed_mentions=None, reference=None, 
-            mention_author=None, components=None) -> Message:
-        """Sends a message to a textchannel
-
-        Parameters
-        ----------
-        content: :class:`str`, optional
-            The message text content; default None
-        tts: :class:`bool`, optional
-            True if this is a text-to-speech message; default False
-        embed: :class:`discord.Embed`, optional
-            Embedded rich content; default None
-        embeds: List[:class:`discord.Embed`], optional
-            embedded rich content (up to 6000 characters); default None
-        file: :class:`discord.File`, optional
-            A file sent as an attachment to the message; default None
-        files: List[:class:`discord.File`], optional
-            A list of file attachments; default None
-        delete_after: :class:`float`, optional
-            After how many seconds the message should be deleted; default None
-        nonce: :class:`int`, optional
-            The nonce to use for sending this message. If the message was successfully sent, then the message will have a nonce with this value; default None
-        allowed_mentions: :class:`discord.AllowedMentions`, optional
-            A list of mentions proceeded in the message; default None
-        reference: :class:`discord.MessageReference` | :class:`discord.Message`, optional
-            A message to refer to (reply); default None
-        mention_author: :class:`bool`, optional
-            True if the author should be mentioned; default None
-        components: List[:class:`~Button` | :class:`~LinkButton` | :class:`~SelectMenu`], optional
-            A list of message components included in this message; default None
-
-        Returns
-        -------
-        :return: Returns the sent message
-        :type: :class:`~Message`
-
-        Raises
-        ------
-        :raises: :class:`discord.InvalidArgument`: A passed argument was invalid
-        """
-        payload = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference, mention_author=mention_author, components=components)
+#region message override
+async def send(self: discord.TextChannel, content=None, **kwargs) -> Message:
+        payload = jsonifyMessage(content=content, **kwargs)
 
         channel_id = self.id if type(self) is not commands.Context else self.channel.id
         route = BetterRoute("POST", f"/channels/{channel_id}/messages")
         
         r = None
-        if file is None and files is None:
+        if kwargs.get("file") is None and kwargs.get("files") is None:
             r = await self._state.http.request(route, json=payload)
         else:
-            r = await send_files(route, files=files or [file], payload=payload, http=self._state.http)
+            r = await send_files(route, files=kwargs.get("files") or [kwargs.get("file")], payload=payload, http=self._state.http)
         
         msg = Message(state=self._state, channel=self if type(self) is not commands.Context else self.channel, data=r)
-        if delete_after is not None:
-            await msg.delete(delay=delete_after)
+        if kwargs.get("delete_after") is not None:
+            await msg.delete(delay=kwargs.get("delete_after"))
     
         return msg
 
-def message_overrride(cls, *args, **kwargs):
+def message_override(cls, *args, **kwargs):
     if cls is discord.message.Message:
         return object.__new__(Message)
     else:
         return object.__new__(cls)
 
 
-
-
 module.abc.Messageable.send = send
-module.message.Message.__new__ = message_overrride
+module.message.Message.__new__ = message_override
+#endregion
+
+#region webhook override
+def webhook_message_override(cls, *args, **kwargs):
+    if cls is discord.webhook.WebhookMessage:
+        return object.__new__(WebhookMessage)
+    else:
+        return object.__new__(cls)
+
+async def send_webhook(self: discord.Webhook, content=MISSING, *, wait=False, username=MISSING, avatar_url=MISSING, tts=False, files=None, embed=MISSING, embeds=MISSING, allowed_mentions=MISSING, components=MISSING):
+    payload = jsonifyMessage(content, tts=tts, embed=embed, embeds=embeds, allowed_mentions=allowed_mentions, components=components)
+
+    if username is not None:
+        payload["username"] = username
+    if avatar_url is not None:
+        payload["avatar_url"] = str(avatar_url)
+    
+    return await self._adapter.execute_webhook(payload=payload, wait=wait, files=files)
+
+module.webhook.Webhook.send = send_webhook
+module.webhook.WebhookMessage.__new__ = webhook_message_override
+#endregion
+
 
 
 class Overriden_Bot(commands.bot.Bot):

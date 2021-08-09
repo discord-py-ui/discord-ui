@@ -55,8 +55,8 @@ class Interaction():
         await self._state.http.request(BetterRoute("POST", f'/interactions/{self.interaction["id"]}/{self.interaction["token"]}/callback'), json=body)
         self._deferred = True
 
-    async def respond(self, content=None, *, tts=False, embed=None, embeds=None, file=None, files=None, nonce=None,
-    allowed_mentions=None, mention_author=None, components=None, delete_after=None, hidden=False,
+    async def respond(self, content=MISSING, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, files=MISSING, nonce=MISSING,
+    allowed_mentions=MISSING, mention_author=MISSING, components=MISSING, delete_after=MISSING, hidden=False,
     ninja_mode=False) -> typing.Union['Message', 'EphemeralMessage']:
         """Responds to the interaction
         
@@ -64,10 +64,10 @@ class Interaction():
         ----------
         content: :class:`str`, optional
             The raw message content
-        tts: `bool` 
+        tts: :class:`bool` 
             Whether the message should be send with text-to-speech
         embed: :class:`discord.Embed`
-            The embed for the message
+            Embed rich content
         embeds: List[:class:`discord.Embed`]
             A list of embeds for the message
         file: :class:`discord.File`
@@ -155,8 +155,8 @@ class Interaction():
                 await msg.delete(delete_after)
             return msg
 
-    async def send(self,  content=None, *, tts=False, embed=None, embeds=None, file=None, files=None, nonce=None,
-    allowed_mentions=None, mention_author=None, components=None, hidden=False) -> typing.Union['Message', 'EphemeralMessage']:
+    async def send(self, content=None, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, files=MISSING, nonce=MISSING,
+    allowed_mentions=MISSING, mention_author=MISSING, components=MISSING, hidden=False) -> typing.Union['Message', 'EphemeralMessage']:
         """Sends a message to the interaction using a webhook
         
         Parameters
@@ -166,7 +166,7 @@ class Interaction():
         tts: `bool` 
             Whether the message should be send with text-to-speech
         embed: :class:`discord.Embed`
-            The embed for the message
+            Embed rich content
         embeds: List[:class:`discord.Embed`]
             A list of embeds for the message
         file: :class:`discord.File`
@@ -385,7 +385,8 @@ class Message(discord.Message):
         super()._update(data)
         self._update_components(data)
 
-    async def edit(self, *, content=MISSING, embed=MISSING, embeds=MISSING, attachments=MISSING, suppress=MISSING, delete_after=MISSING, allowed_mentions=MISSING, components=MISSING):
+    async def edit(self, *, content=MISSING, embed=MISSING, embeds=MISSING, attachments=MISSING, suppress=MISSING, 
+        delete_after=MISSING, allowed_mentions=MISSING, components=MISSING):
         """Edits the message and updates its properties
 
         .. note::
@@ -396,8 +397,8 @@ class Message(discord.Message):
         ----------------
         content: :class:`str`
             The new message content
-        embded: :class:`discord.Embed`
-            The new discord embed
+        embed: :class:`discord.Embed`
+            Embed rich content
         embeds: List[:class:`discord.Embed`]
             The new list of discord embeds
         attachments: List[:class:`discord.Attachment`]
@@ -419,29 +420,6 @@ class Message(discord.Message):
 
         if delete_after is not MISSING:
             await self.delete(delay=delete_after)
-
-    async def set_edit(self, *, content=MISSING, embed=MISSING, embeds=MISSING, attachments=MISSING, suppress=MISSING, delete_after=MISSING, allowed_mentions=MISSING, components=MISSING):
-        """Sets passed components to their value and leaves the rest like they were
-        
-        Parameters
-        ----------
-            content: :class:`str`, optional
-                The new content to be set; default MISSING
-            embed: :class:`discord.Embed`, optional
-                The new embed to be set; default MISSING
-            embeds: List[:class:`discord.Embed`], optional
-                the new embeds to be set; default MISSING
-            suppress: :class:`bool`, optional
-                Whether the embeds should be supressed; default MISSING
-            delete_after: :class:`float`, optional
-                A delay after how many seconds the message should be deleted; default MISSING
-            allowed_mentions: :class:`[type]`, optional
-                The allowed mentions in the message to set; default MISSING
-            components: List[:class:`Button` | :class:`LinkButton` | :class:`SelectMenu`], optional
-                The new components in the message; default MISSING
-        
-        """
-        await self.edit(content=content or self.content, embed=embed, embeds=embeds or self.embeds, attachments=attachments or self.attachments, suppress=suppress or self.suppressed, delete_after=delete_after, allowed_mentions=allowed_mentions, components=components or self.components)
 
     async def disable_action_row(self, row, disable = True):
         """Disables an action row of components in the message
@@ -477,7 +455,7 @@ class Message(discord.Message):
                     if i == row:
                         comp.disabled = disable
                     comps.append(comp)
-        await self.set_edit(components=comps)
+        await self.edit(components=comps)
 
     async def disable_components(self, disable = True):
         """Disables all component in the message
@@ -492,7 +470,7 @@ class Message(discord.Message):
         for x in self.components:
             x.disabled = disable
             fixed.append(x)
-        await self.set_edit(components=fixed)
+        await self.edit(components=fixed)
 
     @property
     def action_rows(self):
@@ -526,7 +504,7 @@ class Message(discord.Message):
     async def wait_for(self, client, event_name, timeout) -> PressedButton: ...
     @typing.overload
     async def wait_for(self, client, event_name, timeout) -> SelectedMenu: ...
-    async def wait_for(self, client, event_name, custom_id=MISSING, timeout=MISSING) -> typing.Union[PressedButton, SelectedMenu]:
+    async def wait_for(self, client, event_name: typing.Literal["select", "button"], custom_id=MISSING, timeout=MISSING) -> typing.Union[PressedButton, SelectedMenu]:
         """Waits for a message component to be invoked in this message
 
         Parameters
@@ -540,10 +518,10 @@ class Message(discord.Message):
 
                 The event_name must be ``select`` for a select menu selection and ``button`` for a button press
         
-        custom_id: :class:`str`
+        custom_id: :class:`str`, Optional
             Filters the waiting for a custom_id
         
-        timeout: :class:`float`
+        timeout: :class:`float`, Optional
             After how many seconds the waiting should be canceled. 
             Throws an :class:`asyncio.TimeoutError` Exception
 
@@ -585,7 +563,26 @@ class ResponseMessage(Interaction, Message):
                 if x.custom_id == data["data"]["custom_id"]:
                     self.interaction_component = SelectedMenu(data, self._application_id, user, x, self._state)
 
+class WebhookMessage(Message, discord.WebhookMessage):
+    def __init__(self, *, state, channel, data):
+        Message.__init__(self, state=state, channel=channel, data=data)
+        discord.WebhookMessage.__init__(self, state=state, channel=channel, data=data)
+    async def edit(self, **fields):
+        """Edits the message
 
+        content: :class:`str`, Optional
+            The content to edit the message with or None to clear it.
+        embed: :class:`discord.Embed`
+            Embed rich content
+        embeds: List[:class:`discord.Embed`], Optional
+            A list of embeds to edit the message with.
+        supress: :class:`bool`
+            Whether to supress all embeds in the message
+        allowed_mentions: :class`discord.AllowedMentions`
+            Controls the mentions being processed in this message. See `discord.abc.Messageable.send` for more information.
+        """
+        return await self._state._webhook._adapter.edit_webhook_message(message_id=self.id, payload=jsonifyMessage(**fields))
+    
 
 class EphemeralComponent(Interaction):
     """Represents a component in a hidden message
@@ -636,7 +633,7 @@ class EphemeralMessage(Message):
             data["tts"] = False
         if data.get("content") is None:
             data["content"] = None
-        super().__init__(state=state, channel=channel, data=data)
+        Message.__init__(self, state=state, channel=channel, data=data)
     async def edit(self, **kwargs):
         raise Exception("Cannot edit ephemeral message")
     async def delete(self, *, delay):

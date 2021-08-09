@@ -55,7 +55,7 @@ you have to check both `bot` and `application.commands` fields
 ## Example
 
 
-Here is a small example, that will respond to the pressed button with the content of it or will respond with the content and value of the selected element in an select menu
+This is an example with a slash command, that can create a link button with parameters, a function that will automatically respond to every button and menu with the value they pressed and a command that will send a button example 
 
 ```py
 import discord
@@ -100,9 +100,36 @@ async def on_select(menu: SelectedMenu, msg: ResponseMessage):
 client.run(token)
 ```
 
-You can find more examples [here](https://github.com/KusoRedsto/discord-message-components/tree/main/examples)
+You can find more (and better) examples [here](https://github.com/KusoRedsto/discord-message-components/tree/main/examples)
 
 # Changelog
+
+-   <details>
+    <summary>2.1.0</summary>
+
+    ## **Added**
+
+    - Webhook support
+    > You are now able to use webhooks together with message components, to send a webhook message with the components, use the `Components.send_webhook` function.
+    The standart webhook function is also overriden with the new component function
+
+    - Float type
+    > You can now use `float` as the argument type for a slash command option
+
+    - Auto empty names
+    > Buttons, LinkButtons and SelectOptions labels are now by default `\u200b`, which is an "empty" char 
+
+    ## **Changed**
+
+    - Code documentation to more be more informative
+
+    ## **Fixed**
+
+    - Fixed small code issues (they were already fixed in previous versions, but I just wanna list this here)
+
+    - (Hopefully) the docs
+
+    </details>
 
 -   <details>
     <summary>2.0.2</summary>

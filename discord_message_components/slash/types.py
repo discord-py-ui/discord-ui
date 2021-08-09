@@ -30,6 +30,14 @@ class SlashOption():
                 This parameter is only for subcommands to work, you shouldn't need to use that, unless you know what you're doing 
         """
     def __init__(self, argument_type, name, description=MISSING, required=False, choices=MISSING, options=MISSING) -> None:
+        """
+        Creates a new option for a slash command
+
+        Example
+        ```py
+        SlashOption(argument_type=int, name="Your number", required=True, choices=[{"name": "a cool number", "value": 2}])
+        ```
+        """
         self._json = {}
         self.argument_type = argument_type
         self.name = name
@@ -126,18 +134,21 @@ class SlashOption():
 class OptionTypes:
     """The list of possible slash command option types"""
 
-    SUB_COMMAND = 1
-    SUB_COMMAND_GROUP = 2
-    STRING = 3
-    INTEGER = 4
-    BOOLEAN = 5
-    USER = 6
-    CHANNEL = 7
-    ROLE = 8
-    MENTIONABLE = 9
+    SUB_COMMAND             =          1
+    SUB_COMMAND_GROUP       =          2
+    STRING                  =          3
+    INTEGER                 =          4
+    BOOLEAN                 =          5
+    USER                    =          6
+    CHANNEL                 =          7
+    ROLE                    =          8
+    MENTIONABLE             =          9
+    FLOAT                   =         10
 
     @classmethod
     def any_to_type(cls, whatever):
+        if type(whatever) is int and whatever in range(1, 11):
+            return whatever
         if inspect.isclass(whatever):
             if whatever is str:
                 return cls.STRING
@@ -151,6 +162,8 @@ class OptionTypes:
                 return cls.CHANNEL
             if whatever is discord.Role:
                 return cls.ROLE
+            if whatever is float:
+                return cls.FLOAT
         if type(whatever) is str:
             whatever = whatever.lower()
             if whatever in ["str", "string"]:
@@ -167,8 +180,8 @@ class OptionTypes:
                 return cls.ROLE
             if whatever in ["mentionable", "mention"]:
                 return cls.MENTIONABLE
-        if type(whatever) is int:
-            return whatever
+            if whatever in ["float", "floating", "floating number", "f"]:
+                return cls.FLOAT
 
         
 class SlashPermission():
@@ -192,7 +205,7 @@ class SlashPermission():
                 You can use ``SlashPermission.ROLE`` and ``SlashPermission.USER`` instead
         """
     def __init__(self, allowed_ids: dict=MISSING, forbidden_ids=MISSING) -> None:
-        """Creates a new permission
+        """Creates a new permission object for a slash command
         
         Example
         ```py
@@ -200,6 +213,8 @@ class SlashPermission():
                 "785567792899948577": SlashPermission.ROLE,
                 "355333222596476930": SlashPermission.USER,
                 "539459006847254542": SlashPermission.USER
+            }, allowed_ids={
+                "539459006847255232": SlashPermission.User
             }
         )
         ```
@@ -275,9 +290,11 @@ class SlashCommand():
         async def my_function(command, parameter=None):
             pass
 
-        SlashCommand(callback=my_function, name="hello_world", description="This is a test command", options=[
+        SlashCommand(callback=my_function, name="hello_world", description="This is a test command", 
+            options=[
                 SlashOption(str, name="parameter", description="this is a parameter", choices=[{ "name": "choice 1", "value": 1 }])
-            ], guild_ids=["785567635802816595"], default_permission=False, guild_permissions={ 
+            ], guild_ids=["785567635802816595"], default_permission=False, 
+            guild_permissions={ 
                 "785567635802816595": SlashPermission(allowed_ids={"539459006847254542": SlashPermission.USER}) 
             })
         ```

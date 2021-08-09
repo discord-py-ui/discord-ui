@@ -1,8 +1,9 @@
+from discord.webhook import AsyncWebhookAdapter
 from .slash.http import create_global_command, create_guild_command, delete_global_command, delete_guild_command, delete_guild_commands, edit_global_command, edit_guild_command, get_command, get_global_commands, get_guild_commands, delete_global_commands, get_id
 from .slash.types import OptionTypes, SlashCommand, SlashOption, SubSlashCommand, SubSlashCommandGroup
 from .tools import MISSING, get, get_index
 from .http import jsonifyMessage, BetterRoute, send_files
-from .receive import EphemeralComponent, Message, SlashedCommand, SlashedSubCommand, getResponseMessage
+from .receive import EphemeralComponent, Message, WebhookMessage, SlashedCommand, SlashedSubCommand, getResponseMessage
 
 import discord
 from discord.errors import Forbidden, InvalidArgument
@@ -419,9 +420,11 @@ class Slash():
         -------
         .. code-block::
 
-            @extension.slash.command(name="hello_world", description="This is a test command", options=[
-            SlashOption(str, name="parameter", description="this is a parameter", choices=[{ "name": "choice 1", "value": "test" }])
-                ], guild_ids=["785567635802816595"], default_permission=False, guild_permissions={
+            @extension.slash.command(name="hello_world", description="This is a test command", 
+            options=[
+                SlashOption(str, name="parameter", description="this is a parameter", choices=[{ "name": "choice 1", "value": "test" }])
+            ], guild_ids=["785567635802816595"], default_permission=False, 
+            guild_permissions={
                     "785567635802816595": SlashPermission(allowed_ids={"539459006847254542": SlashPermission.USER})
                 }
             )
@@ -429,6 +432,25 @@ class Slash():
                 ...
         """
         def wrapper(callback):
+            """The wrapper for the callback function. The function's parameters have to have the same name as the parameters specified in the slash command.
+
+            `ctx` is of type :class:`~SlashedCommand` and is used for responding to the interaction and more
+
+            Examples
+            --------
+            - no parameter:
+                `async def command(ctx): ...`
+            - required parameter "number":
+                `async def command(ctx, number): ...`
+            - optional parameter "user":
+                `async def command(ctx, user=default_value)`
+            - multiple optional parameters "user", "number":
+                `async def command(ctx, user=default_value, number=default_value)`
+            - one required and one optional parameter "user", "text":
+                `async def command(ctx, user, text=default_value)`
+
+            Note: Replace `default_value` with a value you want to be used if the parameter is not specified in discord, if you don't want a default value, just set it to `None`
+            """
             self.commands[name] = SlashCommand(callback, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
         return wrapper
     def subcommand(self, base_name, name, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
@@ -473,8 +495,37 @@ class Slash():
                     .. note::
 
                         ``ctx`` is just an example name, you can use whatever you want for that
+
+        Example
+        -------
+        .. code-block::
+
+            @extension.slash.subcommand(base_name="hello", name="world", options=[
+                SlashOption(argument_type="user", name="user", description="the user to tell the holy words")
+            ], guild_ids=["785567635802816595"])
+            async def command(ctx, user):
+                ...
         """
         def wrapper(callback):
+            """The wrapper for the callback function. The function's parameters have to have the same name as the parameters specified in the slash command.
+
+            `ctx` is of type :class:`~SlashedCommand` and is used for responding to the interaction and more
+
+            Examples
+            --------
+            - no parameter:
+                `async def command(ctx): ...`
+            - required parameter "number":
+                `async def command(ctx, number): ...`
+            - optional parameter "user":
+                `async def command(ctx, user=default_value)`
+            - multiple optional parameters "user", "number":
+                `async def command(ctx, user=default_value, number=default_value)`
+            - one required and one optional parameter "user", "text":
+                `async def command(ctx, user, text=default_value)`
+
+            Note: Replace `default_value` with a value you want to be used if the parameter is not specified in discord, if you don't want a default value, just set it to `None`
+            """
             if self.subcommands.get(base_name) is None:
                 self.subcommands[base_name] = {}
 
@@ -527,6 +578,25 @@ class Slash():
         
         """
         def wrapper(callback):
+            """The wrapper for the callback function. The function's parameters have to have the same name as the parameters specified in the slash command.
+
+            `ctx` is of type :class:`~SlashedCommand` and is used for responding to the interaction and more
+
+            Examples
+            --------
+            - no parameter:
+                `async def command(ctx): ...`
+            - required parameter "number":
+                `async def command(ctx, number): ...`
+            - optional parameter "user":
+                `async def command(ctx, user=default_value)`
+            - multiple optional parameters "user", "number":
+                `async def command(ctx, user=default_value, number=default_value)`
+            - one required and one optional parameter "user", "text":
+                `async def command(ctx, user, text=default_value)`
+
+            Note: Replace `default_value` with a value you want to be used if the parameter is not specified in discord, if you don't want a default value, just set it to `None`
+            """
             if self.subcommand_groups.get(base_names[0]) is None:
                 self.subcommand_groups[base_names[0]] = {}
             self.subcommand_groups[base_names[0]][name] = SubSlashCommandGroup(callback, base_names, name, description, options=options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permission)
@@ -622,16 +692,16 @@ class Components():
 
         Parameters
         ----------
-        channel: :class:`discord.TextChannel`
-            The target textchannel
+        channel: :class:`discord.TextChannel` | :class:`int` | :class:`str`
+            The target textchannel or the id of it
         content: :class:`str`, optional
             The message text content; default None
         tts: :class:`bool`, optional
             True if this is a text-to-speech message; default False
-        embed: :class:`discord.Embed`, optional
-            Embedded rich content; default None
+        embed: :class:`discord.Message`, optional
+            Embedded rich content (up to 6000 characters)
         embeds: List[:class:`discord.Embed`], optional
-            embedded rich content (up to 6000 characters); default None
+            Up to 10 embeds; default None
         file: :class:`discord.File`, optional
             A file sent as an attachment to the message; default None
         files: List[:class:`discord.File`], optional
@@ -659,13 +729,14 @@ class Components():
         :raises: :class:`discord.InvalidArgument`: A passed argument was invalid
         """
 
-        if type(channel) != discord.TextChannel:
+        if type(channel) not in [discord.TextChannel, int, str]:
             raise discord.InvalidArgument("Channel must be of type discord.TextChannel")
 
+        channel_id = channel.id if type(channel) is discord.TextChannel else channel
         payload = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference, mention_author=mention_author, components=components)
 
-        route = BetterRoute("POST", f"/channels/{channel.id}/messages")
-        
+        route = BetterRoute("POST", f"/channels/{channel_id}/messages")
+
         r = None
         if file is MISSING and files is MISSING:
             r = await self._discord.http.request(route, json=payload)
@@ -678,7 +749,47 @@ class Components():
             await msg.delete(delay=delete_after)
         
         return msg
+    async def send_webhook(self, webhook, content=MISSING, *, wait=False, username=MISSING, avatar_url=MISSING, tts=False, files=MISSING, embed=MISSING, embeds=MISSING, allowed_mentions=MISSING, components=MISSING) -> Union[WebhookMessage, None]:
+        """Sends a webhook message
+        
+        Parameters
+        ----------
+            webhook: :class:`discord.Webhook`
+                The webhook which will send the message
+            content: :class:`str`, optional
+                the message contents (up to 2000 characters); default None
+            wait: :class:`bool`, optional
+                if `True`, waits for server confirmation of message send before response, and returns the created message body; default False
+            username: :class:`str`, optional
+                override the default username of the webhook; default None
+            avatar_url: :class:`str`, optional
+                override the default avatar of the webhook; default None
+            tts: :class:`bool`, optional
+                true if this is a TTS message; default False
+            files: :class:`discord.File`
+                A list of files which will be sent as attachment
+            embed: :class:`discord.Embed`
+                Embed rich content, optional
+            embeds: List[:class:`discord.Embed`], optional
+                embedded rich content; default None
+            allowed_mentions: :class:`discord.AllowedMentions`, optional
+                allowed mentions for the message; default None
+            components: List[:class:`~Button` | :class:`~LinkButton` | :class:`~SelectMenu`], optional
+                the message components to include with the message; default None
+        Returns
+        -------
+            :returns: The message sent, if wait was True, else nothing will be returned
+            :type: :class:`~WebhookMessage` | :class:`None`
+        
+        """
+        payload = jsonifyMessage(content, tts=tts, embed=embed, embeds=embeds, allowed_mentions=allowed_mentions, components=components)
+        payload["wait"] = wait
+        if username is not None:
+            payload["username"] = username
+        if avatar_url is not None:
+            payload["avatar_url"] = str(avatar_url)
 
+        return await webhook._adapter.execute_webhook(payload=payload, wait=wait, files=files)
     def listening_component(self, custom_id):
         """A decorator for a listening component, that will be always executed if the invoked interaction has the custom_id passed
 
@@ -743,6 +854,13 @@ class Extension():
 
     """
     def __init__(self, client, slash_settings = {"resolve_options": False, "delete_unused": False, "wait_sync": 1}) -> None:
+        """Creates a new extension object
+        
+        Example
+        ```py
+        Extension(client, slash_settings={"delete_unused": True, "wait_sync": 2})
+        ```
+        """
         self.components = Components(client)
         """For using message components
         
