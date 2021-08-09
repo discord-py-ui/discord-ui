@@ -127,7 +127,7 @@ You can find more (and better) examples [here](https://github.com/KusoRedsto/dis
 
     - Fixed small code issues (they were already fixed in previous versions, but I just wanna list this here)
 
-    - (Hopefully) the docs
+    - Docs are now working
 
     </details>
 
