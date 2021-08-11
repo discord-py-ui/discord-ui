@@ -59,7 +59,7 @@ class SlashOption():
         return self._json["type"]
     @argument_type.setter
     def argument_type(self, value):
-        self._json["type"] = OptionTypes.any_to_type(value)
+        self._json["type"] = OptionType.any_to_type(value)
 
     @property
     def name(self) -> str:
@@ -131,7 +131,7 @@ class SlashOption():
     def to_dict(self):
         return self._json
 
-class OptionTypes:
+class OptionType:
     """The list of possible slash command option types"""
 
     SUB_COMMAND             =          1
@@ -139,7 +139,7 @@ class OptionTypes:
     STRING                  =          3
     INTEGER                 =          4
     BOOLEAN                 =          5
-    USER                    =          6
+    MEMBER                  =          6
     CHANNEL                 =          7
     ROLE                    =          8
     MENTIONABLE             =          9
@@ -299,7 +299,9 @@ class SlashCommand():
             })
         ```
         """
-        self._json = {}
+        self._json = {
+            "type": 1
+        }
         self.name = name
         self.description = description or name
         if callback is not None:
@@ -360,12 +362,14 @@ class SlashCommand():
         return self._json.get("options")
     @options.setter
     def options(self, options):
+        if not type(options) is list:
+            raise TypeError("options must be of type List[dict] or List[SlashOptions], not " + str(type(options)))
         if all(type(x) is SlashOption for x in options):
             self._json["options"] = [x.to_dict() for x in options]
         elif all(type(x) is dict for x in options):
             self._json["options"] = options
         else:
-            raise InvalidArgument("options must be of type List[dict] or List[SlashOptions] not " + str(type(options)))
+            raise InvalidArgument("options must be of type List[dict] or List[SlashOptions], not " + str(type(options)))
     # endregion
     # region permissions
     @property
@@ -396,6 +400,68 @@ class SlashCommand():
             return False
 
 
+class ContextCommand():
+    def __init__(self) -> None:
+        self._json = {}
+
+    @property
+    def name(self):
+        return self._json["name"]
+    @name.setter
+    def name(self, value):
+        self._json["name"] = value
+    @property
+    def default_permission(self):
+        return self._json["default_permission"]
+    @default_permission.setter
+    def default_permission(self, value):
+        self._json["default_permission"] = value
+
+    def to_dict(self):
+        return self._json
+
+class UserCommand(ContextCommand):
+    def __init__(self, callback, name, guild_ids = MISSING, default_permission = True, guild_permissions = MISSING) -> None:
+        super().__init__()
+        self._json = {
+            "type": 2
+        }
+        if callback is not None:
+            if not inspect.iscoroutinefunction(callback):
+                raise InvalidArgument("callback has to be async")
+
+            callback_params = inspect.signature(callback).parameters
+            if not len(callback_params) >= 2:
+                raise InvalidArgument("Callback function has to take at least 2 parameters")
+
+        self.callback = callback
+        self.name = name
+        self.guild_ids = guild_ids
+        self.default_permission = default_permission
+        self.guild_permissions = guild_permissions
+        self.permissions = SlashPermission()
+
+class MessageCommand(ContextCommand):
+    def __init__(self, callback, name, guild_ids = MISSING, default_permission = True, guild_permissions = MISSING) -> None:
+        super().__init__()
+        self._json = {
+            "type": 3
+        }
+        if callback is not None:
+            if not inspect.iscoroutinefunction(callback):
+                raise InvalidArgument("callback has to be async")
+
+            callback_params = inspect.signature(callback).parameters
+            if not len(callback_params) >= 2:
+                raise InvalidArgument("Callback function has to take at least 2 parameters")
+
+        self.callback = callback
+        self.name = name
+        self.guild_ids = guild_ids
+        self.default_permission = default_permission
+        self.guild_permissions = guild_permissions
+        self.permissions = SlashPermission()
+
 class SubSlashCommand(SlashCommand):
     def __init__(self, callback, base_name, name, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
         SlashCommand.__init__(self, callback, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
@@ -403,7 +469,7 @@ class SubSlashCommand(SlashCommand):
 
 
     def to_dict(self):
-        return SlashOption(OptionTypes.SUB_COMMAND, self.name, self.description, options=self.options).to_dict()
+        return SlashOption(OptionType.SUB_COMMAND, self.name, self.description, options=self.options).to_dict()
 
 class SubSlashCommandGroup(SlashCommand):
     def __init__(self, callback, base_names, name, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
@@ -415,4 +481,4 @@ class SubSlashCommandGroup(SlashCommand):
         self.base_names = [x.replace(" ", "-").lower() for x in base_names]
         
     def to_dict(self):
-        return SlashOption(OptionTypes.SUB_COMMAND, self.name, self.description, options=self.options).to_dict()
+        return SlashOption(OptionType.SUB_COMMAND, self.name, self.description, options=self.options).to_dict()

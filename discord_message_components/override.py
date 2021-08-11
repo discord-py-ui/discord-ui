@@ -1,4 +1,4 @@
-from discord_message_components.tools import MISSING
+from .tools import MISSING
 from .client import Components, Slash
 import discord
 from discord.ext import commands

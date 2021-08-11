@@ -1,6 +1,5 @@
-from discord_message_components.components import ActionRow
-from discord.message import Attachment
-from .tools import MISSING
+from .components import ActionRow
+from .tools import MISSING, component_dict_list
 
 import discord
 from discord.http import Route
@@ -82,43 +81,6 @@ def jsonifyMessage(content=MISSING, tts=False, embed: discord.Embed=MISSING, emb
         payload["allowed_mentions"] = allowed_mentions
 
     if components is not MISSING:
-        componentsList = []
-        wrappers: List[List[Any]] = []
-
-        if len(components) > 1:
-            curWrapper = []
-            i = 0
-            for component in components:
-                if type(component) is ActionRow or type(component) is list:
-                    if i > 0 and len(curWrapper) > 0:
-                        wrappers.append(curWrapper)
-                    curWrapper = []
-                    wrappers.append(component.items if type(component) is ActionRow else component)
-                    continue
-                    
-                # i > 0 => Preventing empty component field when first button wants to newLine 
-                if component.component_type == 3:
-                    if i > 0:
-                        wrappers.append(curWrapper)
-                    curWrapper = []
-                    wrappers.append(component)
-                elif component.component_type == 2:
-                    if component.new_line and i > 0:
-                        wrappers.append(curWrapper)
-                        curWrapper = [component]
-                    else: 
-                        curWrapper.append(component)
-                        i += 1
-            if len(curWrapper) > 0:
-                wrappers.append(curWrapper)
-        else:
-            wrappers = [components]
-
-        for wrap in wrappers:
-            if all(hasattr(x, "to_dict") for x in wrap):
-                raise Exception("Components with types " + [str(type(x)) for x in wrap] + "are missing to_dict() method")
-            componentsList.append({"type": 1, "components": [x.to_dict() for x in wrap]})
-        
-        payload["components"] = componentsList 
+        payload["components"] = component_dict_list(components) 
 
     return payload

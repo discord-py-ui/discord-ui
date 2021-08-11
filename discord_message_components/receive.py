@@ -1,5 +1,5 @@
 from discord.state import ConnectionState
-from .slash.types import SlashCommand, SubSlashCommand
+from .slash.types import ContextCommand, SlashCommand, SubSlashCommand
 from .tools import MISSING
 from .http import BetterRoute, jsonifyMessage, send_files
 from .components import ActionRow, Button, LinkButton, SelectMenu, SelectOption
@@ -265,12 +265,23 @@ class SlashedCommand(Interaction, SlashCommand):
         """The user who created the interaciton"""
         self.channel: discord.TextChannel = channel
         """The channel where the slash command was used"""
+        self.guild_ids = guild_ids
 
 class SlashedSubCommand(SlashedCommand, SubSlashCommand):
     """A Sub-:class:`~SlashCommand` command that was used"""
     def __init__(self, client, command, data, user, channel, guild_ids) -> None:
         SlashedCommand.__init__(self, client, command, data, user, channel, guild_ids=guild_ids)
         SubSlashCommand.__init__(self, None, "EMPTY", "EMPTY")
+
+
+class SlashedContext(Interaction, ContextCommand):
+    def __init__(self, client, command: ContextCommand, data, user, channel, guild_ids = None) -> None:
+        Interaction.__init__(self, client.user.id, client._connection, data, user)
+        ContextCommand.__init__(self)
+        self._json = command.to_dict()
+        self.member: discord.Member = user
+        self.channel: discord.TextChannel = channel
+        self.guild_ids = guild_ids
 
 
 async def getResponseMessage(state: ConnectionState, data, application_id = None, user=None, response = True):

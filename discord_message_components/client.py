@@ -1,9 +1,9 @@
-from discord.webhook import AsyncWebhookAdapter
+from .slash.tools import ParseMethod, handle_options, handle_thing, resolve
 from .slash.http import create_global_command, create_guild_command, delete_global_command, delete_guild_command, delete_guild_commands, edit_global_command, edit_guild_command, get_command, get_global_commands, get_guild_commands, delete_global_commands, get_id
-from .slash.types import OptionTypes, SlashCommand, SlashOption, SubSlashCommand, SubSlashCommandGroup
+from .slash.types import MessageCommand, OptionType, SlashCommand, SlashOption, SubSlashCommand, SubSlashCommandGroup, UserCommand
 from .tools import MISSING, get, get_index
 from .http import jsonifyMessage, BetterRoute, send_files
-from .receive import EphemeralComponent, Message, WebhookMessage, SlashedCommand, SlashedSubCommand, getResponseMessage
+from .receive import EphemeralComponent, Message, SlashedContext, WebhookMessage, SlashedCommand, SlashedSubCommand, getResponseMessage
 
 import discord
 from discord.errors import Forbidden, InvalidArgument
@@ -21,12 +21,8 @@ class Slash():
         client: :class:`commands.Bot`
             The bot client
 
-        resolve_options: :class:`bool`, optional
-            Whether the received options should be read by the received slash command data. If `False`, the data will be fetched by the id; Default ``False``
-
-            .. warning::
-
-                The resolved data will miss some attributes  
+        parse_method: :class:`bool`, optional
+            How received option data should be treated; Default ``ParseMethod.AUTO``
 
         delete_unused: :class:`bool`, optional
             Whether the commands that are not registered by this slash extension should be deleted in the api; Default ``False``
@@ -74,7 +70,7 @@ class Slash():
         
 
     """
-    def __init__(self, client, resolve_options = False, delete_unused = True, wait_sync = 1) -> None:
+    def __init__(self, client, parse_method = ParseMethod.AUTO, delete_unused = False, wait_sync = 1) -> None:
         """Creates a new slash command thing
         
         Example
@@ -82,7 +78,7 @@ class Slash():
         Slash(client)
         ```
         """
-        self.resolve_options: bool = resolve_options
+        self.parse_method: int = parse_method
         self.delete_unused: bool = delete_unused
         self.wait_sync: float = wait_sync
 
@@ -90,7 +86,8 @@ class Slash():
         self.commands: Dict[(str, SlashCommand)] = {}
         self.subcommands: Dict[(str, Dict[(str, SubSlashCommand)])] = {}
         self.subcommand_groups: Dict[(str, Dict[(str, SubSlashCommandGroup)])] = {}
-        self._discord.add_listener(self._socket_response, 'on_socket_response')
+        self.context_commands = {"message": {}, "user": {}}
+        self._discord.add_listener(self._on_socket_response, 'on_socket_response')
 
         self.ready = False
         async def client_ready():
@@ -99,7 +96,7 @@ class Slash():
             self.ready = True
         self._discord.add_listener(client_ready, "on_ready")
 
-    async def _socket_response(self, msg):
+    async def _on_socket_response(self, msg):
         """Will be executed if the bot receives a socket response"""
         if msg["t"] != "INTERACTION_CREATE":
             return
@@ -112,17 +109,26 @@ class Slash():
         user = discord.Member(data=data["member"], guild=guild, state=self._discord._connection)
         channel = await self._discord.fetch_channel(data["channel_id"])
 
-
-        options = {}
-        x = self.commands.get(data["data"]["name"])
-        if x:
-            if data["data"].get("options") is not None:
-                for op in data["data"].get("options"):
-                    options[op["name"]] = op["value"]
-            
-            await x.callback(SlashedCommand(self._discord, command=x, data=data, user=user, channel=channel, guild_ids=x.guild_ids), **options)
-            return
-        
+        if data["data"]["type"] == 1:
+            x = self.commands.get(data["data"]["name"])
+            if x:
+                options = {}
+                if data["data"].get("options") is not None:
+                    options = await handle_options(data, data["data"]["options"], self.parse_method, self._discord)
+                await x.callback(SlashedCommand(self._discord, command=x, data=data, user=user, channel=channel, guild_ids=x.guild_ids), **options)
+                return
+        elif data["data"]["type"] == 2:
+            x = self.context_commands["user"].get(data["data"]["name"])
+            if x:
+                member = await handle_thing(data["data"]["target_id"], OptionType.MEMBER, data, self.parse_method, self._discord)
+                await x.callback(SlashedContext(self._discord, command=x, data=data, user=user, channel=channel, guild_ids=x.guild_ids), member)
+        elif data["data"]["type"] == 3:
+            x = self.context_commands["message"].get(data["data"]["name"])
+            if x:
+                print(self._discord.get_guild(data["guild_id"]))
+                message = await handle_thing(data["data"]["target_id"], 44, data, self.parse_method, self._discord)
+                await x.callback(SlashedContext(self._discord, command=x, data=data, user=user, channel=channel, guild_ids=x.guild_ids), message)
+    
         fixed_options = []
         x_base = self.subcommands.get(data["data"]["name"]) or self.subcommand_groups.get(data["data"]["name"])
         if x_base:
@@ -136,33 +142,7 @@ class Slash():
             if x is None:
                 x = x_base.get(op["name"])
                 
-            if self.resolve_options:
-                if data["data"].get("resolved"):
-                    resolved = data["data"]["resolved"]
-                    if resolved.get("users"):
-                        for u in resolved["users"]:
-                            resolved_user = resolved["users"][u]
-                            # find the key name
-                            for op in fixed_options:
-                                if options[op["name"]] == u:
-                                    options[op["name"]] = discord.User(state=self._discord._connection, data=resolved_user)
-                    if resolved.get('members'):
-                        for m in resolved["members"]:
-                            resolved_member = resolved["members"][m]
-                            # find the key name
-                            for op in fixed_options:
-                                if options[op["name"]] == m:
-                                    options[op["name"]] = discord.Member(state=self._discord._connection, data=resolved_member, guild=self._discord.get_guild(data["guild_id"]))
-            else:
-                for op in fixed_options:
-                    if op["type"] == OptionTypes.USER:
-                        options[op["name"]] = await (await self._discord.fetch_guild(data["guild_id"])).fetch_member(op["value"])
-                    elif op["type"] == OptionTypes.CHANNEL:
-                        options[op["name"]] = await self._discord.fetch_channel(op["value"])
-                    elif op["type"] == OptionTypes.ROLE:
-                        options[op["name"]] = get(await (await self._discord.fetch_guild(data["guild_id"])).fetch_roles(), op["value"], lambda x: getattr(x, "id", None))
-                    else:
-                        options[op["name"]] = op["value"]
+            options = await handle_options(data, fixed_options, self.self.parse_method, self._discord)
             if x:
                 await x.callback(SlashedSubCommand(self._discord, x, data, user, channel, x.guild_ids), **options)
                 return
@@ -174,6 +154,25 @@ class Slash():
         }
         own_guild_ids = [str(x.id) for x in self._discord.guilds]
         
+        #region contgext commands
+        for command in list(self.context_commands["message"].values()) + list(self.context_commands["user"].values()):
+            if command.guild_ids is not MISSING:        
+                for x in (command.guild_ids or command.guild_permissions.keys()):
+                    if str(x) not in own_guild_ids:
+                        raise InvalidArgument("Client is not in a server with the id '" + str(x) + "'")
+                
+                    if commands["guilds"].get(x) is None:
+                        commands["guilds"][x] = {}
+
+                    if command.guild_permissions is not MISSING:
+                        command.permissions = command.guild_permissions.get(x)
+                    await self.add_guild_command(command, x)
+                    commands["guilds"][x][command.name] = command
+            else:
+                await self.add_global_command(command)
+                commands["globals"][command.name] = command
+        #endregion
+
         for command in list(self.commands.values()):
             if command.guild_ids is not MISSING:        
                 for x in (command.guild_ids or command.guild_permissions.keys()):
@@ -216,7 +215,7 @@ class Slash():
                 
                 subs: List[dict] = []
                 for _base in x.base_names:
-                    subs.append(SlashOption(OptionTypes.SUB_COMMAND_GROUP, _base).to_dict())
+                    subs.append(SlashOption(OptionType.SUB_COMMAND_GROUP, _base).to_dict())
 
                 subs.append(x.to_dict())
 
@@ -474,7 +473,7 @@ class Slash():
                 The parameters for the command; default MISSING
             guild_ids: List[:class:`str` | :class:`int`], optional
                 A list of guild ids where the command is available; default MISSING
-            default_permission: :class:`bool`, optional
+            default_permissions: :class:`bool`, optional
                 Whether the command can be used by everyone or not
             guild_permissions: Dict[``guild_id``: :class:`~SlashPermission`]
                 The permissions for the command in guilds
@@ -531,7 +530,7 @@ class Slash():
 
             self.subcommands[base_name][name] = SubSlashCommand(callback, base_name, name, description, options=options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
         return wrapper
-    def subcommand_group(self, base_names, name, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permission=MISSING):
+    def subcommand_group(self, base_names, name, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
         """A decorator for a subcommand group
         
         command in discord
@@ -599,13 +598,28 @@ class Slash():
             """
             if self.subcommand_groups.get(base_names[0]) is None:
                 self.subcommand_groups[base_names[0]] = {}
-            self.subcommand_groups[base_names[0]][name] = SubSlashCommandGroup(callback, base_names, name, description, options=options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permission)
+            self.subcommand_groups[base_names[0]][name] = SubSlashCommandGroup(callback, base_names, name, description, options=options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
 
         return wrapper
+    def user_command(self, name, guild_ids, default_permission=True, guild_permissions = MISSING):
+        def wraper(callback):
+            self.context_commands["user"][name] = UserCommand(callback, name, guild_ids, default_permission, guild_permissions)
+        return wraper
+    def message_command(self, name, guild_ids, default_permission=True, guild_permissions = MISSING):
+        def wraper(callback):
+            self.context_commands["message"][name] = MessageCommand(callback, name, guild_ids, default_permission, guild_permissions)
+        return wraper
 
 class Components():
     """A class for using and receiving message components in discord
     
+    Parameters
+    -----------
+        client: :class:`discord.Client`
+            The main discord client
+        receive_events: :class:`bool`
+            Whether events like components should be received
+
     Example
     ------------------
     Example for using the listener
@@ -646,7 +660,7 @@ class Components():
         async def my_func(component, msg):
             ...
     """
-    def __init__(self, client: com.Bot):
+    def __init__(self, client: com.Bot, receive_events = True):
         """Creates a new compnent listener
         
         Example
@@ -657,7 +671,8 @@ class Components():
         self._listening_components = []
         """A list of components that are listening for interaction"""
         self._discord = client
-        self._discord.add_listener(self._on_socket_response, 'on_socket_response')
+        if receive_events is True:
+            self._discord.add_listener(self._on_socket_response, 'on_socket_response')
     
     async def _on_socket_response(self, msg):
         """Will be executed if the bot receives a socket response"""
@@ -836,14 +851,11 @@ class Extension():
                 The discord bot client
 
             slash_settings: :class:`dict`, optional
-                Settings for the slash command part; Default `{resolve_options: False, delete_unused: False, wait_sync: 1}`
+                Settings for the slash command part; Default `{parse_method: ParseMethod.AUTO, delete_unused: False, wait_sync: 1}`
                 
-                ``resolve_options``: :class:`bool`, optional
-                    Whether the received options should be read by the received slash command data. If ``False``, the data will be fetched by the id; Default ``False``
+                ``parse_method``: :class:`int`, optional
+                    How the received interaction argument data should be treated; Default ``ParseMethod.AUTO``
 
-                    .. warning::
-
-                        The resolved data will miss some attributes  
 
                 ``delete_unused``: :class:`bool`, optional
                     Whether the commands that are not registered by this slash extension should be deleted in the api; Default ``False``
@@ -853,7 +865,7 @@ class Extension():
 
 
     """
-    def __init__(self, client, slash_settings = {"resolve_options": False, "delete_unused": False, "wait_sync": 1}) -> None:
+    def __init__(self, client, slash_settings = {"parse_method": ParseMethod.AUTO, "delete_unused": False, "wait_sync": 1}) -> None:
         """Creates a new extension object
         
         Example
@@ -867,7 +879,7 @@ class Extension():
         :type: :class:`~Components`
         """
         if slash_settings is None:
-            slash_settings = {"resolve_options": False, "delete_unused": False, "wait_sync": 1}
+            slash_settings = {"resolve_data": True, "delete_unused": False, "wait_sync": 1}
         self.slash = Slash(client, **slash_settings)
         """For using slash commands
         
