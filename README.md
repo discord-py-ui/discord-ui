@@ -3,7 +3,7 @@ https://pypi.org/project/discord-message-components/
 ## Note
 
 Currently I'm unable to work on this project for like a week, 
-but when I'm back I'll try finish v2.2, so plz stay patient 
+but when I'm back I'll try finish [v2.2](https://github.com/KusoRedsto/discord-message-components/projects/3), so plz stay patient 
 thx
 
 (dang I forgot to push 💀, I've even added the new ui command features and everything) 
