@@ -2,44 +2,12 @@ https://pypi.org/project/discord-message-components/
 
 ## Note
 
-The current git version has or can have some issues due to it not being finished (and yeah I forgot to create a dev branch).
-
-Currently, this version has some undocumented features that will be added to the docs when this version is finshed
-
-features:
-- ContextCommands
-    you can use the new ui based slash commands with `slash.message_command` and `slash.user_command`
-
-message_command: these types of commands will show up when you right-click on a message
-
-user_command: this type of command will show when right-clicking on a user
-
-usage:
-```py
-from discord-message-components import Slash
-#client stuff 
-... 
-slash = Slash(client)
-
-@slash.message_command(name="spoiler", guild_ids=["insert here"])
-async def command(ctx, message):
-    await ctx.respond(message.author.mention + "\n" + f"|| {message.content} ||") 
-
-@slash.user_command(name="warn", default_permission=False, guild_ids=["insert here"])
-async def command(ctx, member):
-    await ctx.defer()
-    await member.send("you got warned")
-    await ctx.respond(member.display_name + " got a warning")
-```
-
-current issues:
-- ParseMethod.CACHE, ParseMethod.RESOLVE and ParaeMethod.FETCH have problems
-    `FETCH`: can't fetch all types of data (got some small issues) 
-    `RESOLVE`: channel resolve data is missing most of the data
-    `CACHE`: Doesn't work at all for some reason
-
-I will work on this again when I'm back home, so please stay patient
+Currently I'm unable to work on this project for like a week, 
+but when I'm back I'll try finish v2.2, so plz stay patient 
 thx
+
+(dang I forgot to push 💀, I've even added the new ui command features and everything) 
+
 
 ## Introduction
 
