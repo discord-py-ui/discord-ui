@@ -17,10 +17,10 @@ setuptools.setup(
     version=get_version(),
     author="404kuso, RedstoneZockt",
     author_email="bellou9022@gmail.com, redstoneprofihd@gmail.com",
-    description="A discord message component handler for discord.py",
+    description="A discord user-interface extension for discord.py",
     long_description=get_readme(),
     long_description_content_type="text/markdown",
-    url="https://github.com/KusoRedsto/discord_py_buttons",
+    url="https://github.com/KusoRedsto/discord-ui",
     packages=setuptools.find_packages(),
     python_requires='>=3.9' if 'READTHEDOCS' not in os.environ else None,
     classifiers=[

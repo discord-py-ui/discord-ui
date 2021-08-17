@@ -7,4 +7,4 @@ from .receive import ResponseMessage, Message, WebhookMessage, PressedButton, Se
 from .override import Overriden_Bot, override_client
 
 
-__version__ = "3.0.0"
+__version__ = "3.0.1"

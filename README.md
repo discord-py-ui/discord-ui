@@ -6,7 +6,7 @@
         <br />
         <a href="https://pypi.org/project/discord-ui/"><b>pip package</b></a> 
         ▪ 
-        <a href="https://discord-ui.readthedocs.io/"><b>read the docs</b></a> 
+        <a href="https://discord-ui.readthedocs.io/en/latest/"><b>read the docs</b></a> 
         ▪ 
         <a href="https://github.com/KusoRedsto/discord-ui/tree/main/examples"><b>examples</b></a>
     </p>
@@ -114,6 +114,14 @@ client.run(token)
 You can find more (and better) examples [here](https://github.com/KusoRedsto/discord-ui/tree/main/examples)
 
 # Changelog
+
+-   <details>
+    <summary>3.0.1</summary>
+    
+    ## **Fixed**
+    - small project issues
+
+    </details>
 
 -   <details>
     <summary>3.0.0</summary>
