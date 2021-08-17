@@ -8,6 +8,8 @@ from ..tools import get
 class ParseMethod:
     """Methods of how the interaction argument data should be treated
 
+    - ``RAW``       [0]
+    : Returns the raw value which was received
     - ``RESOLVE``   [1]
     : Uses the resolved data which will be delivered together with the received interaction
     - ``FETCH``     [2]
@@ -21,8 +23,9 @@ class ParseMethod:
 
     - ``AUTO``      [4]
     : This will try to resolve the data, and if an exception occurs, it will try to fetch the data,
-    and if that doesn't work it will try to get the data from the internal cache
+    and if that doesn't work it will try to get the data from the internal cache and if even this doesn't work, it will use raw data
     """
+    RAW         =       0
     RESOLVE     =       1
     FETCH       =       2
     CACHE       =       3
@@ -79,7 +82,6 @@ def resolve(data, _discord):
     return resolved
 
 async def fetch_data(value, typ, data, _discord):
-    print("fetch data")
     if typ == OptionType.MEMBER:
         return await (await _discord.fetch_guild(int(data["guild_id"]))).fetch_member(int(value))
     elif typ == OptionType.CHANNEL:
@@ -145,5 +147,14 @@ async def handle_thing(value, typ, data, method, _discord):
             if method is ParseMethod.AUTO:
                 return await handle_thing(value, typ, data, ParseMethod.CACHE, _discord)
     elif method is ParseMethod.CACHE:
-        return cache_data(value, typ, data, _discord)
-        
+        try:
+            return cache_data(value, typ, data, _discord)
+        except Exception as ex:
+            print("Got exepction while resolving data",
+                f"\n{type(ex).__name__}: {ex}\n",
+                f"{__file__}:{ex.__traceback__.tb_lineno}"
+            )
+            if method is ParseMethod.AUTO:
+                return await handle_thing(value, typ, data, ParseMethod.RAW, _discord)
+    elif method is ParseMethod.RAW:
+        return value

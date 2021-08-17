@@ -2,21 +2,23 @@ import os
 import setuptools
 
 
-def getVersion():
-    with open("./discord_message_components/__init__.py", "r", encoding="utf-8") as f:
+def get_version():
+    """returns the version of the package"""
+    with open("./discord_ui/__init__.py", "r", encoding="utf-8") as f:
         return [f for f in f.readlines() if f.startswith("__version__")][0].split('"')[1].split('"')[0]
-def getReadme():
+def get_readme():
+    """returns the readme content for the package"""
     with open("./README.md", "r", encoding="utf-8") as f:
         return f.read()
 
 
 setuptools.setup(
-    name="discord-message-components",
-    version=getVersion(),
+    name="discord-ui",
+    version=get_version(),
     author="404kuso, RedstoneZockt",
     author_email="bellou9022@gmail.com, redstoneprofihd@gmail.com",
     description="A discord message component handler for discord.py",
-    long_description=getReadme(),
+    long_description=get_readme(),
     long_description_content_type="text/markdown",
     url="https://github.com/KusoRedsto/discord_py_buttons",
     packages=setuptools.find_packages(),

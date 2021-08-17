@@ -1,14 +1,12 @@
 ======================================================
-discord-message-components documentation!
+discord-ui documentation!
 ======================================================
 
 Welcome to the discord message components docs!
 This is a "extension" (I guess) or whatever you want to call it for `discord.py <https://github.com/Rapptz/discord.py>`__
 
 We (`Redstone <https://github.com/RedstoneZockt>`__ and me) decided to create a pip package for the 
-new message components, until discord.py v2.0 is out
-
-We added slash command support to, you can now use slashcommands together with buttons and selectmenus
+new ui features that discord added, until discord.py v2.0 is out
 
 
 .. important::
@@ -30,16 +28,24 @@ We got some cool features for you like:
    *  Receiving them and respond to them, including message components
    *  Setting up permissions for slash commmands
    *  Deleting unused slash commands
-   *  Nuking all accesable slash commands
+   *  Creating and receiving the new context commands
 
    and some more things
 
 .. important::
 
-   We added a function that overrides the normal `discord.ext.commands.Bot` client.
-   You can now acces the slash extension and the components extension via `client.slash` and `client.components`,
-   and for sending components, you can now use `message.channel.send`, this will use the custom 
-   method of our libary, instead of the discord.py method
+   We added a function that can override the normal `discord.ext.commands.Bot` client.
+
+   .. code-block::
+      from discord.ext import commands
+      from discord_ui import override_client
+      override_client()
+
+      client = commands.Bot
+
+   You can acces the slash extension and the components extension via `client.slash` and `client.components`.
+   
+   The ``Messageable.send`` and ``Webhook.send`` functions are overriden by default with our custom method
 
 
 Installation
@@ -50,15 +56,15 @@ To install this package, open your terminal or command line and type
 .. code-block::
 
    # windows
-   py -m install discord-message-components
+   py -m install discord-ui
    # linux
-   python3 -m pip install discord-message-components
+   python3 -m pip install discord-ui
 
 
 Examples
 ---------------------
 
-we have some examples `here <https://github.com/KusoRedsto/discord-message-components/tree/main/examples>`__
+we have some examples `here <https://github.com/KusoRedsto/discord-ui/tree/main/examples>`__
 
 
 Docs
@@ -69,7 +75,7 @@ Docs
    :maxdepth: 1
 
    usage.rst
-   extension.rst
+   ui.rst
    components.rst
    slash.rst
  
@@ -77,7 +83,7 @@ Docs
 Links
 ---------------------
 
-*  `Pip package <https://pypi.org/project/discord-message-components/>`__
+*  `Pip package <https://pypi.org/project/discord-ui/>`__
 *  `404kuso <https://github.com/404kuso>`__
 *  `RedstoneZockt <https://github.com/RedstoneZockt>`__
 *  `discord.py <https://github.com/Rapptz/discord.py>`__

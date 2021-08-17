@@ -63,9 +63,11 @@ class SelectOption():
         return self._json["label"]
     @label.setter
     def label(self, value: str):
-        if value is not MISSING and type(value) is not str:
+        if value is None:
+            value = ""
+        elif value is not None and type(value) is not str:
             raise InvalidArgument("label must be of type str, not " + str(type(value)))
-        if value is not MISSING and len(value) > 100 and value > 0:
+        elif value is not None and len(value) > 100 and value > 0:
             raise InvalidArgument("label must be 100 or fewer and must be higher than 0 in length (" + str(len(value)) + ")")
         self._json["label"] = value
 
@@ -538,11 +540,13 @@ class Button():
         return self._json.get("label", None)
     @label.setter
     def label(self, val: str):
-        if type(val) is not str:
+        if val is None:
+            val = ""
+        elif val is not None and type(val) is not str:
             raise InvalidArgument("label must be of type str, not " + str(type(val)))
-        if len(val) > 80:
+        elif val is not None and len(val) > 80:
             raise InvalidArgument("label must be shorter than 80 characters")
-        if len(val) < 1:
+        elif val is not None and len(val) < 1:
             raise InvalidArgument("label must be longer than 0 characters")
 
         self._json["label"] = str(val)

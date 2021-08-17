@@ -1,6 +1,6 @@
 from .slash.tools import ParseMethod, handle_options, handle_thing, resolve
 from .slash.http import create_global_command, create_guild_command, delete_global_command, delete_guild_command, delete_guild_commands, edit_global_command, edit_guild_command, get_command, get_global_commands, get_guild_commands, delete_global_commands, get_id
-from .slash.types import MessageCommand, OptionType, SlashCommand, SlashOption, SubSlashCommand, SubSlashCommandGroup, UserCommand
+from .slash.types import MessageCommand, OptionType, SlashCommand, SlashOption, SlashPermission, SubSlashCommand, SubSlashCommandGroup, UserCommand
 from .tools import MISSING, get, get_index
 from .http import jsonifyMessage, BetterRoute, send_files
 from .receive import EphemeralComponent, Message, SlashedContext, WebhookMessage, SlashedCommand, SlashedSubCommand, getResponseMessage
@@ -125,7 +125,6 @@ class Slash():
         elif data["data"]["type"] == 3:
             x = self.context_commands["message"].get(data["data"]["name"])
             if x:
-                print(self._discord.get_guild(data["guild_id"]))
                 message = await handle_thing(data["data"]["target_id"], 44, data, self.parse_method, self._discord)
                 await x.callback(SlashedContext(self._discord, command=x, data=data, user=user, channel=channel, guild_ids=x.guild_ids), message)
     
@@ -419,12 +418,12 @@ class Slash():
         -------
         .. code-block::
 
-            @extension.slash.command(name="hello_world", description="This is a test command", 
+            @slash.command(name="hello_world", description="This is a test command", 
             options=[
                 SlashOption(str, name="parameter", description="this is a parameter", choices=[{ "name": "choice 1", "value": "test" }])
             ], guild_ids=["785567635802816595"], default_permission=False, 
             guild_permissions={
-                    "785567635802816595": SlashPermission(allowed_ids={"539459006847254542": SlashPermission.USER})
+                    "785567635802816595": SlashPermission(allowed={"539459006847254542": SlashPermission.USER})
                 }
             )
             async def command(ctx, parameter = None):
@@ -499,7 +498,7 @@ class Slash():
         -------
         .. code-block::
 
-            @extension.slash.subcommand(base_name="hello", name="world", options=[
+            @slash.subcommand(base_name="hello", name="world", options=[
                 SlashOption(argument_type="user", name="user", description="the user to tell the holy words")
             ], guild_ids=["785567635802816595"])
             async def command(ctx, user):
@@ -575,6 +574,16 @@ class Slash():
 
                         ``ctx`` is just an example name, you can use whatever you want for that
         
+        Example
+        -------
+        .. code-block::
+
+            @slash.subcommand_group(base_names=["hello", "beautiful"], name="world", options=[
+                SlashOption(argument_type="user", name="user", description="the user to tell the holy words")
+            ], guild_ids=["785567635802816595"])
+            async def command(ctx, user):
+                ...
+
         """
         def wrapper(callback):
             """The wrapper for the callback function. The function's parameters have to have the same name as the parameters specified in the slash command.
@@ -602,10 +611,92 @@ class Slash():
 
         return wrapper
     def user_command(self, name, guild_ids, default_permission=True, guild_permissions = MISSING):
+        """Decorator for user context commands in discord.
+            ``Right-click username`` -> ``apps`` -> ``commands is displayed here``
+
+
+        Parameters
+        ----------
+            name: :class:`str`
+                The name of the command
+            guild_ids: List[:class:`str` | :class:`int`]
+                A list of guilds where the command can be used
+            default_permission: :class:`bool`, optional
+                Whether the command can be used by everyone; default True
+            guild_permissions: Dict[:class:`SlashPermission`], optional
+                Special permissions for guilds; default MISSING
+
+        Decorator
+        ---------
+
+            callback: :class:`method(ctx, user)`
+                The asynchron function that will be called if the command was used
+                    ctx: :class:`~SlashedSubCommand`
+                        The used slash command
+                    user: :class:`discord.Member`
+                        The user on which the command was used
+                    .. note::
+
+                        ``ctx`` and ``user`` are just example names, you can use whatever you want for that
+        
+        Example
+        -------
+        
+        .. code-block::
+
+            @slash.user_command(name="call", guild_ids=["785567635802816595"], default_permission=False, guild_permissions={
+                "785567635802816595": SlashPermission(allowed={
+                    "585567635802816595": SlashPermission.USER
+                })
+            })
+            async def call(ctx, message):
+                ...
+        """
         def wraper(callback):
             self.context_commands["user"][name] = UserCommand(callback, name, guild_ids, default_permission, guild_permissions)
         return wraper
     def message_command(self, name, guild_ids, default_permission=True, guild_permissions = MISSING):
+        """Decorator for message context commands in discord.
+            ``Right-click message`` -> ``apps`` -> ``commands is displayed here``
+
+
+        Parameters
+        ----------
+            name: :class:`str`
+                The name of the command
+            guild_ids: List[:class:`str` | :class:`int`]
+                A list of guilds where the command can be used
+            default_permission: :class:`bool`, optional
+                Whether the command can be used by everyone; default True
+            guild_permissions: Dict[:class:`SlashPermission`], optional
+                Special permissions for guilds; default MISSING
+
+        Decorator
+        ---------
+
+            callback: :class:`method(ctx, message)`
+                The asynchron function that will be called if the command was used
+                    ctx: :class:`~SlashedSubCommand`
+                        The used slash command
+                    message: :class:`~Message`
+                        The message on which the command was used
+                    .. note::
+
+                        ``ctx`` and ``message`` are just example names, you can use whatever you want for that
+        
+        Example
+        -------
+        
+        .. code-block::
+
+            @slash.message_command(name="quote", guild_ids=["785567635802816595"], default_permission=False, guild_permissions={
+                "785567635802816595": SlashPermission(allowed={
+                    "585567635802816595": SlashPermission.USER
+                })
+            })
+            async def quote(ctx, message):
+                ...
+        """
         def wraper(callback):
             self.context_commands["message"][name] = MessageCommand(callback, name, guild_ids, default_permission, guild_permissions)
         return wraper
@@ -764,7 +855,7 @@ class Components():
             await msg.delete(delay=delete_after)
         
         return msg
-    async def send_webhook(self, webhook, content=MISSING, *, wait=False, username=MISSING, avatar_url=MISSING, tts=False, files=MISSING, embed=MISSING, embeds=MISSING, allowed_mentions=MISSING, components=MISSING) -> Union[WebhookMessage, None]:
+    def send_webhook(self, webhook, content=MISSING, *, wait=False, username=MISSING, avatar_url=MISSING, tts=False, files=MISSING, embed=MISSING, embeds=MISSING, allowed_mentions=MISSING, components=MISSING) -> Union[WebhookMessage, None]:
         """Sends a webhook message
         
         Parameters
@@ -804,7 +895,7 @@ class Components():
         if avatar_url is not None:
             payload["avatar_url"] = str(avatar_url)
 
-        return await webhook._adapter.execute_webhook(payload=payload, wait=wait, files=files)
+        return webhook._adapter.execute_webhook(payload=payload, wait=wait, files=files)
     def listening_component(self, custom_id):
         """A decorator for a listening component, that will be always executed if the invoked interaction has the custom_id passed
 
@@ -842,7 +933,7 @@ class Components():
         return wrapper
     
 
-class Extension():
+class UI():
     """The main extension for the package to use slash commands and message components
         
         Parameters
@@ -850,7 +941,7 @@ class Extension():
             client: :class:`discord.ext.commands.Bot`
                 The discord bot client
 
-            slash_settings: :class:`dict`, optional
+            slash_options: :class:`dict`, optional
                 Settings for the slash command part; Default `{parse_method: ParseMethod.AUTO, delete_unused: False, wait_sync: 1}`
                 
                 ``parse_method``: :class:`int`, optional
@@ -858,19 +949,19 @@ class Extension():
 
 
                 ``delete_unused``: :class:`bool`, optional
-                    Whether the commands that are not registered by this slash extension should be deleted in the api; Default ``False``
+                    Whether the commands that are not registered by this slash ui should be deleted in the api; Default ``False``
         
                 ``wait_sync``: :class:`float`, optional
                     How many seconds will be waited until the commands are going to be synchronized; Default ``1``
 
 
     """
-    def __init__(self, client, slash_settings = {"parse_method": ParseMethod.AUTO, "delete_unused": False, "wait_sync": 1}) -> None:
-        """Creates a new extension object
+    def __init__(self, client, slash_options = {"parse_method": ParseMethod.AUTO, "delete_unused": False, "wait_sync": 1}) -> None:
+        """Creates a new ui object
         
         Example
         ```py
-        Extension(client, slash_settings={"delete_unused": True, "wait_sync": 2})
+        UI(client, slash_options={"delete_unused": True, "wait_sync": 2})
         ```
         """
         self.components = Components(client)
@@ -878,9 +969,9 @@ class Extension():
         
         :type: :class:`~Components`
         """
-        if slash_settings is None:
-            slash_settings = {"resolve_data": True, "delete_unused": False, "wait_sync": 1}
-        self.slash = Slash(client, **slash_settings)
+        if slash_options is None:
+            slash_options = {"resolve_data": True, "delete_unused": False, "wait_sync": 1}
+        self.slash = Slash(client, **slash_options)
         """For using slash commands
         
         :type: :class:`~Slash`

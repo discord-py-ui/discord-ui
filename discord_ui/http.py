@@ -1,5 +1,5 @@
 from .components import ActionRow
-from .tools import MISSING, component_dict_list
+from .tools import MISSING, components_to_dict
 
 import discord
 from discord.http import Route
@@ -53,7 +53,11 @@ def jsonifyMessage(content=MISSING, tts=False, embed: discord.Embed=MISSING, emb
     if nonce is not MISSING:
         payload["nonce"] = nonce
     
-    if embeds is not MISSING:
+    if embed is not MISSING or embeds is not MISSING:
+        if embed is not MISSING and embeds is MISSING:
+            embeds = [embed]
+        elif embed is not MISSING and embeds is not MISSING:
+            embeds.append(embed)
         if type(embeds) is not list:
             raise TypeError("embeds must be of type 'list', not " + str(type(embeds)))
         payload["embeds"] = [em.to_dict() for em in embeds]
@@ -81,6 +85,6 @@ def jsonifyMessage(content=MISSING, tts=False, embed: discord.Embed=MISSING, emb
         payload["allowed_mentions"] = allowed_mentions
 
     if components is not MISSING:
-        payload["components"] = component_dict_list(components) 
+        payload["components"] = components_to_dict(components) 
 
     return payload

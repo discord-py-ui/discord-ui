@@ -1,5 +1,5 @@
 # Example by 404kuso
-# https://github.com/KusoRedsto/discord-message-components/tree/main/examples/calculator.py
+# https://github.com/KusoRedsto/discord-ui/tree/main/examples/calculator.py
 #
 #       This example will send a working calculator to the text channel with buttons
 #
@@ -9,13 +9,13 @@
 
 import asyncio
 from discord.ext import commands
-from discord_message_components import SlashedCommand, Extension, Button
-from discord_message_components.components import LinkButton
+from discord_ui import SlashedCommand, UI, Button
+from discord_ui.components import LinkButton
 
 # The main discord bot client
 client = commands.Bot(" ")
 # Initialize the extension
-extension = Extension(client)
+ui = UI(client)
 
 
 # A component list for the calculator
@@ -24,13 +24,13 @@ calculator = [
     [Button("num_4", "4", "blurple"), Button("num_5", "5", "blurple"), Button("num_6", "6", "blurple"), Button("sub", "-", "green"), Button("open", "(", "green")],
     [Button("num_1", "1", "blurple"), Button("num_2", "2", "blurple"), Button("num_3", "3", "blurple"), Button("mult", "*", "green"), Button("backs", "⌫", "red")],
     [Button("pun", ".", "green"), Button("num_0", "0", "blurple"), Button("equ", "=", "gray"), Button("div", "/", "green"), Button("cls", "C", "red")],
-    LinkButton("https://github.com/KusoRedsto/discord-message-components/tree/main/examples/calculator.py", "ヾ(≧▽≦*) click here for source code ヾ(≧▽≦*)")
+    LinkButton("https://github.com/KusoRedsto/discord-ui/tree/main/examples/calculator.py", "ヾ(≧▽≦*) click here for source code ヾ(≧▽≦*)")
 ]
 
 
 
 # Create a slash command
-@extension.slash.command(name="calculator", description="opens a calculator, that will automatically close when no input was provided after 20 seconds", guild_ids=["785567635802816595"])
+@ui.slash.command(name="calculator", description="opens a calculator, that will automatically close when no input was provided after 20 seconds", guild_ids=["785567635802816595"])
 async def test(ctx: SlashedCommand):
     # The current query for the calculator
     query = ""

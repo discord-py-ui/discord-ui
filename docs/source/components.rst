@@ -1,4 +1,4 @@
-.. currentmodule:: discord_message_components
+.. currentmodule:: discord_ui
 
 
 ====================
@@ -20,7 +20,7 @@ Components
 
     import discord
     from discord.ext import commands
-    from discord_message_components import Components
+    from discord_ui import Components
 
     client = commands.Bot(" ")
     client.components = Components(client) 
@@ -162,3 +162,8 @@ SelectedMenu
     :members:
     :inherited-members:
     :exclude-members: set_default_option, to_dict
+
+Tools
+=========
+
+.. autofunction:: components_to_dict

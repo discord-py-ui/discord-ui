@@ -1,9 +1,13 @@
-https://pypi.org/project/discord-message-components/
-
+<br />
+<p align="center">
+    <h2>discord-ui</h2>
+    <a href="https://pypi.org/project/discord-ui/"><b>pip package</b></a> ▪ <a href="https://discord-ui.readthedocs.io/"><b>read the docs</b></a> ▪ <a href="https://github.com/KusoRedsto/discord-ui/tree/main/examples">Examples</a>
+</p>
 
 ## Introduction
 
-This is a [discord.py](https://github.com/Rapptz/discord.py) message component extension made by [404kuso](https://github.com/404kuso) and [RedstoneZockt](https://github.com/RedstoneZockt), which you can use until discord.py v2.0 is out
+This is a [discord.py](https://github.com/Rapptz/discord.py) ui extension made by [404kuso](https://github.com/404kuso) and [RedstoneZockt](https://github.com/RedstoneZockt)
+for using discord's newest ui features like buttons, slash commands and context commands until discord.py v2.0 is out
 
 We also added override support for the `discord.ext.commands.Bot` client, so you don't have to initialize everything on your own
 
@@ -11,32 +15,31 @@ To override the standart Bot client, add the following to your code
 
 ```py
 from discord.ext import commands
-from discord_message_components import override_client
+from discord_ui import override_client
 override_client()
 
 client = commands.Bot(...)
 ```
 This will add `.components` and `.slash` to the client, and you don't need the 
-`extension = Extension(client)` thing anymore
+`ui = UI(client)` thing anymore
 
 And the standart `TextChannel.send` function is automatically overridden 
 
-> We got some features for you like **send buttons**, **send select menus**, **receive a press or selection** and **edit messages** with buttons and selection menus and everything is compatible with discord.py
 
 
 ## Installation
 
 ```cmd
 # windows
-py -m install discord-message-components
+py -m install discord-ui
 
 # linux
-python3 -m pip install discord-message-components
+python3 -m pip install discord-ui
 ```
 
 ## Docs
 
-You can read the docs [here](https://discord-message-components.readthedocs.io/)
+You can read the docs [here](https://discord-ui.readthedocs.io/)
 
 > The docs can include some typos or issues, if so, plz let me know
 
@@ -60,18 +63,18 @@ This is an example with a slash command, that can create a link button with para
 ```py
 import discord
 from discord.ext import commands
-from discord_message_components import *
+from discord_ui import *
 
 client = commands.Bot(" ")
-extension = Extension(client)
+ui = UI(client)
 
-@extension.slash.subcommand_group(base_names=["generate", "link"], name="button", description="sends a button and a linkbutton", options=[
+@ui.slash.subcommand_group(base_names=["generate", "link"], name="button", description="sends a button and a linkbutton", options=[
         SlashOption(str, "message content", "the content of the message"), 
         SlashOption(str, "name", "the name of the button"), 
         SlashOption(str, "link", "the link for the button"), 
         SlashOption(str, "emoji", "a emoji appearing before the text")
     ], guild_ids=["785567635802816595"])
-async def command(ctx, message_content="cool, right?", name="click me", link="https://github.com/KusoRedsto/discord-message-components", emoji=None):
+async def command(ctx, message_content="cool, right?", name="click me", link="https://github.com/KusoRedsto/discord-ui", emoji=None):
     if not link.startswith("http://") and not link.startswith("https://"):
         return await ctx.respond("The link has to start with `http://` or `https://`", hidden=True)
         
@@ -100,9 +103,26 @@ async def on_select(menu: SelectedMenu, msg: ResponseMessage):
 client.run(token)
 ```
 
-You can find more (and better) examples [here](https://github.com/KusoRedsto/discord-message-components/tree/main/examples)
+You can find more (and better) examples [here](https://github.com/KusoRedsto/discord-ui/tree/main/examples)
 
 # Changelog
+
+-   <details>
+    <summary>3.0.0</summary>
+
+    ## **Added**
+
+    - context commands
+    > Context commands are now available
+
+    ## **Changed**
+
+    - Project name
+    > The project's name was changed from `discord-message-components` to `discord-ui`
+
+    - ``Extension`` is now ``UI``
+
+    </details>
 
 -   <details>
     <summary>2.1.0</summary>
@@ -204,7 +224,7 @@ You can find more (and better) examples [here](https://github.com/KusoRedsto/dis
     ### **Added**
     - Complete message component suppport
     - Select menus
-    - [documentation](https://discord-message-components.readthedocs.io/en/latest/)
+    - [documentation](https://discord-ui.readthedocs.io/en/latest/)
     
     </details>
 

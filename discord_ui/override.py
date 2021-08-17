@@ -47,7 +47,7 @@ def webhook_message_override(cls, *args, **kwargs):
     else:
         return object.__new__(cls)
 
-async def send_webhook(self: discord.Webhook, content=MISSING, *, wait=False, username=MISSING, avatar_url=MISSING, tts=False, files=None, embed=MISSING, embeds=MISSING, allowed_mentions=MISSING, components=MISSING):
+def send_webhook(self: discord.Webhook, content=MISSING, *, wait=False, username=MISSING, avatar_url=MISSING, tts=False, files=None, embed=MISSING, embeds=MISSING, allowed_mentions=MISSING, components=MISSING):
     payload = jsonifyMessage(content, tts=tts, embed=embed, embeds=embeds, allowed_mentions=allowed_mentions, components=components)
 
     if username is not None:
@@ -55,7 +55,7 @@ async def send_webhook(self: discord.Webhook, content=MISSING, *, wait=False, us
     if avatar_url is not None:
         payload["avatar_url"] = str(avatar_url)
     
-    return await self._adapter.execute_webhook(payload=payload, wait=wait, files=files)
+    return self._adapter.execute_webhook(payload=payload, wait=wait, files=files)
 
 module.webhook.Webhook.send = send_webhook
 module.webhook.WebhookMessage.__new__ = webhook_message_override
@@ -136,10 +136,10 @@ class Overriden_Bot(commands.bot.Bot):
 
         .. versionadded:: 1.7
     """
-    def __init__(self, command_prefix, help_command = None, description = None, slash_settings = None, **options):
+    def __init__(self, command_prefix, help_command = None, description = None, slash_options = None, **options):
         commands.bot.Bot.__init__(self, command_prefix, help_command=help_command, description=description, **options)
         
-        self.slash = Slash(self, slash_settings)
+        self.slash = Slash(self, slash_options)
         self.components = Components(self)
 
 def client_override(cls, *args, **kwargs):
@@ -157,10 +157,10 @@ def override_client():
     
     ```py
         from discord.ext import commands
-        from discord_message_components import Extension
+        from discord_ui import UI
         
         client = commands.Bot(...)
-        extension = Extension(client)
+        ui = UI(client)
     ```
 
     With overriding
@@ -168,7 +168,7 @@ def override_client():
     ```py
 
         from discord.ext import commands
-        from discord_message_components import override_client
+        from discord_ui import override_client
         
         override_client()
         client = commands.Bot(...)
@@ -179,7 +179,7 @@ def override_client():
     ```py
 
         from discord.ext import commands
-        from discord_message_components import override_client, OverridenClient
+        from discord_ui import override_client, OverridenClient
 
         override_client()
         client: OverridenClient = commands.Bot(...)
@@ -189,7 +189,7 @@ def override_client():
 
     ```py
 
-        from discord_message_components import OverridenClient
+        from discord_ui import OverridenClient
         client = OverridenClient(...)
     ```
 

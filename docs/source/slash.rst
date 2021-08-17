@@ -1,4 +1,4 @@
-.. currentmodule:: discord_message_components
+.. currentmodule:: discord_ui
 
 
 ===================

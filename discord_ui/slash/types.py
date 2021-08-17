@@ -189,12 +189,12 @@ class SlashPermission():
         
         Parameters
         ----------
-            allowed_ids: :class:`dict`, optional
+            allowed: :class:`dict`, optional
                 A list of ids that can use the command; default MISSING
                     Format: ``{"role_or_user_id": permission_type}]``
 
 
-            forbidden_ids: :class:`dict`, optional
+            forbidden: :class:`dict`, optional
                 A list of ids that are forbidden to use the command; default MISSING
         
 
@@ -204,16 +204,16 @@ class SlashPermission():
 
                 You can use ``SlashPermission.ROLE`` and ``SlashPermission.USER`` instead
         """
-    def __init__(self, allowed_ids: dict=MISSING, forbidden_ids=MISSING) -> None:
+    def __init__(self, allowed: dict=MISSING, forbidden=MISSING) -> None:
         """Creates a new permission object for a slash command
         
         Example
         ```py
-        SlashPermission(forbidden_ids={
+        SlashPermission(forbidden={
                 "785567792899948577": SlashPermission.ROLE,
                 "355333222596476930": SlashPermission.USER,
                 "539459006847254542": SlashPermission.USER
-            }, allowed_ids={
+            }, allowed={
                 "539459006847255232": SlashPermission.User
             }
         )
@@ -221,8 +221,8 @@ class SlashPermission():
         """
         
         self._json = []
-        if allowed_ids is not MISSING:
-            for _id, _type in allowed_ids.items():
+        if allowed is not MISSING:
+            for _id, _type in allowed.items():
                 self._json.append(
                     {
                         "id": _id,
@@ -230,8 +230,8 @@ class SlashPermission():
                         "permission": True
                     }
                 )
-        if forbidden_ids is not MISSING:
-            for _id, _type in forbidden_ids.items():
+        if forbidden is not MISSING:
+            for _id, _type in forbidden.items():
                 self._json.append(
                     {
                         "id": _id,
@@ -247,10 +247,10 @@ class SlashPermission():
     USER = 2
 
     @property
-    def allowed_ids(self) -> typing.List[typing.Union[str, int]]:
+    def allowed(self) -> typing.List[typing.Union[str, int]]:
         return [x["id"] for x in self._json if x["permission"] == True]
     @property
-    def forbidden_ids(self) -> typing.List[typing.Union[str, int]]:
+    def forbidden(self) -> typing.List[typing.Union[str, int]]:
         return [x["id"] for x in self._json if x["permission"] == False]
 
 
@@ -295,7 +295,7 @@ class SlashCommand():
                 SlashOption(str, name="parameter", description="this is a parameter", choices=[{ "name": "choice 1", "value": 1 }])
             ], guild_ids=["785567635802816595"], default_permission=False, 
             guild_permissions={ 
-                "785567635802816595": SlashPermission(allowed_ids={"539459006847254542": SlashPermission.USER}) 
+                "785567635802816595": SlashPermission(allowed={"539459006847254542": SlashPermission.USER}) 
             })
         ```
         """

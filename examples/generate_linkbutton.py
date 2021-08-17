@@ -1,5 +1,5 @@
 # Example by 404kuso
-# https://github.com/KusoRedsto/discord-message-components/tree/main/examples/generate_linkbutton.py
+# https://github.com/KusoRedsto/discord-ui/tree/main/examples/generate_linkbutton.py
 # 
 #       This example will use a slash subcommand group and will generate a 
 #       linkbutton with a name, link and emoji which the user can specify
@@ -8,15 +8,15 @@
 #       your choice, because guild slash commands are way faster than globals
 
 from discord.ext import commands
-from discord_message_components import SlashOption, Extension, LinkButton
+from discord_ui import SlashOption, UI, LinkButton
 
 # The main bot client
 client = commands.Bot(" ")
 # Initialize the extension
-extension = Extension(client)
+ui = UI(client)
 
 # Creating the command
-@extension.slash.subcommand_group(base_names=["generate", "link"], 
+@ui.slash.subcommand_group(base_names=["generate", "link"], 
 name="button", description="sends a button and a linkbutton", options=[
         # The user can specify the message content
         SlashOption(str, "message content", "the content of the message"),
@@ -29,7 +29,7 @@ name="button", description="sends a button and a linkbutton", options=[
     ], 
     # If you want to test the command, use guild_ids, because this is way faster than global commands
     guild_ids=["785567635802816595"])
-async def command(ctx, message_content="cool, right?", name="click me", link="https://github.com/KusoRedsto/discord-message-components", emoji=None):
+async def command(ctx, message_content="cool, right?", name="click me", link="https://github.com/KusoRedsto/discord-ui", emoji=None):
     # Check if the link is valid
     if not link.startswith("http://") and not link.startswith("https://"):
         # send hidden response that the link is invalid

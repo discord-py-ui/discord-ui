@@ -66,8 +66,8 @@ def get(l: list, elem: Any, mapping = lambda x: x, default: Any = None):
             return x
     return default
 
-def component_dict_list(*components):
-    """Converts a list of components to a dict that can be used for other extensions etc
+def components_to_dict(*components):
+    """Converts a list of components to a dict that can be used for other extensions
     
     Parameters
     ----------
@@ -79,9 +79,9 @@ def component_dict_list(*components):
         .. code-block::
 
             # List of components with component rows (everything in [] defines that it will be in it's own component row)
-            component_dict_list(Button(...), [Button(...), Button(...)], SelectMenu(...), LinkButton)
+            components_to_dict(Button(...), [Button(...), Button(...)], SelectMenu(...), LinkButton)
             # or
-            component_dict_list([Button(...), [LinkButton(...), Button(...)]])
+            components_to_dict([Button(...), [LinkButton(...), Button(...)]])
 
     Raises
     ------
@@ -127,7 +127,7 @@ def component_dict_list(*components):
         wrappers = [components]
 
     for wrap in wrappers:
-        if all(hasattr(x, "to_dict") for x in wrap):
-            raise Exception("Components with types " + [str(type(x)) for x in wrap] + "are missing to_dict() method")
+        if not all(hasattr(x, "to_dict") for x in wrap):
+            raise Exception("Components with types [" + ', '.join([str(type(x)) for x in wrap]) + "] are missing to_dict() method")
         component_list.append({"type": 1, "components": [x.to_dict() for x in wrap]})
     return component_list

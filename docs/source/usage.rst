@@ -13,7 +13,7 @@ At first, you need to import the discord.py package and this package
 
     import discord
     from discord.ext import commands
-    from discord_message_components import Components
+    from discord_ui import Components
 
 
 Create a new discord client
@@ -26,11 +26,11 @@ Create a new discord client
 
     Note that the discord client has to be of type :class:`discord.ext.commands.Bot`, or else it won't work
 
-Then you need to create a new :class:`~Extension` instance, with which you can use message components and slash commands
+Then you need to create a new :class:`~UI` instance, with which you can use message components and slash commands
 
 .. code-block::
 
-    extension = Extension(client)
+    ui = UI(client)
 
 
 Message-components
@@ -39,7 +39,7 @@ Message-components
 Sending
 ~~~~~~~~~~~~~~~~~~~~~~
 
-To send a component, we need to acces our :class:`~Components` class with ``extension.components`` and use the ``.send()`` function of it 
+To send a component, we need to acces our :class:`~Components` class with ``ui.components`` and use the ``.send()`` function of it 
 
 In this example, we'll wait for a message with the content "!test"
 
@@ -60,7 +60,7 @@ We need to import them at first. For that, we need to go back to the beginning, 
 
     import discord
     from discord.ext import commands
-    from discord_message_components import Components, Button, SelectMenu, SelectOption
+    from discord_ui import Components, Button, SelectMenu, SelectOption
 
 And to send them, we use
 
@@ -185,7 +185,7 @@ And we got listening components with a function that will always be executed if 
 
 .. code-block::
 
-    @extension.components.listening_component(custom_id="listening")
+    @ui.components.listening_component(custom_id="listening")
     async def listening_component(component, message):
         await component.respond("we got a component in this")
 
@@ -204,7 +204,7 @@ Slash-commands
 ====================
 
 
-To create a new slash command, we need to acces the ``slash`` attribute from the initialized ``extension``
+To create a new slash command, we need to acces the ``slash`` attribute from the initialized ``ui``
 
 
 Basic command
@@ -219,7 +219,7 @@ In this example, we will create a simple slash command
 
 .. code-block::
 
-    @extension.slash.command(name="test", description="this is a test command", guild_ids=["785567635802816595"])
+    @ui.slash.command(name="test", description="this is a test command", guild_ids=["785567635802816595"])
     async def command(ctx):
         ...
 
@@ -242,7 +242,7 @@ It acceps a list of :class:`~SlashOption`
 
 .. code-block::
 
-    @extension.slash.command(name="test", description="this is a test command", options=[
+    @ui.slash.command(name="test", description="this is a test command", options=[
             SlashOption(int, name="parameter1", description="this is a parameter")
         ], guild_ids=["785567635802816595"])
     async def command(ctx, parameter1="nothing"):
@@ -279,7 +279,7 @@ If you want the parameter to be required, in the option, you have to set ``requi
 
 .. code-block::
 
-    @extension.slash.command(name="test", description="this is a test command", options=[
+    @ui.slash.command(name="test", description="this is a test command", options=[
             SlashOption(int, name="parameter1", description="this is a parameter", required=True)
         ], guild_ids=["785567635802816595"])
     async def command(ctx, parameter1):
@@ -303,7 +303,7 @@ Too add them, where we add the options with the :class:`~SlashOption` class, we 
 
 .. code-block::
 
-    @extension.slash.command(name="test", description="this is a test command", options=[
+    @ui.slash.command(name="test", description="this is a test command", options=[
                 SlashOption(int, name="parameter1", description="this is a parameter", choices=[
                     {"name": "first choice", "value": 1}, {"name": "second choice", "value": 2}
                 ])
@@ -337,7 +337,7 @@ If the default permission to ``False``, no one can use the command, if it's ``Tr
 
 .. code-block::
 
-    @extension.slash.command(name="test", description="this is a test command", options=[
+    @ui.slash.command(name="test", description="this is a test command", options=[
             SlashOption(int, name="parameter1", description="this is a parameter")
         ], guild_ids=["785567635802816595"], default_permission=False)
     async def command(ctx, parameter1="nothing"):
@@ -355,15 +355,15 @@ You can add role ids or/and user ids
 
 .. code-block::
 
-    @extension.slash.command(name="test", description="this is a test command", options=[
+    @ui.slash.command(name="test", description="this is a test command", options=[
             SlashOption(int, name="parameter1", description="this is a parameter")
         ], guild_ids=["785567635802816595"], guild_permissions={
         "785567635802816595": SlashPermission(
-            allowed_ids={ 
+            allowed={ 
                 "539459006847254542": SlashPermission.USER,
                 "849035012476895232": SlashPermission.ROLE
             }, 
-            forbidden_ids={ 
+            forbidden={ 
                 "785567792899948577": SlashPermission.ROLE
             }
         )})
@@ -390,7 +390,7 @@ To set the guilds where the command is useable, you need to set the ``guild_id``
 
 .. code-block::
 
-    @extension.slash.command(name="test", description="this is a test command", guild_ids=["785567635802816595"])
+    @ui.slash.command(name="test", description="this is a test command", guild_ids=["785567635802816595"])
     async def command(ctx, parameter1="nothing"):
         ...
 
@@ -417,7 +417,7 @@ For example
 
 .. code-block::
 
-    @extension.slash.subcommand(base_name="hello", name="world", description="this is a subcommand")
+    @ui.slash.subcommand(base_name="hello", name="world", description="this is a subcommand")
     async def command(ctx):
         ...
 
@@ -447,7 +447,7 @@ For example
 
 .. code-block::
 
-    @extension.slash.subcommand_group(base_names=["hello", "beautiful"], name="world", description="this is a subcommand group")
+    @ui.slash.subcommand_group(base_names=["hello", "beautiful"], name="world", description="this is a subcommand group")
     async def command(ctx):
         ...
 
@@ -455,3 +455,35 @@ Would look like this
 
 .. image:: images/slash/hello_beautiful_world_subcommandgroup.png
     :width: 1000
+
+context-commands
+-----------------
+discord added a new feature called context-commands, which are basically slash commands, but focusing on messages and users
+
+To create a message command, which can be used when right-clicking a message, we use
+
+.. code-block::
+
+    @slash.message_command(name="quote")
+    async def callback(ctx, message):
+        ...
+
+.. image:: images/context/message_command.gif
+    :width: 1000
+
+And for a user command, we use
+
+.. code-block::
+
+    @slash.user_command(name="avatar"):
+    async def callback(ctx, user):
+        ...
+
+.. image:: images/context/user_command.gif
+    :width: 1000
+
+They both work in the same way as slash commands, so responding to them will still be the same, the only differnce are the parameters
+
+.. note::
+
+    ``message`` and ``user`` are just example names for the parameters, you can use whatever you want for them

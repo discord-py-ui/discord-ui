@@ -1,5 +1,5 @@
 # Example by 404kuso
-# https://github.com/KusoRedsto/discord-message-components/tree/main/examples/role_picker.py
+# https://github.com/KusoRedsto/discord-ui/tree/main/examples/role_picker.py
 # 
 #       This example will use a slash subcommand and will send a select menu only visible to the user,
 #       where the user can choose between roles to get
@@ -14,15 +14,15 @@
 
 import asyncio
 from discord.ext import commands
-from discord_message_components import Extension, SlashedCommand, SelectMenu, SelectOption
+from discord_ui import UI, SlashedCommand, SelectMenu, SelectOption
 
 # The main bot client
 client = commands.Bot(" ")
 # initialize the extension
-extension = Extension(client, slash_settings={"wait_sync": 2, "delete_unused": True})
+ui = UI(client, slash_options={"wait_sync": 2, "delete_unused": True})
 
 # Create a slash command
-@extension.slash.command(name="role-picker", description="let's you pick roles", guild_ids=["785567635802816595"])
+@ui.slash.command(name="role-picker", description="let's you pick roles", guild_ids=["785567635802816595"])
 async def command(ctx: SlashedCommand):
 
     # The role picker component
