@@ -6,10 +6,11 @@ from discord.errors import InvalidArgument
 import inspect
 from typing import Any, List, Union
 
-class SelectOption():
+
+class SelectOption:
     """
     An option for a select menu
-    
+
     Parameters
     ----------
     value: :class:`str`
@@ -25,7 +26,10 @@ class SelectOption():
     ------
     :raises: :class:`discord.InvalidArgument`: A passed argument was invalid
     """
-    def __init__(self, value, label="\u200b", description=MISSING, emoji=MISSING) -> None:
+
+    def __init__(
+        self, value, label="\u200b", description=MISSING, emoji=MISSING
+    ) -> None:
         """
         Creates a new SelectOption
 
@@ -35,14 +39,13 @@ class SelectOption():
         ```
         """
         self._json = {}
-        
+
         self.label = label
         self.value = value
         if description is not MISSING:
             self.description = description
         if emoji is not MISSING:
             self.emoji = emoji
-        
 
     @property
     def content(self) -> str:
@@ -51,16 +54,17 @@ class SelectOption():
 
         :type: :class:`str`
         """
-        return (self.emoji + " " if self.emoji is not None else "") + (self.label or '')
-    
+        return (self.emoji + " " if self.emoji is not None else "") + (self.label or "")
+
     @property
     def label(self) -> str:
         """
-        The main text appearing on the option 
+        The main text appearing on the option
 
         :type: :class:`str`
         """
         return self._json["label"]
+
     @label.setter
     def label(self, value: str):
         if value is None:
@@ -68,7 +72,11 @@ class SelectOption():
         elif value is not None and type(value) is not str:
             raise InvalidArgument("label must be of type str, not " + str(type(value)))
         elif value is not None and len(value) > 100 and value > 0:
-            raise InvalidArgument("label must be 100 or fewer and must be higher than 0 in length (" + str(len(value)) + ")")
+            raise InvalidArgument(
+                "label must be 100 or fewer and must be higher than 0 in length ("
+                + str(len(value))
+                + ")"
+            )
         self._json["label"] = value
 
     @property
@@ -79,6 +87,7 @@ class SelectOption():
         :type: :class:`str`
         """
         return self._json["value"]
+
     @value.setter
     def value(self, value):
         if inspect.isclass(value):
@@ -93,14 +102,19 @@ class SelectOption():
         :type: :class:`str`
         """
         return self._json.get("description")
+
     @description.setter
     def description(self, value):
         if value is not MISSING and type(value) is not str:
-            raise InvalidArgument("description must be of type str, not " + " " + str(type(value)))
+            raise InvalidArgument(
+                "description must be of type str, not " + " " + str(type(value))
+            )
         if value is not MISSING and len(value) > 50:
-            raise InvalidArgument("description must be 50 or fewer in length (" + str(len(value)) + ")")
+            raise InvalidArgument(
+                "description must be 50 or fewer in length (" + str(len(value)) + ")"
+            )
         self._json["description"] = value
-    
+
     @property
     def default(self) -> bool:
         """
@@ -110,7 +124,6 @@ class SelectOption():
         """
         return self._json.get("default", False)
 
-
     @property
     def emoji(self) -> str:
         """
@@ -118,7 +131,7 @@ class SelectOption():
 
             .. note::
                 For setting the emoji, you can use a str or discord.Emoji
-        
+
         :type: :class:`str`
         """
         if "emoji" not in self._json:
@@ -126,23 +139,20 @@ class SelectOption():
         if "id" not in self._json["emoji"]:
             return self._json["emoji"]["name"]
         return f'<{"a" if "animated" in self._json["emoji"] else ""}:{self._json["emoji"]["name"]}:{self._json["emoji"]["id"]}>'
+
     @emoji.setter
     def emoji(self, val: Union[Emoji, str]):
         """The emoji appearing before the label"""
         if type(emoji) is str:
-            self._json["emoji"] = {
-                "id": None,
-                "name": emoji
-            }
+            self._json["emoji"] = {"id": None, "name": emoji}
         elif type(emoji) is Emoji:
             self._json["emoji"] = {
                 "id": emoji.id,
                 "name": emoji.name,
-                "animated": emoji.animated
+                "animated": emoji.animated,
             }
         elif type(emoji) is dict:
             self._json["emoji"] = emoji
-
 
     def to_dict(self) -> dict:
         return self._json
@@ -150,7 +160,7 @@ class SelectOption():
     @classmethod
     def _fromData(cls, data) -> "SelectOption":
         """Initializes a new SelectOption from a dict
-        
+
         Parameters
         ----------
             data: :class:`dict`
@@ -159,13 +169,14 @@ class SelectOption():
         -------
             :class:`~SelectOption`
                 The new Option generated from the dict
-        
+
         """
         x = SelectOption("EMPTY", "EMPTY")
         x._json = data
         return x
 
-class SelectMenu():
+
+class SelectMenu:
     """A select menu
 
     Parameters
@@ -189,7 +200,17 @@ class SelectMenu():
     ------
     :raises: :class:`discord.InvalidArgument`: A passed argument was invalid
     """
-    def __init__(self, custom_id, options, min_values = 1, max_values = 1, placeholder=MISSING, default=MISSING, disabled=False) -> None:
+
+    def __init__(
+        self,
+        custom_id,
+        options,
+        min_values=1,
+        max_values=1,
+        placeholder=MISSING,
+        default=MISSING,
+        disabled=False,
+    ) -> None:
         """
         Creates a new ui select menu
 
@@ -199,7 +220,9 @@ class SelectMenu():
         ```
         """
         if type(custom_id) is not str:
-            raise InvalidArgument("custom_id must be of type str, not " + str(type(custom_id)))
+            raise InvalidArgument(
+                "custom_id must be of type str, not " + str(type(custom_id))
+            )
         if len(custom_id) > 100:
             raise InvalidArgument("custom_id must be 100 or fewer in length")
         if len(custom_id) < 1:
@@ -207,20 +230,29 @@ class SelectMenu():
         self._json = {
             "type": ComponentType.SELECT_MENU,
             "custom_id": custom_id,
-            "disabled": disabled
+            "disabled": disabled,
         }
 
         if type(options) is list:
             if len(options) > 25 or len(options) == 0:
-                raise InvalidArgument("You need to specify at least 1 option and at most 25 (" + str(len(options)) + ")")
+                raise InvalidArgument(
+                    "You need to specify at least 1 option and at most 25 ("
+                    + str(len(options))
+                    + ")"
+                )
             if len(options) != [x for x in options if type(x) is SelectOption]:
                 self._json["options"] = [x.to_dict() for x in options]
             elif len(options) != [x for x in options if type(x) is dict]:
                 self._json["options"] = options
             else:
-                raise InvalidArgument("options must be of type SelectOption or dict, not " + str(type(options[0])))
+                raise InvalidArgument(
+                    "options must be of type SelectOption or dict, not "
+                    + str(type(options[0]))
+                )
         else:
-            raise InvalidArgument("options must be of type List[SelectOption], not " + str(type(options)))
+            raise InvalidArgument(
+                "options must be of type List[SelectOption], not " + str(type(options))
+            )
 
         if min_values is not MISSING and max_values is MISSING:
             if min_values < 0 or min_values > 25:
@@ -242,32 +274,32 @@ class SelectMenu():
 
         if placeholder is not MISSING:
             self._json["placeholder"] = placeholder
-        
+
         if default is not MISSING:
             self.set_default_option(default)
 
     def __str__(self) -> str:
         return self.custom_id
-    
+
     @classmethod
-    def _fromData(cls, data) -> 'SelectMenu':
+    def _fromData(cls, data) -> "SelectMenu":
         """Returns a new SelectMenu from dict data
-        
+
         Returns
         -------
             :class:`~SelectMenu`
                 The initialized SelectMenu
-        
+
         """
         x = cls._empty()
         x._json = data
         return x
 
     @staticmethod
-    def _empty() -> 'SelectMenu':
+    def _empty() -> "SelectMenu":
         """
         Creates a new "empty" select menu
-        
+
         Returns
         -------
             :class:`~SelectMenu`
@@ -280,13 +312,14 @@ class SelectMenu():
     def component_type(self) -> int:
         """
         The message component type
-        
+
             .. note::
                 The message component type will be always 3, because 3 is a select menu
-        
+
         :type: :class:`int`
         """
         return self._json["type"]
+
     @property
     def custom_id(self) -> str:
         """
@@ -295,6 +328,7 @@ class SelectMenu():
         :type: :class:`str`
         """
         return self._json["custom_id"]
+
     @custom_id.setter
     def custom_id(self, value: str):
         self._json["custom_id"] = value
@@ -307,6 +341,7 @@ class SelectMenu():
         :type: List[:class:`~SelectOption`]
         """
         return [SelectOption._fromData(x) for x in self._json["options"]]
+
     @options.setter
     def options(self, value: List[SelectOption]):
         self._json["options"] = [x.to_dict() for x in value]
@@ -321,7 +356,8 @@ class SelectMenu():
         x = [x for x in self.options if x.default]
         if len(x) == 1:
             return x[0]
-    def set_default_option(self, position: int) -> 'SelectMenu':
+
+    def set_default_option(self, position: int) -> "SelectMenu":
         """Selects the default selected option
 
         Parameters
@@ -334,12 +370,18 @@ class SelectMenu():
         :raises: :class:`discord.InvalidArgument`: A passed argument was invalid
         """
         if type(position) is not int:
-            raise InvalidArgument("position has to be of type int, not " + str(type(position)))
+            raise InvalidArgument(
+                "position has to be of type int, not " + str(type(position))
+            )
         if position < 0 or position > len(self.options):
-            raise InvalidArgument("default option position needs to be between 0 and " + str(len(self.options) - 1) + "(length of options)")
+            raise InvalidArgument(
+                "default option position needs to be between 0 and "
+                + str(len(self.options) - 1)
+                + "(length of options)"
+            )
         self._json["options"][position]["default"] = True
         return self
-    
+
     @property
     def placeholder(self) -> Union[str, None]:
         """
@@ -348,6 +390,7 @@ class SelectMenu():
         :type: :class:`str` | :class:`None`
         """
         return self._json.get("placeholder")
+
     @placeholder.setter
     def placeholder(self, value: str):
         self._json["placeholder"] = value
@@ -360,6 +403,7 @@ class SelectMenu():
         :type: :class:`int`
         """
         return self._json["min_values"]
+
     @min_values.setter
     def min_values(self, value: int):
         self._json["min_values"] = value
@@ -372,10 +416,11 @@ class SelectMenu():
         :type: :class:`int`
         """
         return self._json["max_values"]
+
     @max_values.setter
     def max_values(self, value: int):
         self._json["max_values"] = value
-    
+
     @property
     def disabled(self) -> bool:
         """
@@ -383,7 +428,8 @@ class SelectMenu():
 
         :type: :class:`bool`
         """
-        return self._json.get('disabled', False)
+        return self._json.get("disabled", False)
+
     @disabled.setter
     def disabled(self, value):
         self._json["disabled"] = value
@@ -395,13 +441,15 @@ class SelectMenu():
         :type: :class:`str`
         """
         return self._json.get("hash")
+
     # endregion
 
     def to_dict(self) -> dict:
         return self._json
 
+
 # region Button
-class Button():
+class Button:
     """A discord-ui button
 
     Parameters
@@ -415,9 +463,9 @@ class Button():
 
         .. tip:
 
-            You can either use a string for a color or an int. Color strings are: 
+            You can either use a string for a color or an int. Color strings are:
             (`primary`, `blurple`), (`secondary`, `grey`), (`succes`, `green`) and (`danger`, `Red`)
-            
+
             If you want to use integers, take a lot at the :class:`~Colors` class
 
     emoji: :class:`discord.Emoji` | :class:`str`, optional
@@ -431,7 +479,16 @@ class Button():
     ------
     :raises: :class:`discord.InvalidArgument`: A passed argument was invalid
     """
-    def __init__(self, custom_id, label="\u200b", color = "blurple", emoji=MISSING, new_line=False, disabled=False) -> None:
+
+    def __init__(
+        self,
+        custom_id,
+        label="\u200b",
+        color="blurple",
+        emoji=MISSING,
+        new_line=False,
+        disabled=False,
+    ) -> None:
         """
         Creates a new ui-button
 
@@ -445,11 +502,15 @@ class Button():
         if label is not MISSING and type(label) is not str:
             raise InvalidArgument("label must be of type str, not " + str(type(label)))
         if type(custom_id) is not str:
-            raise InvalidArgument("custom_id must be of type str, not " + str(type(custom_id)))
+            raise InvalidArgument(
+                "custom_id must be of type str, not " + str(type(custom_id))
+            )
         if type(disabled) is not bool:
-            raise InvalidArgument("disabled must be of type bool") 
+            raise InvalidArgument("disabled must be of type bool")
         if emoji is not MISSING and type(emoji) not in [Emoji, str, dict]:
-            raise InvalidArgument("emoji must be of type discord.Emoji or str, not " + str(type(emoji)))
+            raise InvalidArgument(
+                "emoji must be of type discord.Emoji or str, not " + str(type(emoji))
+            )
         if len(custom_id) > 100:
             raise InvalidArgument("custom_id maximum character limit (100) exceeded")
         if len(custom_id) < 1:
@@ -472,15 +533,12 @@ class Button():
             self._json["label"] = label
         if emoji is not MISSING:
             if type(emoji) is str:
-                self._json["emoji"] = {
-                    "id": None,
-                    "name": emoji
-                }
+                self._json["emoji"] = {"id": None, "name": emoji}
             elif type(emoji) is Emoji:
                 self._json["emoji"] = {
                     "id": emoji.id,
                     "name": emoji.name,
-                    "animated": emoji.animated
+                    "animated": emoji.animated,
                 }
             elif type(emoji) is dict:
                 self._json["emoji"] = emoji
@@ -496,7 +554,7 @@ class Button():
 
             .. note::
                 The message component type will be always 2 (button)
-        
+
         :type: :class:`int`
         """
         return self._json["type"]
@@ -508,7 +566,7 @@ class Button():
 
         :type: :class:`str`
         """
-        return (self.emoji + " " if self.emoji is not None else "") + (self.label or '')
+        return (self.emoji + " " if self.emoji is not None else "") + (self.label or "")
 
     @property
     def custom_id(self) -> str:
@@ -518,11 +576,14 @@ class Button():
         :type: :class:`str`
         """
         return self._json["custom_id"]
+
     @custom_id.setter
     def custom_id(self, val: str):
         if type(val) is not str:
-            raise InvalidArgument("custom_id must be of type str, not " + str(type(val)))
-        
+            raise InvalidArgument(
+                "custom_id must be of type str, not " + str(type(val))
+            )
+
         if len(val) > 100:
             raise InvalidArgument("custom_id must be shorter than 100 characters")
         if len(val) < 1:
@@ -538,6 +599,7 @@ class Button():
         :type: :class:`str`
         """
         return self._json.get("label", None)
+
     @label.setter
     def label(self, val: str):
         if val is None:
@@ -559,19 +621,20 @@ class Button():
         :type: :class:`int`, one of :class:`~ButtonStyles`
         """
         return self._json["style"]
+
     @color.setter
     def color(self, val):
         if Colors.getColor(val) is None:
             raise InvalidArgument(str(val) + " is not a valid color")
         self._json["style"] = Colors.getColor(val)
-    
+
     @property
     def emoji(self) -> str:
         """The mention of the emoji before the text
-        
+
             .. note::
-                For setting the emoji, you can use a str or discord.Emoji          
-        
+                For setting the emoji, you can use a str or discord.Emoji
+
         :type: :class:`str`
         """
         if "emoji" not in self._json:
@@ -579,20 +642,20 @@ class Button():
         if "id" not in self._json["emoji"]:
             return self._json["emoji"]["name"]
         return f'<{"a" if "animated" in self._json["emoji"] else ""}:{self._json["emoji"]["name"]}:{self._json["emoji"]["id"]}>'
+
     @emoji.setter
     def emoji(self, val: Union[Emoji, str]):
         if type(val) not in [Emoji, str]:
-            raise InvalidArgument("emoji msut be of type discord.Emoji or str, not " + str(type(val)))
+            raise InvalidArgument(
+                "emoji msut be of type discord.Emoji or str, not " + str(type(val))
+            )
         if type(val) is str:
-            self._json["emoji"] = {
-                "id": None,
-                "name": val
-            }
+            self._json["emoji"] = {"id": None, "name": val}
         elif type(val) is Emoji:
             self._json["emoji"] = {
                 "id": val.id,
                 "name": val.name,
-                "animated": val.animated
+                "animated": val.animated,
             }
 
     @property
@@ -604,6 +667,7 @@ class Button():
         :type: :class:`bool`
         """
         return self._json["disabled"] if "disabled" in self._json else False
+
     @disabled.setter
     def disabled(self, val):
         if type(val) != bool:
@@ -612,7 +676,7 @@ class Button():
             self._json["disabled"] = bool(val)
         else:
             self._json |= {"disabled": bool(val)}
-    
+
     @property
     def hash(self) -> str:
         """
@@ -620,15 +684,17 @@ class Button():
 
         :type: :class:`str`
         """
-        return self._json.get('hash', None)
+        return self._json.get("hash", None)
+
     # endregion
-    
+
     @classmethod
     def _empty(cls):
         """Returns an "empty" button"""
         return cls("empty", "empty")
+
     @classmethod
-    def _fromData(cls, data, new_line=False) -> 'Button':
+    def _fromData(cls, data, new_line=False) -> "Button":
         """Returns a new button initialized from api response data
 
         Returns
@@ -641,7 +707,8 @@ class Button():
         b.new_line = new_line
         return b
 
-class LinkButton():
+
+class LinkButton:
     """
     A discord-ui linkbutton
 
@@ -658,15 +725,18 @@ class LinkButton():
     disabled: :class:`bool`, optional
         Whether the button is disabled; default False
 
-    
+
     Raises
     ------
     :raises: :class:`discord.InvalidArgument`: A passed argument was invalid
     """
-    def __init__(self, url, label="\u200b", emoji=MISSING, new_line=False, disabled=False) -> None:
+
+    def __init__(
+        self, url, label="\u200b", emoji=MISSING, new_line=False, disabled=False
+    ) -> None:
         """
         Creates a new LinkButton object
-        
+
         Example:
         ```py
         LinkButton("https://discord.com", "press me (if you can)!", emoji="😀", disabled=True)
@@ -683,9 +753,13 @@ class LinkButton():
         if not url.startswith("http://") and not url.startswith("https://"):
             raise InvalidArgument("Link must start with 'http://' or 'https://'")
         if type(disabled) is not bool:
-            raise InvalidArgument("disabled must be of type bool, not " + str(type(disabled)))
+            raise InvalidArgument(
+                "disabled must be of type bool, not " + str(type(disabled))
+            )
         if emoji is not MISSING and type(emoji) not in [Emoji, str, dict]:
-            raise InvalidArgument("emoji msut be of type discord.Emoji or str, not " + str(type(emoji)))
+            raise InvalidArgument(
+                "emoji msut be of type discord.Emoji or str, not " + str(type(emoji))
+            )
         if label is not MISSING and len(label) > 80:
             raise InvalidArgument("lavel maximum character limit (80) exceeded")
         if label is not MISSING and len(label) < 1:
@@ -696,21 +770,18 @@ class LinkButton():
             "type": ComponentType.BUTTON,
             "url": url,
             "style": 5,
-            "disabled": disabled
+            "disabled": disabled,
         }
         if label is not MISSING:
             self._json["label"] = label
         if emoji is not MISSING:
             if type(emoji) is str:
-                self._json["emoji"] = {
-                    "id": None,
-                    "name": emoji
-                }
+                self._json["emoji"] = {"id": None, "name": emoji}
             elif type(emoji) is Emoji:
                 self._json["emoji"] = {
                     "id": emoji.id,
                     "name": emoji.name,
-                    "animated": emoji.animated
+                    "animated": emoji.animated,
                 }
             elif type(emoji) is dict:
                 self._json["emoji"] = emoji
@@ -725,7 +796,7 @@ class LinkButton():
 
             .. note::
                 The component type will always be 2 (button)
-        
+
         :type: :class:`int`
         """
         return self._json["type"]
@@ -737,7 +808,7 @@ class LinkButton():
 
         :type: :class:`str`
         """
-        return (self.emoji + " " if self.emoji is not None else "") + (self.label or '')
+        return (self.emoji + " " if self.emoji is not None else "") + (self.label or "")
 
     @property
     def url(self) -> str:
@@ -747,6 +818,7 @@ class LinkButton():
         :type: class:`str`
         """
         return self._json["url"]
+
     @url.setter
     def url(self, val: str):
         if type(val) is not str:
@@ -754,7 +826,7 @@ class LinkButton():
         if not val.startswith("http://") and not val.startswith("https://"):
             raise InvalidArgument("Link must start with 'https://' or 'http://'")
         self._json["url"] = val
-    
+
     @property
     def label(self) -> str:
         """
@@ -763,11 +835,12 @@ class LinkButton():
         :type: :class:`str`
         """
         return self._json.get("label", None)
+
     @label.setter
     def label(self, val):
         if type(val) is not str:
             raise InvalidArgument("label must be of type str, not " + str(type(val)))
-        self._json["label"] = val 
+        self._json["label"] = val
 
     @property
     def emoji(self) -> str:
@@ -783,30 +856,30 @@ class LinkButton():
         if "id" not in self._json["emoji"]:
             return self._json["emoji"]["name"]
         return f'<{"a" if "animated" in self._json["emoji"] else ""}:{self._json["emoji"]["name"]}:{self._json["emoji"]["id"]}>'
+
     @emoji.setter
     def emoji(self, val: Union[Emoji, str]):
         if type(val) not in [Emoji, str]:
-            raise InvalidArgument("emoji msut be of type discord.Emoji or str, not " + str(type(val)))
+            raise InvalidArgument(
+                "emoji msut be of type discord.Emoji or str, not " + str(type(val))
+            )
         if type(val) is str:
-            self._json["emoji"] = {
-                "id": None,
-                "name": val
-            }
+            self._json["emoji"] = {"id": None, "name": val}
         elif type(val) is Emoji:
             self._json["emoji"] = {
                 "id": val.id,
                 "name": val.name,
-                "animated": val.animated
+                "animated": val.animated,
             }
 
     @property
     def color(self) -> int:
         """
         The color sttyle for the button
-        
+
             .. note::
                 The color style Will always be 5 (link_button)
-        
+
         :type: :class:`int`
         """
         return self._json["style"]
@@ -815,21 +888,24 @@ class LinkButton():
     def disabled(self) -> bool:
         """
         Whether the button is disabled or not
-        
+
         :type: :class:`bool`
         """
         return self._json["disabled"]
+
     @disabled.setter
     def disabled(self, val):
         self._json["disabled"] = val
+
     # endregion
 
     @classmethod
     def _empty(cls):
         """Returns an empty button"""
         return cls("empty", "empty")
+
     @classmethod
-    def _fromData(cls, data, new_line=False) -> 'LinkButton':
+    def _fromData(cls, data, new_line=False) -> "LinkButton":
         """Returns a new Linkbutton initialized from api response data"""
         b = cls("https://empty", "empty")
         b._json = data
@@ -841,11 +917,12 @@ class Colors:
     """
     A list of button styles (colors) in message components
     """
-    Primary     =   blurple         = 1
-    Secondary   =   grey            = 2
-    Succes      =   green           = 3
-    Danger      =   red             = 4
-    URL                             = 5
+
+    Primary = blurple = 1
+    Secondary = grey = 2
+    Succes = green = 3
+    Danger = red = 4
+    URL = 5
 
     @classmethod
     def getColor(cls, s):
@@ -860,40 +937,44 @@ class Colors:
             return cls.green
         if s in ("red", "danger"):
             return cls.red
+
+
 # endregion
 
 
-class ActionRow():
-    """Alternative to setting ``new_line`` in a full component list or putting the components in a list 
-    
+class ActionRow:
+    """Alternative to setting ``new_line`` in a full component list or putting the components in a list
+
     Only works for :class:`~Button` and :class:`~LinkButton`, because :class:`~SelectMenu` is always in a new line
-    
+
     Parameters
     ----------
         disbaled: :class:`bool`, optional
-            Whether all components should be disabled; default False   
+            Whether all components should be disabled; default False
     """
-    def __init__(self, *items, disbaled = False):
+
+    def __init__(self, *items, disbaled=False):
         """Creates a new component list
 
         Examples
         ```py
         ActionRow(Button(...), Button(...))
-        
+
         ActionRow([Button(...), Button(...)])
         ```
         """
         self.items = items[0] if all(type(i) is list for i in items) else items
         """The componetns in the action row"""
         self.component_type = 1
-        
-    def disable(self, disable=True) -> 'ActionRow':
+
+    def disable(self, disable=True) -> "ActionRow":
         for i, _ in enumerate(self.items):
             self.items[i].disabled = disable
         return self
-    def filter(self, check = lambda x: ...):
+
+    def filter(self, check=lambda x: ...):
         """Filters all components
-        
+
         Parameters
         ----------
             check: :class:`lambda`
@@ -902,7 +983,7 @@ class ActionRow():
         -------
             :returns: The filtered components
             :type: List[:class:`~Button` | :class:`~LinkButton`]
-        
+
         """
         return [x for x in self.items if check(x)]
 
@@ -911,6 +992,7 @@ class ComponentType:
     """
     A list of component types
     """
+
     ACTION_ROW = 1
     BUTTON = 2
     SELECT_MENU = 3
