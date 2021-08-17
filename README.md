@@ -3,6 +3,7 @@
     <h2 align="center">discord-ui</h2>
     <p align="center">
         A discord.py ui extension package
+        <br />
         <a href="https://pypi.org/project/discord-ui/"><b>pip package</b></a> 
         ▪ 
         <a href="https://discord-ui.readthedocs.io/"><b>read the docs</b></a> 
