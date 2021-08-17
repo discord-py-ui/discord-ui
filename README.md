@@ -1,7 +1,7 @@
 <br />
 <p align="center">
     <h2 align="center">discord-ui</h2>
-    <a href="https://pypi.org/project/discord-ui/"><p>pip package</p></a> ▪ <a href="https://discord-ui.readthedocs.io/"><p>read the docs</p></a> ▪ <a href="https://github.com/KusoRedsto/discord-ui/tree/main/examples"><p>Examples</p></a>
+    <a href="https://pypi.org/project/discord-ui/" align="center"><b>pip package</b></a> ▪ <a href="https://discord-ui.readthedocs.io/" align="center"><b>read the docs</b></a> ▪ <a href="https://github.com/KusoRedsto/discord-ui/tree/main/examples" align="center"><b>Examples</b></a>
 </p>
 
 ## Introduction
