@@ -1,12 +1,15 @@
 <br />
 <p align="center">
     <h2 align="center">discord-ui</h2>
-    <br />
-    <a href="https://pypi.org/project/discord-ui/"><b>pip package</b></a> 
-    ▪ 
-    <a href="https://discord-ui.readthedocs.io/"><b>read the docs</b></a> 
-    ▪ 
-    <a href="https://github.com/KusoRedsto/discord-ui/tree/main/examples"><b>Examples</b></a>
+    <p align="center">
+        A discord.py user-interface extension
+        <br />
+        <a href="https://pypi.org/project/discord-ui/"><b>pip package</b></a> 
+        ▪ 
+        <a href="https://discord-ui.readthedocs.io/"><b>read the docs</b></a> 
+        ▪ 
+        <a href="https://github.com/KusoRedsto/discord-ui/tree/main/examples"><b>examples</b></a>
+    </p>
 </p>
 
 ## Introduction
