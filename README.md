@@ -1,8 +1,8 @@
 <br />
 <p align="center">
     <h2 align="center">discord-ui</h2>
-    A discord.py ui extension
     <p align="center">
+        A discord.py ui extension package
         <a href="https://pypi.org/project/discord-ui/"><b>pip package</b></a> 
         ▪ 
         <a href="https://discord-ui.readthedocs.io/"><b>read the docs</b></a> 
