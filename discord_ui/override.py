@@ -18,7 +18,7 @@ from discord.ext import commands
 import sys
 
 def override_dpy():
-    """This method overrides dpy2. You should need to use this method by your own, the lib overrides everything by default"""
+    """This method overrides dpy methods. You shouldn't need to use this method by your own, the lib overrides everything by default"""
     module = sys.modules["discord"]
 
     #region message override

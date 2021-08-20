@@ -421,7 +421,7 @@ class Slash():
                 1-100 character description of the command; default the command name
             options: List[:class:`~SlashOptions`], optional
                 The parameters for the command; default MISSING
-            choices: :class:`[type]`, optional
+            choices: List[:class:`dict`], optional
                 Choices for string and int types for the user to pick from; default MISSING
             guild_ids: List[:class:`str` | :class:`int`], optional
                 A list of guild ids where the command is available; default MISSING
@@ -577,7 +577,7 @@ class Slash():
                 1-100 character description of the command; default the command name
             options: List[:class:`~SlashOptions`], optional
                 The parameters for the command; default MISSING
-            choices: :class:`[type]`, optional
+            choices: List[:class:`dict`], optional
                 Choices for string and int types for the user to pick from; default MISSING
             guild_ids: List[:class:`str` | :class:`int`], optional
                 A list of guild ids where the command is available; default MISSING

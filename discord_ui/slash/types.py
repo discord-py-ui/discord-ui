@@ -168,6 +168,7 @@ class OptionType:
 
     @classmethod
     def any_to_type(cls, whatever):
+        """Converts something to a option type if possible"""
         if type(whatever) is int and whatever in range(1, 11):
             return whatever
         if inspect.isclass(whatever):
@@ -311,7 +312,7 @@ class SlashCommand():
                 1-100 character description of the command; default the command name
             options: List[:class:`~SlashOptions`], optional
                 Parameters for the command; default MISSING
-            choices: :class:`[type]`, optional
+            choices: List[:class:`dict`], optional
                 Choices for string and int types for the user to pick from; default MISSING
             guild_ids: :class:`str` | :class:`int`, optional
                 A list of guild ids where the command is available; default MISSING
