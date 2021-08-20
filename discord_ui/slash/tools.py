@@ -144,7 +144,7 @@ async def handle_options(data, options, method, _discord: discord.Client):
             _options[op["name"]] = parsed
     return _options
 
-async def handle_thing(value, typ, data, method, _discord, auto=False) -> typing.Union[str, int, bool, discord.Member, discord.PartialMessageable , discord.Role, float, discord.Message, discord.Guild]:
+async def handle_thing(value, typ, data, method, _discord, auto=False) -> typing.Union[str, int, bool, discord.Member, discord.TextChannel, discord.Role, float, discord.Message, discord.Guild]:
     logging.debug("Trying to handle val " + str(value) + " type " + str(typ) +  " with method " + str(method) + " auto is" + str(auto))
     if method is ParseMethod.RESOLVE or method is ParseMethod.AUTO:
         try:

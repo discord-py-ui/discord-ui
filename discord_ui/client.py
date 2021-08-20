@@ -8,8 +8,8 @@ from .http import jsonifyMessage, BetterRoute, send_files
 from .receive import Message, SlashedContext, WebhookMessage, SlashedCommand, SlashedSubCommand, getResponseMessage
 
 import discord
-from discord.errors import Forbidden, InvalidArgument
 from discord.ext import commands as com
+from discord.errors import Forbidden, InvalidArgument
 
 import zlib
 import json
