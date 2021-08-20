@@ -24,6 +24,8 @@ both overriden with our own custom method.
 in order for our lib to work, so if you (somewhy) wanna check the type of the client, you need to 
 use `isinstance(your_client, discord.ext.commands.Bot)`, because `type(your_client)` will be of type `OverridenV2Bot`
 
+For more information about overriding, take a look at the [override module](https://github.com/KusoRedsto/discord-ui/blob/main/discord_ui/override.py)
+
 
 
 ## Installation
@@ -46,7 +48,6 @@ You can read the docs [here](https://discord-ui.readthedocs.io/)
 
 This project is under MIT License
 
-
 ## Note
 
 If you want to use slash commands, in the oauth2 invite link generation, 
@@ -55,7 +56,6 @@ you have to check both `bot` and `application.commands` fields
 ![](./docs/source/images/slash/invite_scope.png)
 
 ## Example
-
 
 This is an example with a slash command, that can create a link button with parameters, a function that will automatically respond to every button and menu with the value they pressed and a command that will send a button example 
 
@@ -75,10 +75,8 @@ ui = UI(client)
     ], guild_ids=["785567635802816595"])
 async def command(ctx, message_content="cool, right?", name="click me", link="https://github.com/KusoRedsto/discord-ui", emoji=None):
     if not link.startswith("http://") and not link.startswith("https://"):
-        return await ctx.respond("The link has to start with `http://` or `https://`", hidden=True)
-        
+        return await ctx.respond("The link has to start with `http://` or `https://`", hidden=True)        
     await ctx.respond(content=message_content, components=[LinkButton(link, label=name, emoji=emoji)])
-
 
 @client.listen("on_ready")
 async def on_ready():

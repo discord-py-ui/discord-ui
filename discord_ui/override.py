@@ -1,3 +1,13 @@
+# https://github.com/KusoRedsto/discord-ui/blob/main/discord_ui/override.py
+# 404kuso was here hehehe
+#
+#       This module overrides some methods of the discord's functions.
+#       This overrides the Messageable.send, Webhook.send, the Message.__new__ method (whenever a new Message is created, it will use our own Message type)
+#       The same goes for the WebhookMessage, it will be overriden by our own Webhook type.
+#       And last but not least, if you're using dpy 2, the discord.ext.commands.Bot will be overriden with our
+#       own class, which enables `enable_debug_events` in order for our lib to work
+
+
 from .tools import MISSING, _or
 from .receive import Message, WebhookMessage
 from .http import jsonifyMessage, BetterRoute, send_files
@@ -5,11 +15,12 @@ from .http import jsonifyMessage, BetterRoute, send_files
 import discord
 from discord.ext import commands
 
-
-
 import sys
+
 def override_dpy():
+    """This method overrides dpy2. You should need to use this method by your own, the lib overrides everything by default"""
     module = sys.modules["discord"]
+
     #region message override
     async def send(self: discord.TextChannel, content=None, **kwargs) -> Message:
             payload = jsonifyMessage(content=content, **kwargs)
@@ -28,7 +39,6 @@ def override_dpy():
                 await msg.delete(delay=kwargs.get("delete_after"))
         
             return msg
-
     def message_override(cls, *args, **kwargs):
         if cls is discord.message.Message:
             return object.__new__(Message)
@@ -46,7 +56,6 @@ def override_dpy():
             return object.__new__(WebhookMessage)
         else:
             return object.__new__(cls)
-
     def send_webhook(self: discord.Webhook, content=MISSING, *, wait=False, username=MISSING, avatar_url=MISSING, tts=False, files=None, embed=MISSING, embeds=MISSING, allowed_mentions=MISSING, components=MISSING):
         payload = jsonifyMessage(content, tts=tts, embed=embed, embeds=embeds, allowed_mentions=allowed_mentions, components=components)
 
