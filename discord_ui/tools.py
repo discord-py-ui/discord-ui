@@ -158,7 +158,7 @@ def setup_logger(name):
     """
 
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.ERROR)
     
     stream_handler = logging.StreamHandler()
     formatter = logging.Formatter(f"%(levelname)s: %(message)s")
