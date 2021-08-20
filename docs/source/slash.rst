@@ -1,9 +1,9 @@
 .. currentmodule:: discord_ui
 
 
-===================
-Slash-commands
-===================
+=====================
+Application-commands
+=====================
 
 We added slash command support to this extension!
 

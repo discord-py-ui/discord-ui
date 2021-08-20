@@ -394,8 +394,8 @@ To set the guilds where the command is useable, you need to set the ``guild_id``
     async def command(ctx, parameter1="nothing"):
         ...
 
-Subcommands and Subcommandgroups
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Subcommands, Subcommandgroups and Contextcommands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can also use subcommands and subcommand groups, they work almost the same as the normal slash command
 
