@@ -1,6 +1,25 @@
+import logging
 from typing import Any, List
 
-MISSING = None
+class _MISSING:
+    def __repr__(self) -> str:
+        return ". . ."
+    def __eq__(self, o: object) -> bool:
+        return isinstance(o, self)
+    def __ne__(self, o: object) -> bool:
+        return not self.__eq__(o)
+    def __str__(self) -> str:
+        return self.__repr__()
+    def __sizeof__(self) -> int:
+        return 0
+
+MISSING = _MISSING()
+
+def _or(*args, default=None):
+    for i in range(len(args)):
+        if args[i] is not MISSING and args[i] is not None:
+            return args[i]
+    return default
 
 def get_index(l: list, elem: Any, mapping = lambda x: x, default: int = -1) -> int:
     """Returns the index of an element in the list
@@ -14,7 +33,7 @@ def get_index(l: list, elem: Any, mapping = lambda x: x, default: int = -1) -> i
         mapping: :class:`function`
             A function that will be applied to the current element that is checked, before comparing it to the target
         default: :class:`Any`
-            The element that will be returned if nothing is found; default None
+            The element that will be returned if nothing is found; default -1
 
     Returns
     -------
@@ -66,7 +85,7 @@ def get(l: list, elem: Any, mapping = lambda x: x, default: Any = None):
             return x
     return default
 
-def components_to_dict(*components):
+def components_to_dict(*components) -> List[dict]:
     """Converts a list of components to a dict that can be used for other extensions
     
     Parameters
@@ -89,7 +108,7 @@ def components_to_dict(*components):
     Returns
     -------
         :returns: The converted data
-        :type: :class:`dict`
+        :type: List[:class:`dict`]
     
     """
     wrappers: List[List[Any]] = []
@@ -131,3 +150,20 @@ def components_to_dict(*components):
             raise Exception("Components with types [" + ', '.join([str(type(x)) for x in wrap]) + "] are missing to_dict() method")
         component_list.append({"type": 1, "components": [x.to_dict() for x in wrap]})
     return component_list
+
+def setup_logger(name):
+    """
+    Thx redstone ;)
+    https://github.com/RedstoneZockt/rotstein-dc-py/blob/main/rotstein_py/logging.py
+    """
+
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+    
+    stream_handler = logging.StreamHandler()
+    formatter = logging.Formatter(f"%(levelname)s: %(message)s")
+    stream_handler.setFormatter(formatter)
+    stream_handler.setLevel(logging.ERROR)
+    
+    logger.addHandler(stream_handler)
+    return logger

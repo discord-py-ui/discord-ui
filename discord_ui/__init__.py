@@ -3,8 +3,9 @@ from .components import ActionRow, Button, LinkButton, SelectMenu, SelectOption,
 from .slash.types import OptionType, SlashPermission, SlashOption
 from .slash.tools import ParseMethod
 from .tools import components_to_dict
-from .receive import ResponseMessage, Message, WebhookMessage, PressedButton, SelectedMenu, SlashedCommand, SlashedSubCommand, EphemeralComponent, EphemeralMessage
-from .override import Overriden_Bot, override_client
+from .receive import ResponseMessage, Message, WebhookMessage, PressedButton, SelectedMenu, SlashedCommand, SlashedSubCommand, EphemeralMessage
 
+from .override import override_dpy
+override_dpy()
 
-__version__ = "3.0.1"
+__version__ = "3.1.0"

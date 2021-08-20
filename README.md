@@ -15,21 +15,8 @@
 ## Introduction
 
 This is a [discord.py](https://github.com/Rapptz/discord.py) ui extension made by [404kuso](https://github.com/404kuso) and [RedstoneZockt](https://github.com/RedstoneZockt)
-for using discord's newest ui features like buttons, slash commands and context commands until discord.py v2.0 is out
+for using discord's newest ui features like buttons, slash commands and context commands (we got dpy2 supported if you want to keep using our libary)
 
-We also added override support for the `discord.ext.commands.Bot` client, so you don't have to initialize everything on your own
-
-To override the standart Bot client, add the following to your code
-
-```py
-from discord.ext import commands
-from discord_ui import override_client
-override_client()
-
-client = commands.Bot(...)
-```
-This will add `.components` and `.slash` to the client, and you don't need the 
-`ui = UI(client)` thing anymore
 
 And the standart `TextChannel.send` function is automatically overridden 
 
@@ -114,6 +101,35 @@ client.run(token)
 You can find more (and better) examples [here](https://github.com/KusoRedsto/discord-ui/tree/main/examples)
 
 # Changelog
+
+-   <details>
+    <summary>3.1.0</summary>
+
+    ## **Added**
+    - discordpy 2 support
+    > You can use our libary together with discord.py v2!
+    
+    - Exceptions
+    > Added own Exceptions for errors
+    
+    - ParseMethod
+    > You can change the way the extension parses interaction data. You can choose between [different Methods](https://discord-ui.rtfd.io/en/latest/ui.html#id1)
+    
+    - Auto-defer
+    > The libary will autodefer all interactions public. If you want to change that, take a look at [the documentation for this feature](https://discord-ui.rtfd.io/en/latest/ui.html#id2)
+    
+    - slashcommand edit check
+    > Slash commands will only be edited if there were some changes, so you won't get a `invalid interaction` error in discord after starting the bot
+    > If only permissions were changed, just the permissions will be edited and not the whole command like before
+
+    ## **Fixed**
+    - slash commands
+    > I finally fixed the damn slashcommand system, it should work now
+
+    - Parsing
+    > The resolving, fetching and pulling from the cache methods should all work
+
+    </details>
 
 -   <details>
     <summary>3.0.1</summary>
@@ -322,6 +338,6 @@ You can find more (and better) examples [here](https://github.com/KusoRedsto/dis
 
 You can contact us on discord
 
-- RedstoneZockt#2510
-- ! DaKuso#4214
-- [a shitty support server](https://discord.gg/pwUvz5PbrE)
+- `RedstoneZockt#2510`
+- `! ♥UwU kuso-kun UwU 💕#6969`
+- [a shitty support server](https://discord.gg/bDJCGD994p)

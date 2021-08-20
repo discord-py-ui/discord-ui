@@ -38,14 +38,6 @@ SlashedCommand
 Ephemeral (hidden) classes
 ---------------------------
 
-EphemeralComponent
-~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: EphemeralComponent()
-    :members:
-    :inherited-members:
-
-
 EphemeralMessage
 ~~~~~~~~~~~~~~~~
 

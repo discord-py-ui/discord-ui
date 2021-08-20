@@ -15,5 +15,9 @@ UI
 
 .. autoclass:: UI
     :members:
-    :exclude-members: on_socket_response
 
+Parse-Methods
+~~~~~~~~~~~~~
+
+.. autoclass:: ParseMethod
+    :members:

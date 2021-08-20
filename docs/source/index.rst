@@ -6,7 +6,7 @@ Welcome to the discord message components docs!
 This is a "extension" (I guess) or whatever you want to call it for `discord.py <https://github.com/Rapptz/discord.py>`__
 
 We (`Redstone <https://github.com/RedstoneZockt>`__ and me) decided to create a pip package for the 
-new ui features that discord added, until discord.py v2.0 is out
+new ui features that discord added. If you want to keep using our lib with dpy2, we added support for discordpy2 
 
 
 .. important::
@@ -33,19 +33,10 @@ We got some cool features for you like:
    and some more things
 
 .. important::
-
-   We added a function that can override the normal `discord.ext.commands.Bot` client.
-
-   .. code-block::
-      from discord.ext import commands
-      from discord_ui import override_client
-      override_client()
-
-      client = commands.Bot
-
-   You can acces the slash extension and the components extension via `client.slash` and `client.components`.
    
-   The ``Messageable.send`` and ``Webhook.send`` functions are overriden by default with our custom method
+   The ``Messageable.send`` and ``Webhook.send`` functions are overriden by default with our custom method. 
+   If you're using dpy2, the default ``discord.ext.commands.Bot`` is overriden with a custom Bot that enables degbug events
+   in order to let our lib function proberly
 
 
 Installation
@@ -88,5 +79,5 @@ Links
 *  `RedstoneZockt <https://github.com/RedstoneZockt>`__
 *  `discord.py <https://github.com/Rapptz/discord.py>`__
 *  `discord message component docs <https://discord.com/developers/docs/interactions/message-components>`__
-*  `discord slash commands docs <https://discord.com/developers/docs/interactions/slash-commands>`__
+*  `discord application commands docs <https://discord.com/developers/docs/interactions/application-commands>`__
 *  And in case you don't like our package, check out `this cool libary for slash commands and slash components <https://github.com/discord-py-slash-commands/discord-py-interactions>`__
