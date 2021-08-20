@@ -17,63 +17,104 @@ from discord.ext import commands
 
 import sys
 
+
 def override_dpy():
     """This method overrides dpy methods. You shouldn't need to use this method by your own, the lib overrides everything by default"""
     module = sys.modules["discord"]
 
-    #region message override
+    # region message override
     async def send(self: discord.TextChannel, content=None, **kwargs) -> Message:
-            payload = jsonifyMessage(content=content, **kwargs)
+        payload = jsonifyMessage(content=content, **kwargs)
 
-            channel_id = self.id if type(self) is not commands.Context else self.channel.id
-            route = BetterRoute("POST", f"/channels/{channel_id}/messages")
-            
-            r = None
-            if kwargs.get("file") is None and kwargs.get("files") is None:
-                r = await self._state.http.request(route, json=payload)
-            else:
-                r = await send_files(route, files=_or(kwargs.get("files"), [kwargs.get("file")]), payload=payload, http=self._state.http)
-            
-            msg = Message(state=self._state, channel=self if type(self) is not commands.Context else self.channel, data=r)
-            if kwargs.get("delete_after") is not None:
-                await msg.delete(delay=kwargs.get("delete_after"))
-        
-            return msg
+        channel_id = self.id if type(self) is not commands.Context else self.channel.id
+        route = BetterRoute("POST", f"/channels/{channel_id}/messages")
+
+        r = None
+        if kwargs.get("file") is None and kwargs.get("files") is None:
+            r = await self._state.http.request(route, json=payload)
+        else:
+            r = await send_files(
+                route,
+                files=_or(kwargs.get("files"), [kwargs.get("file")]),
+                payload=payload,
+                http=self._state.http,
+            )
+
+        msg = Message(
+            state=self._state,
+            channel=self if type(self) is not commands.Context else self.channel,
+            data=r,
+        )
+        if kwargs.get("delete_after") is not None:
+            await msg.delete(delay=kwargs.get("delete_after"))
+
+        return msg
+
     def message_override(cls, *args, **kwargs):
         if cls is discord.message.Message:
             return object.__new__(Message)
         else:
             return object.__new__(cls)
 
-
     module.abc.Messageable.send = send
     module.message.Message.__new__ = message_override
-    #endregion
+    # endregion
 
-    #region webhook override
+    # region webhook override
     def webhook_message_override(cls, *args, **kwargs):
         if cls is discord.webhook.WebhookMessage:
             return object.__new__(WebhookMessage)
         else:
             return object.__new__(cls)
-    def send_webhook(self: discord.Webhook, content=MISSING, *, wait=False, username=MISSING, avatar_url=MISSING, tts=False, files=None, embed=MISSING, embeds=MISSING, allowed_mentions=MISSING, components=MISSING):
-        payload = jsonifyMessage(content, tts=tts, embed=embed, embeds=embeds, allowed_mentions=allowed_mentions, components=components)
+
+    def send_webhook(
+        self: discord.Webhook,
+        content=MISSING,
+        *,
+        wait=False,
+        username=MISSING,
+        avatar_url=MISSING,
+        tts=False,
+        files=None,
+        embed=MISSING,
+        embeds=MISSING,
+        allowed_mentions=MISSING,
+        components=MISSING,
+    ):
+        payload = jsonifyMessage(
+            content,
+            tts=tts,
+            embed=embed,
+            embeds=embeds,
+            allowed_mentions=allowed_mentions,
+            components=components,
+        )
 
         if username is not None:
             payload["username"] = username
         if avatar_url is not None:
             payload["avatar_url"] = str(avatar_url)
-        
+
         return self._adapter.execute_webhook(payload=payload, wait=wait, files=files)
 
     module.webhook.Webhook.send = send_webhook
     module.webhook.WebhookMessage.__new__ = webhook_message_override
-    #endregion
+    # endregion
 
     class OverridenV2Bot(commands.bot.Bot):
         """A overriden client that enables `enable_debug_events` for receiving the events"""
-        def __init__(self, command_prefix, help_command = None, description = None, **options):
-            commands.bot.Bot.__init__(self, command_prefix, help_command=help_command, description=description, enable_debug_events=True, **options)
+
+        def __init__(
+            self, command_prefix, help_command=None, description=None, **options
+        ):
+            commands.bot.Bot.__init__(
+                self,
+                command_prefix,
+                help_command=help_command,
+                description=description,
+                enable_debug_events=True,
+                **options,
+            )
 
     def client_override(cls, *args, **kwargs):
         if cls is commands.bot.Bot:
@@ -83,6 +124,5 @@ def override_dpy():
 
     if discord.__version__.startswith("2"):
         module.ext.commands.bot.Bot.__new__ = client_override
-
 
     sys.modules["discord"] = module
