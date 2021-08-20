@@ -18,7 +18,7 @@ This is a [discord.py](https://github.com/Rapptz/discord.py) ui extension made b
 for using discord's newest ui features like buttons, slash commands and context commands (we got dpy2 supported if you want to keep using our libary)
 
 Our libary overrides some of the functions in dpy, so this lib is easier to use.
-The `MessageAble.send` function and the `Webhook.send` are 
+The `Messageable.send` function and the `Webhook.send` are 
 both overriden with our own custom method. 
 `discord.ext.commands.Bot` is overriden too, but only if you use dpy 2
 in order for our lib to work, so if you (somewhy) wanna check the type of the client, you need to 
