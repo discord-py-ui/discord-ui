@@ -107,7 +107,7 @@ You can find more (and better) examples [here](https://github.com/KusoRedsto/dis
 
     ## **Added**
     - discordpy 2 support
-    > You can use our libary together with discord.py v2!
+    > We added support for discord.py v2, so you can stay loyal to our libary and use it together with discord.py v2!
     
     - Exceptions
     > Added own Exceptions for errors
