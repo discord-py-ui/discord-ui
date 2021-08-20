@@ -17,8 +17,9 @@
 This is a [discord.py](https://github.com/Rapptz/discord.py) ui extension made by [404kuso](https://github.com/404kuso) and [RedstoneZockt](https://github.com/RedstoneZockt)
 for using discord's newest ui features like buttons, slash commands and context commands (we got dpy2 supported if you want to keep using our libary)
 
-
-And the standart `TextChannel.send` function is automatically overridden 
+Our libary overrides some of the functions in dpy, so this lib is easier to use.
+The `MessageAble.send` function is automatically overridden and `Webhook.send` are 
+both overriden with our own sending method
 
 
 
