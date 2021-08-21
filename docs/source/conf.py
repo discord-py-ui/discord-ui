@@ -20,8 +20,14 @@ project = 'discord message components'
 copyright = '2021, 404kuso, RedstoneZockt'
 author = '404kuso, RedstoneZockt'
 
+
+def get_version():
+    """returns the version of the package"""
+    with open("../../discord_ui/__init__.py", "r", encoding="utf-8") as f:
+        return [f for f in f.readlines() if f.startswith("__version__")][0].split('"')[1].split('"')[0]
+
 # The full version, including alpha/beta/rc tags
-release = '3.1.0'
+release = get_version()
 
 
 # -- General configuration ---------------------------------------------------

@@ -1,7 +1,7 @@
 from .tools import MISSING
 from .errors import InvalidLength, OutOfValidRange, WrongType
 
-from discord import Emoji, emoji
+from discord import Emoji
 from discord.errors import InvalidArgument
 
 import inspect
@@ -39,7 +39,8 @@ class SelectOption():
             self.description = description
         if emoji is not MISSING:
             self.emoji = emoji
-        
+    def __repr__(self) -> str:
+        return "<SelectOption(" + self.content + ")>"
 
     @property
     def content(self) -> str:
@@ -124,21 +125,23 @@ class SelectOption():
             return self._json["emoji"]["name"]
         return f'<{"a" if "animated" in self._json["emoji"] else ""}:{self._json["emoji"]["name"]}:{self._json["emoji"]["id"]}>'
     @emoji.setter
-    def emoji(self, val: Union[Emoji, str]):
+    def emoji(self, val: Union[Emoji, str, dict]):
         """The emoji appearing before the label"""
-        if type(emoji) is str:
+        if type(val) is str:
             self._json["emoji"] = {
                 "id": None,
-                "name": emoji
+                "name": val
             }
-        elif type(emoji) is Emoji:
+        elif type(val) is Emoji:
             self._json["emoji"] = {
-                "id": emoji.id,
-                "name": emoji.name,
-                "animated": emoji.animated
+                "id": val.id,
+                "name": val.name,
+                "animated": val.animated
             }
-        elif type(emoji) is dict:
-            self._json["emoji"] = emoji
+        elif type(val) is dict:
+            self._json["emoji"] = val
+        else:
+            raise WrongType("emoji", val, ["str", "discord.Emoji", "dict"])
 
 
     def to_dict(self) -> dict:
@@ -529,8 +532,6 @@ class Button():
         return f'<{"a" if "animated" in self._json["emoji"] else ""}:{self._json["emoji"]["name"]}:{self._json["emoji"]["id"]}>'
     @emoji.setter
     def emoji(self, val: Union[Emoji, str, dict]):
-        if type(val) not in [Emoji, str, dict]:
-            raise WrongType("emoji", val, ["discord.Emoji", "str", "dict"])
         if type(val) is str:
             self._json["emoji"] = {
                 "id": None,
@@ -544,6 +545,8 @@ class Button():
             }
         elif type(val) is dict:
             self._json["emoji"] = val
+        else:
+            raise WrongType("emoji", val, ["str", "discord.Emoji", "dict"])
 
     @property
     def disabled(self) -> bool:
@@ -664,7 +667,7 @@ class LinkButton():
     def url(self, val: str):
         if type(val) is not str:
             raise WrongType("url", val, "str")
-        self._json["custom_id"] = str(val)
+        self._json["url"] = str(val)
 
     @property
     def label(self) -> str:
@@ -712,8 +715,6 @@ class LinkButton():
         return f'<{"a" if "animated" in self._json["emoji"] else ""}:{self._json["emoji"]["name"]}:{self._json["emoji"]["id"]}>'
     @emoji.setter
     def emoji(self, val: Union[Emoji, str, dict]):
-        if type(val) not in [Emoji, str, dict]:
-            raise WrongType("emoji", val, ["discord.Emoji", "str", "dict"])
         if type(val) is str:
             self._json["emoji"] = {
                 "id": None,
@@ -727,6 +728,8 @@ class LinkButton():
             }
         elif type(val) is dict:
             self._json["emoji"] = val
+        else:
+            raise WrongType("emoji", val, ["str", "discord.Emoji", "dict"])
 
     @property
     def disabled(self) -> bool:

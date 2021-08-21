@@ -50,6 +50,12 @@ You can read the docs [here](https://discord-ui.readthedocs.io/)
 
 This project is under MIT License
 
+## Issues
+
+If you find any issues, please report them 
+
+https://github.com/KusoRedsto/discord-ui/issues
+
 ## Note
 
 If you want to use slash commands, in the oauth2 invite link generation, 
@@ -59,52 +65,114 @@ you have to check both `bot` and `application.commands` fields
 
 ## Example
 
-This is an example with a slash command, that can create a link button with parameters, a function that will automatically respond to every button and menu with the value they pressed and a command that will send a button example 
 
+Example for creating a simple slash command
 ```py
 import discord
 from discord.ext import commands
-from discord_ui import *
+from discord_ui import UI, SlashOption
 
 client = commands.Bot(" ")
 ui = UI(client)
 
-@ui.slash.subcommand_group(base_names=["generate", "link"], name="button", description="sends a button and a linkbutton", options=[
-        SlashOption(str, "message content", "the content of the message"), 
-        SlashOption(str, "name", "the name of the button"), 
-        SlashOption(str, "link", "the link for the button"), 
-        SlashOption(str, "emoji", "a emoji appearing before the text")
-    ], guild_ids=["785567635802816595"])
-async def command(ctx, message_content="cool, right?", name="click me", link="https://github.com/KusoRedsto/discord-ui", emoji=None):
-    if not link.startswith("http://") and not link.startswith("https://"):
-        return await ctx.respond("The link has to start with `http://` or `https://`", hidden=True)        
-    await ctx.respond(content=message_content, components=[LinkButton(link, label=name, emoji=emoji)])
+@ui.slash.command("hello_world", description="a simple slash command", options=[SlashOption(bool, "cool", "whether this libary is cool", required=False)], guild_ids=["785567635802816595"])
+async def command(ctx, cool=True):
+    await ctx.respond("You said this libary is " + str(cool))
 
-@client.listen("on_ready")
-async def on_ready():
-    print("ready")
-
-@client.listen("on_message"):
-async def on_message(message: Message):
-    if message.content = "!test":
-        await message.channel.send("hello", components=[
-                [Button("custom", "hello"), Button("custom_2", "world", "green")]
-                Button("custom", "yeahhh", "red")
-            ])
-
-@client.listen('on_button_press')
-async def on_button(btn: PressedButton, msg: ResponseMessage):
-    await msg.respond(btn.member.mention + ", you pressed on " + btn.content + " with the custom id of " + btn.custom_id)
-@client.listen('on_menu_select')
-async def on_select(menu: SelectedMenu, msg: ResponseMessage):
-    await msg.respond(menu.member.mention + ", you selected " + ', '.join([x.content for x in menu.values]) + " on the menu with the custom id " + menu.custom_id)
-
-client.run(token)
+await client.run("your_token")
 ```
+
+Example for sending a button and receiving it
+
+```py
+import discord
+from discord.ext import commands
+from discord_ui import UI, LinkButton, Button
+
+from asyncio import TimeoutError
+
+client = commands.Bot(" ")
+ui = UI(client)
+
+@client.listen("on_message")
+async def on_message(message: discord.Message):
+    if message.content == "!btn":
+        msg = await message.channel.send("you", components=[
+            [Button("custom_id", "press me", color="green"), LinkButton("https://discord.com", emoji="😁")],
+            Button("my_custom_id")
+        ])
+        try:
+            btn = await msg.wait_for(client, "button", timeout=20)
+            await btn.respond("you pressed `" + btn.content + "`")
+        except TimeoutError:
+            await msg.delete()
+
+client.run("your_token_here")
+```
+
+Example for sending Selectmenus and receiving them
+
+```py
+import discord
+from discord.ext import commands
+from discord_ui import UI, SelectMenu, SelectOption
+
+from asyncio import TimeoutError
+
+client = commands.Bot(" ")
+ui = UI(client)
+
+@client.listen("on_message")
+async def on_message(message: discord.Message):
+    if message.content == "!sel":
+        msg = await message.channel.send("you", components=[SelectMenu("custom_id", options=[
+            SelectOption("my_value", label="test", description="this is a test"),
+            SelectOption("my_other_value", emoji="🤗", description="this is a test too")
+        ], max_values=2)])
+        try:
+            sel = await msg.wait_for(client, "select", timeout=20)
+            await sel.respond("you selected `" + str([x.content for x in sel.selected_values]) + "`")
+        except TimeoutError:
+            await msg.delete()
+
+client.run("your_token_here")
+```
+
 
 You can find more (and better) examples [here](https://github.com/KusoRedsto/discord-ui/tree/main/examples)
 
 # Changelog
+
+-   <details>
+    <summary>3.0.1</summary>
+
+    ## **Fixed**
+    I'm really sorry for all the issues this libary got, if you still find issues, please report them in https://github.com/KusoRedsto/discord-ui/issues
+
+    - SelectOpion
+    > There was an issue with emojis not being set in SelectOptions
+
+    - LinkButton
+    > There was an issue with setting the url not being set
+
+    - SlashCommands
+    > There was an issue with creating commands that don't already exist
+
+    ## **Changed**
+    - SelectedMenu
+    > `.values` is not `.selected_values`
+
+    ## **Added**
+    - Interaction
+    > Buttons and SelectMenus have a `.message` property for the message where their interaction was creted
+    > ResponseMessages have a `.interaction` property for the received interaction
+    
+    - Events
+    > We added a `interaction_received` event for all interactions that are received
+
+    
+
+    </details>
 
 -   <details>
     <summary>3.1.0</summary>

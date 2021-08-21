@@ -1,3 +1,4 @@
+from discord_ui.slash.tools import handle_options
 from .errors import InvalidEvent, OutOfValidRange
 from .slash.errors import AlreadyDeferred, EphemeralDeletion
 from .slash.types import ContextCommand, SlashCommand, SubSlashCommand
@@ -13,9 +14,14 @@ import typing
 
 logging = setup_logger("discord-ui")
 
+
+class InteractionType:
+    PING = 1
+    APPLICATION_COMMAND = 2
+    MESSAGE_COMPONENT = 3
+
 class Interaction():
-    def __init__(self, application_id, state, data, user=MISSING) -> None:
-        self._application_id = application_id
+    def __init__(self, state, data, user=MISSING, message=None) -> None:
         self._state: ConnectionState = state
 
         self._deferred: bool = False
@@ -28,11 +34,24 @@ class Interaction():
             
             :type: :class:`discord.Member`
             """
-        self.interaction = {
-            "token": data["token"],
-            "id": data["id"]
-        }
 
+        self._original_payload = data
+        self.application_id = data["application_id"]
+        self.token = data["token"]
+        """The token for responding to the interaction"""
+        self.id = data["id"]
+        """The id of the interaction"""
+        self.type = data["type"]
+        """The type of the interaction. See :class:`~InteractionType` for more information"""
+        self.version = data["version"]
+        self.data = data["data"]
+        """The passed data of the interaction"""
+        self.channel_id = data["channel_id"]
+        """The channel-id where the interaction was created"""
+        self.guild_id = data["guild_id"]
+        """The guild-id where the interaction was created"""
+        self.message = message
+        """The message of the interaction"""
 
     async def defer(self, hidden=False):
         """This will acknowledge the interaction. This will show the (*Bot* is thinking...) Dialog
@@ -56,7 +75,7 @@ class Interaction():
             body["data"] = {"flags": 64}
             self._deferred_hidden = True
         
-        await self._state.http.request(BetterRoute("POST", f'/interactions/{self.interaction["id"]}/{self.interaction["token"]}/callback'), json=body)
+        await self._state.http.request(BetterRoute("POST", f'/interactions/{self.id}/{self.token}/callback'), json=body)
         self._deferred = True
 
     async def respond(self, content=MISSING, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, files=MISSING, nonce=MISSING,
@@ -106,7 +125,7 @@ class Interaction():
         
         if ninja_mode:
             try:
-                await self._state.http.request(BetterRoute("POST", f'/interactions/{self.interaction["id"]}/{self.interaction["token"]}/callback'), json={
+                await self._state.http.request(BetterRoute("POST", f'/interactions/{self.id}/{self.token}/callback'), json={
                     "type": 6
                 })
             except HTTPException as x:
@@ -141,25 +160,25 @@ class Interaction():
             await self.defer(hidden=hide_message)
                 
         if not self._deferred:
-            route = BetterRoute("POST", f'/interactions/{self.interaction["id"]}/{self.interaction["token"]}/callback')
+            route = BetterRoute("POST", f'/interactions/{self.id}/{self.token}/callback')
             await self._state.http.request(route, json={
                     "type": 4,
                     "data": payload
                 })
         else:
-            route = BetterRoute("PATCH", f'/webhooks/{self._application_id}/{self.interaction["token"]}/messages/@original')
+            route = BetterRoute("PATCH", f'/webhooks/{self.application_id}/{self.token}/messages/@original')
             r = await self._state.http.request(route, json=payload)
             if hide_message:
                 self._responded = True
-                return EphemeralMessage(state=self._state, channel=self._state.get_channel(int(r["channel_id"])), data=r, application_id=self._application_id, token=self.interaction["token"])
+                return EphemeralMessage(state=self._state, channel=self._state.get_channel(int(r["channel_id"])), data=r, application_id=self.application_id, token=self.interaction["token"])
 
         if file is not MISSING and files is not MISSING:
-            await send_files(route=BetterRoute("PATCH", f"/webhooks/{self._application_id}/{self.interaction['token']}/messages/@original"), 
+            await send_files(route=BetterRoute("PATCH", f"/webhooks/{self.application_id}/{self.token}/messages/@original"), 
                 files=[file] if files is MISSING else files, payload=payload, http=self._state.http)
         
         if not hide_message:
-            responseMSG = await self._state.http.request(BetterRoute("GET", f"/webhooks/{self._application_id}/{self.interaction['token']}/messages/@original"))
-            msg = await getResponseMessage(self._state, data=responseMSG, application_id=self._application_id, response=False)
+            responseMSG = await self._state.http.request(BetterRoute("GET", f"/webhooks/{self.application_id}/{self.token}/messages/@original"))
+            msg = await getResponseMessage(self._state, data=responseMSG, response=False)
             if delete_after is not MISSING:
                 await msg.delete(delete_after)
             return msg
@@ -211,11 +230,11 @@ class Interaction():
         if hidden:
             payload["flags"] = 64
 
-        route = BetterRoute("POST", f'/webhooks/{self._application_id}/{self.interaction["token"]}')
+        route = BetterRoute("POST", f'/webhooks/{self.application_id}/{self.token}')
         r = await self._state.http.request(route, json=payload)
 
         if file is not MISSING and files is not MISSING:
-            await send_files(route=BetterRoute("PATCH", f"/webhooks/{self._application_id}/{self.interaction['token']}/messages/@original"), 
+            await send_files(route=BetterRoute("PATCH", f"/webhooks/{self.application_id}/{self.token}/messages/@original"), 
                 files=[file] if files is MISSING else files, payload=payload, http=self._state.http)
 
         if hidden:
@@ -223,15 +242,17 @@ class Interaction():
 
         return await getResponseMessage(self._state, r, response=False)
 
-        
+    def _handle_auto_defer(self, auto_defer):
+        self._deferred = auto_defer[0]
+        self._deferred_hidden = auto_defer[1]
 
 class SelectedMenu(Interaction, SelectMenu):
     """A :class:`~SelectMenu` object in which an item was selected"""
-    def __init__(self, data, application_id, user, s, state) -> None:
-        Interaction.__init__(self, application_id, state, data)
+    def __init__(self, data, user, s, state, msg) -> None:
+        Interaction.__init__(self, state, data, user, msg)
         SelectMenu.__init__(self, "EMPTY", [SelectOption("EMPTY", "EMPTY")], 0, 0)
         self._json = s.to_dict()
-        self.values: typing.List[SelectOption] = []
+        self.selected_values: typing.List[SelectOption] = []
         """The list of values which were selected
         
         :type: :class:`~SelectOption`
@@ -240,15 +261,15 @@ class SelectedMenu(Interaction, SelectMenu):
         for val in data["data"]["values"]:
             for x in self.options:
                 if x.value == val:
-                    self.values.append(x)
+                    self.selected_values.append(x)
 
         self.member: discord.Member = user
         """The member who selected the value"""
 
 class PressedButton(Interaction, Button):
     """A :class:`~Button` object that was pressed"""
-    def __init__(self, data, application_id, user, b, state) -> None:
-        Interaction.__init__(self, application_id, state, data)
+    def __init__(self, data, user, b, state, message) -> None:
+        Interaction.__init__(self, state, data, user, message)
         Button.__init__(self, "empty", "empty")
         self._json = b.to_dict()
 
@@ -267,7 +288,7 @@ class PressedButton(Interaction, Button):
 class SlashedCommand(Interaction, SlashCommand):
     """A :class:`~SlashCommand` object that was used"""
     def __init__(self, client, command: SlashCommand, data, user, channel, guild_ids = None) -> None:
-        Interaction.__init__(self, client.user.id, client._connection, data, user)
+        Interaction.__init__(self, client._connection, data, user)
         SlashCommand.__init__(self, None, "EMPTY", guild_ids=guild_ids)
         self._json = command.to_dict()
         self.member: discord.Member = user
@@ -285,7 +306,7 @@ class SlashedSubCommand(SlashedCommand, SubSlashCommand):
 
 class SlashedContext(Interaction, ContextCommand):
     def __init__(self, client, command: ContextCommand, data, user, channel, guild_ids = None) -> None:
-        Interaction.__init__(self, client.user.id, client._connection, data, user)
+        Interaction.__init__(self, client._connection, data, user)
         ContextCommand.__init__(self)
         self._json = command.to_dict()
         self.member: discord.Member = user
@@ -293,7 +314,7 @@ class SlashedContext(Interaction, ContextCommand):
         self.guild_ids = guild_ids
 
 
-async def getResponseMessage(state: ConnectionState, data, application_id = None, user=None, response = True):
+async def getResponseMessage(state: ConnectionState, data, user=None, response = True):
     """
     Async function to get the response message
 
@@ -321,10 +342,10 @@ async def getResponseMessage(state: ConnectionState, data, application_id = None
     if response and user:
         if data.get("message") is not None and data["message"]["flags"] == 64:
             try:
-                return ResponseMessage(state=state, application_id=application_id, channel=channel, data=data, user=user)
+                return ResponseMessage(state=state, channel=channel, data=data, user=user)
             except:
                 return EphemeralMessage(state=state, channel=channel, data=data["message"])
-        return ResponseMessage(state=state, application_id=application_id, channel=channel, data=data, user=user)
+        return ResponseMessage(state=state, channel=channel, data=data, user=user)
 
     return Message(state=state, channel=channel, data=data)
 
@@ -568,22 +589,22 @@ class Message(discord.Message):
         raise InvalidEvent(event_name, ["button", "select"])
 
 
-class ResponseMessage(Interaction, Message):
+class ResponseMessage(Message):
     r"""A message Object which extends the `Message` Object optimized for an interaction component"""
-    def __init__(self, *, state, application_id, channel, data, user):
-        Interaction.__init__(self, application_id, state, data)
+    def __init__(self, *, state, channel, data, user):
         Message.__init__(self, state=state, channel=channel, data=data["message"])
+        self.interaction = Interaction(state, data, user, self)
 
         self.interaction_component = None
 
         if int(data["data"]["component_type"]) == 2:
             for x in self.buttons:
                 if hasattr(x, 'custom_id') and x.custom_id == data["data"]["custom_id"]:
-                    self.interaction_component = PressedButton(data, self._application_id, user, x, self._state)
+                    self.interaction_component = PressedButton(data, user, x, self._state, self)
         elif int(data["data"]["component_type"]) == 3:
             for x in self.select_menus:
                 if x.custom_id == data["data"]["custom_id"]:
-                    self.interaction_component = SelectedMenu(data, self._application_id, user, x, self._state)
+                    self.interaction_component = SelectedMenu(data, user, x, self._state, self)
 
 class WebhookMessage(Message, discord.WebhookMessage):
     def __init__(self, *, state, channel, data):
@@ -615,8 +636,8 @@ class EphemeralComponent(Interaction):
     
     This class only has the custom_id of the used component, the component type and values
     """
-    def __init__(self, application_id, state, user, data) -> None:
-        Interaction.__init__(self, application_id, state, data, user)
+    def __init__(self, state, user, data) -> None:
+        Interaction.__init__(self, state, data, user)
         self.custom_id = data["data"]["custom_id"]
         self.component_type = data["data"]["component_type"]
         if self.component_type == 3:
@@ -624,7 +645,7 @@ class EphemeralComponent(Interaction):
                 def __init__(self, value) -> None:
                     self.name = None
                     self.value = value
-            self.values = [EphemeralValue(x) for x in data["data"]["values"]]
+            self.selected_values = [EphemeralValue(x) for x in data["data"]["values"]]
 
 
 class EphemeralMessage(Message):

@@ -46,7 +46,7 @@ async def command(ctx: SlashedCommand):
         # Defer the interaction, in case we need more than 3 seconds
         await menu.defer(hidden=True)
         # For every value of the selectmenu selection
-        for role in menu.values:
+        for role in menu.selected_values:
             # For every role in the guild's roles
             for _r in roles:
                 # If the id of the current guild role is the same as the value of the current selected value 

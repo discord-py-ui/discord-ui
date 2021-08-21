@@ -5,7 +5,7 @@ from .slash.http import create_global_command, create_guild_command, delete_glob
 from .slash.types import AdditionalType, ContextCommand, MessageCommand, OptionType, SlashCommand, SlashOption, SubSlashCommand, SubSlashCommandGroup, UserCommand
 from .tools import MISSING, _or, get_index, setup_logger
 from .http import jsonifyMessage, BetterRoute, send_files
-from .receive import Message, SlashedContext, WebhookMessage, SlashedCommand, SlashedSubCommand, getResponseMessage
+from .receive import Interaction, Message, SlashedContext, WebhookMessage, SlashedCommand, SlashedSubCommand, getResponseMessage
 
 import discord
 from discord.ext import commands as com
@@ -138,6 +138,11 @@ class Slash():
         user = discord.Member(data=data["member"], guild=guild, state=self._discord._connection)
         channel = await handle_thing(data["channel_id"], OptionType.CHANNEL, data, self.parse_method, self._discord)
 
+        interaction = Interaction(self._discord._connection, data, user)
+        if self.auto_defer[0] is True:
+            await interaction.defer(self.auto_defer[1])
+        self._discord.dispatch("interaction_received", interaction)
+
         #region basic commands
         if data["data"]["type"] == 1 and not (data["data"].get("options") and data["data"]["options"][0]["type"] in [OptionType.SUB_COMMAND, OptionType.SUB_COMMAND_GROUP]):
             x = self.commands.get(data["data"]["name"])
@@ -145,10 +150,10 @@ class Slash():
                 options = {}
                 if data["data"].get("options") is not None:
                     options = await handle_options(data, data["data"]["options"], self.parse_method, self._discord)
-
                 context = SlashedCommand(self._discord, command=x, data=data, user=user, channel=channel, guild_ids=x.guild_ids)
-                if self.auto_defer[0] is True:
-                    await context.defer(self.auto_defer[1])
+                # Handle autodefer
+                context._handle_auto_defer(self.auto_defer)
+
                 await x.callback(context, **options)
                 return
         elif data["data"]["type"] == 2:
@@ -162,8 +167,9 @@ class Slash():
             if x is not None:
                 message = await handle_thing(data["data"]["target_id"], 44, data, self.parse_method, self._discord)
                 context = SlashedContext(self._discord, command=x, data=data, user=user, channel=channel, guild_ids=x.guild_ids)
-                if self.auto_defer[0] is True:
-                    await context.defer(self.auto_defer[1])
+                # Handle autodefer
+                context._handle_auto_defer(self.auto_defer)
+
                 await x.callback(context, message)
                 return
         #endregion
@@ -341,7 +347,8 @@ class Slash():
         """
         target_guild = guild_id
         api_command = await self._get_guild_api_command(base.name, guild_id)
-        api_permissions = await get_command_permissions(self._discord, api_command["id"], guild_id)
+        if api_command is not None:
+            api_permissions = await get_command_permissions(self._discord, api_command["id"], guild_id)
         # If no command in that guild
         if api_command is None:
             # Check global commands
@@ -831,12 +838,17 @@ class Components():
         
         guild = cache_data(data["guild_id"], AdditionalType.GUILD, data, self._discord._connection)
         user = discord.Member(data=data["member"], guild=guild, state=self._discord._connection)
-        msg = await getResponseMessage(self._discord._connection, data=data, application_id=self._discord.user.id, user=user, response=True)
+        msg = await getResponseMessage(self._discord._connection, data=data, user=user, response=True)
         
+        interaction = Interaction(self._discord._connection, data, user, msg)
+        if self.auto_defer[0] is True:
+            await interaction.defer(self.auto_defer[1])
+        self._discord.dispatch("interaction_received", interaction)
+
+        # Handle auto_defer
+        msg.interaction_component._handle_auto_defer(self.auto_defer)
         component = msg.interaction_component
 
-        if self.auto_defer[0] is True:
-            await component.defer(self.auto_defer[1])
         
         # Get listening components with the same custom id
         listening_components = self._listening_components.get(data["data"]["custom_id"])
