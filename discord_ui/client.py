@@ -38,7 +38,7 @@ class Slash():
             How many seconds will be waited until the commands are going to be synchronized; Default ``1``
 
         auto_defer: Tuple[:class:`bool`, :class:`bool`]
-            Settings for the auto-defer
+            Settings for the auto-defer; Default ``(True, False)``
 
             ``[0]``: Whether interactions should be deferred automatically
 
@@ -744,7 +744,7 @@ class Components():
             The main discord client
 
         auto_defer: Tuple[:class:`bool`, :class:`bool`]
-            Settings for the auto-defer
+            Settings for the auto-defer; Default ``(True, False)``
 
             ``[0]``: Whether interactions should be deferred automatically
 
@@ -1018,7 +1018,7 @@ class UI():
                     How many seconds will be waited until the commands are going to be synchronized; Default ``1``
 
         auto_defer: Tuple[:class:`bool`, :class:`bool`]
-            Settings for the auto-defer
+            Settings for the auto-defer; Default ``(True, False)``
 
             ``[0]``: Whether interactions should be deferred automatically
 

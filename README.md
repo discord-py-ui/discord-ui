@@ -12,6 +12,8 @@
     </p>
 </p>
 
+[![Downloads](https://pepy.tech/badge/discord-ui)](https://pepy.tech/project/discord-ui)
+
 ## Introduction
 
 This is a [discord.py](https://github.com/Rapptz/discord.py) ui extension made by [404kuso](https://github.com/404kuso) and [RedstoneZockt](https://github.com/RedstoneZockt)
