@@ -9,6 +9,7 @@ You can receive general interactions of all possible types with the client event
 This event passes a :class:`Interaction` object which you can defer, respond to or whatever you want
 
 Example
+
 .. code-block::
     # client stuff before
     from discord_ui import Interaction
