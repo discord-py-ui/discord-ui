@@ -55,7 +55,7 @@ To install this package, open your terminal or command line and type
 Examples
 ---------------------
 
-we have some examples `here <https://github.com/KusoRedsto/discord-ui/tree/main/examples>`__
+we have some examples `here <https://github.com/discord-py-ui/discord-ui/tree/main/examples>`__
 
 
 Docs

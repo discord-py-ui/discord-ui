@@ -1,5 +1,5 @@
 # Example by 404kuso
-# https://github.com/KusoRedsto/discord-ui/tree/main/examples/generate_linkbutton.py
+# https://github.com/discord-py-ui/discord-ui/tree/main/examples/generate_linkbutton.py
 # 
 #       This example will use a slash subcommand group and will generate a 
 #       linkbutton with a name, link and emoji which the user can specify
@@ -29,7 +29,7 @@ name="button", description="sends a button and a linkbutton", options=[
     ], 
     # If you want to test the command, use guild_ids, because this is way faster than global commands
     guild_ids=["785567635802816595"])
-async def command(ctx, message_content="cool, right?", name="click me", link="https://github.com/KusoRedsto/discord-ui", emoji=None):
+async def command(ctx, message_content="cool, right?", name="click me", link="https://github.com/discord-py-ui/discord-ui", emoji=None):
     # Check if the link is valid
     if not link.startswith("http://") and not link.startswith("https://"):
         # send hidden response that the link is invalid

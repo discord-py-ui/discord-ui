@@ -1,5 +1,5 @@
 # Example by 404kuso
-# https://github.com/KusoRedsto/discord-ui/tree/main/examples/context_commands.py
+# https://github.com/discord-py-ui/discord-ui/tree/main/examples/context_commands.py
 # 
 #       This example will use the two new ui context commands,
 #       one will quote the message and one will send their avatar

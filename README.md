@@ -8,7 +8,7 @@
         ▪ 
         <a href="https://discord-ui.readthedocs.io/en/latest/"><b>read the docs</b></a> 
         ▪ 
-        <a href="https://github.com/KusoRedsto/discord-ui/tree/main/examples"><b>examples</b></a>
+        <a href="https://github.com/discord-py-ui/discord-ui/tree/main/examples"><b>examples</b></a>
     </p>
 </p>
 
@@ -26,7 +26,7 @@ both overriden with our own custom method.
 in order for our lib to work, so if you (somewhy) wanna check the type of the client, you need to 
 use `isinstance(your_client, discord.ext.commands.Bot)`, because `type(your_client)` will be of type `OverridenV2Bot`
 
-For more information about overriding, take a look at the [override module](https://github.com/KusoRedsto/discord-ui/blob/main/discord_ui/override.py)
+For more information about overriding, take a look at the [override module](https://github.com/discord-py-ui/discord-ui/blob/main/discord_ui/override.py)
 
 
 
@@ -54,7 +54,7 @@ This project is under MIT License
 
 If you find any issues, please report them 
 
-https://github.com/KusoRedsto/discord-ui/issues
+https://github.com/discord-py-ui/discord-ui/issues
 
 ## Note
 
@@ -139,9 +139,30 @@ client.run("your_token_here")
 ```
 
 
-You can find more (and better) examples [here](https://github.com/KusoRedsto/discord-ui/tree/main/examples)
+You can find more (and better) examples [here](https://github.com/discord-py-ui/discord-ui/tree/main/examples)
 
 # Changelog
+
+
+-   <details>
+    <summary>3.2.6</summary>
+
+    ## **Added**
+    - auto ninja_mode
+    > If you use `.respond()`, the function will try to use ninja_mode automatically
+
+    ## **Changed**
+    - project
+    > Moved git-project to https://github.com/discord-py-ui/discord-ui
+
+    ## **Fixed**
+    - ninja_mode response
+    > responding with ninja_mode would end up in an exception
+
+    - file sending
+    > fixed another file sending issue with slash commands
+
+    </details>
 
 -   <details>
     <summary>3.2.5</summary>
@@ -170,7 +191,7 @@ You can find more (and better) examples [here](https://github.com/KusoRedsto/dis
     <summary>3.2.0</summary>
 
     ## **Fixed**
-    I'm really sorry for all the issues this libary got, if you still find issues, please report them in https://github.com/KusoRedsto/discord-ui/issues
+    I'm really sorry for all the issues this libary got, if you still find issues, please report them in https://github.com/discord-py-ui/discord-ui/issues
 
     - SelectOpion
     > There was an issue with emojis not being set in SelectOptions

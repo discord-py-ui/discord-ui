@@ -1,5 +1,5 @@
 # Example by 404kuso
-# https://github.com/KusoRedsto/discord-ui/tree/main/examples/calculator.py
+# https://github.com/discord-py-ui/discord-ui/tree/main/examples/calculator.py
 #
 #       This example will send a working calculator to the text channel with buttons
 #
@@ -24,7 +24,7 @@ calculator = [
     [Button("num_4", "4", "blurple"), Button("num_5", "5", "blurple"), Button("num_6", "6", "blurple"), Button("sub", "-", "green"), Button("open", "(", "green")],
     [Button("num_1", "1", "blurple"), Button("num_2", "2", "blurple"), Button("num_3", "3", "blurple"), Button("mult", "*", "green"), Button("backs", "⌫", "red")],
     [Button("pun", ".", "green"), Button("num_0", "0", "blurple"), Button("equ", "=", "gray"), Button("div", "/", "green"), Button("cls", "C", "red")],
-    LinkButton("https://github.com/KusoRedsto/discord-ui/tree/main/examples/calculator.py", "ヾ(≧▽≦*) click here for source code ヾ(≧▽≦*)")
+    LinkButton("https://github.com/discord-py-ui/discord-ui/tree/main/examples/calculator.py", "ヾ(≧▽≦*) click here for source code ヾ(≧▽≦*)")
 ]
 
 

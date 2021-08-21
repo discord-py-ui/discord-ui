@@ -122,12 +122,13 @@ class Interaction():
                 If the response is hidden, a EphemeralMessage will be returned, which is an empty class
 
         """
-        
-        if ninja_mode:
+        if ninja_mode is True or all(y in [MISSING, False] for x, y in locals().items() if x not in ["self"]):
             try:
-                await self._state.http.request(BetterRoute("POST", f'/interactions/{self.id}/{self.token}/callback'), json={
+                route = BetterRoute("POST", f'/interactions/{self.id}/{self.token}/callback')
+                r = await self._state.http.request(route, json={
                     "type": 6
                 })
+                return
             except HTTPException as x:
                 if "value must be one of (4, 5)" in str(x).lower():
                     logging.warning(str(x) + "\n" + "The 'ninja_mode' parameter is not supported for slash commands!")
@@ -136,9 +137,8 @@ class Interaction():
                     print(x)
                     return
 
-        if self._responded:
-            await self.send(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components, hidden=hidden)
-            return
+        if self._responded is True:
+            return await self.send(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components, hidden=hidden)
 
         
         payload = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components)
@@ -150,31 +150,34 @@ class Interaction():
                 logging.warning("Your response should be public, but the interaction was deferred hidden. This results in a hidden response.")
         hide_message = self._deferred_hidden or not self._deferred and hidden
 
+
+        r = None
         if delete_after is not MISSING and hide_message is True:
             raise EphemeralDeletion()
 
         if hide_message:
             payload["flags"] = 64
 
-        if (file is not MISSING or files is not MISSING) and self._deferred is False or (hide_message is True and not self._deferred):
+        if (file is not MISSING or files is not MISSING) and self._deferred is False:
             await self.defer(hidden=hide_message)
-                
-        if not self._deferred:
+        
+        if self._deferred is False:
             route = BetterRoute("POST", f'/interactions/{self.id}/{self.token}/callback')
-            await self._state.http.request(route, json={
+            r = await self._state.http.request(route, json={
                     "type": 4,
                     "data": payload
                 })
         else:
             route = BetterRoute("PATCH", f'/webhooks/{self.application_id}/{self.token}/messages/@original')
-            r = await self._state.http.request(route, json=payload)
-            if hide_message:
-                self._responded = True
-                return EphemeralMessage(state=self._state, channel=self._state.get_channel(int(r["channel_id"])), data=r, application_id=self.application_id, token=self.interaction["token"])
+            if file is not MISSING or files is not MISSING:
+                r = await send_files(route=route, files=[file] if files is MISSING else files, payload=payload, http=self._state.http)
+            else:
+                r = await self._state.http.request(route, json=payload)
+        self._responded = True
+        
+        if hide_message is True:
+            return EphemeralMessage(state=self._state, channel=self._state.get_channel(int(r["channel_id"])), data=r, application_id=self.application_id, token=self.token)
 
-        if file is not MISSING and files is not MISSING:
-            await send_files(route=BetterRoute("PATCH", f"/webhooks/{self.application_id}/{self.token}/messages/@original"), 
-                files=[file] if files is MISSING else files, payload=payload, http=self._state.http)
         
         if not hide_message:
             responseMSG = await self._state.http.request(BetterRoute("GET", f"/webhooks/{self.application_id}/{self.token}/messages/@original"))
@@ -223,7 +226,7 @@ class Interaction():
                 If the response is hidden, a EphemeralMessage will be returned, which is an empty class
         """
         if self._responded is False:
-            return await self.respond(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components, hidden=hidden)
+            return await self.respond(content=content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components, hidden=hidden)
 
         payload = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components)
         
@@ -231,15 +234,15 @@ class Interaction():
             payload["flags"] = 64
 
         route = BetterRoute("POST", f'/webhooks/{self.application_id}/{self.token}')
-        r = await self._state.http.request(route, json=payload)
-
-        if file is not MISSING and files is not MISSING:
-            await send_files(route=BetterRoute("PATCH", f"/webhooks/{self.application_id}/{self.token}/messages/@original"), 
+        
+        if file is not MISSING or files is not MISSING:
+            r = await send_files(route=route,
                 files=[file] if files is MISSING else files, payload=payload, http=self._state.http)
+        else:
+            r = await self._state.http.request(route, json=payload)
 
-        if hidden:
-            return EphemeralMessage(state=self._state, channel=self._state.get_channel(int(r["channel_id"])), data=r)
-
+        if hidden is True:
+            return EphemeralMessage(state=self._state, channel=self._state.get_channel(r["channel_id"]), data=r, application_id=self.application_id, token=self.token)
         return await getResponseMessage(self._state, r, response=False)
 
     def _handle_auto_defer(self, auto_defer):

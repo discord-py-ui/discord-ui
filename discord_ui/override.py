@@ -1,4 +1,4 @@
-# https://github.com/KusoRedsto/discord-ui/blob/main/discord_ui/override.py
+# https://github.com/discord-py-ui/discord-ui/blob/main/discord_ui/override.py
 # 404kuso was here hehehe
 #
 #       This module overrides some methods of the discord's functions.

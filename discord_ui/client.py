@@ -1,3 +1,4 @@
+from discord_ui.components import ComponentType
 from .slash.errors import NoAsyncCallback
 from .errors import MissingListenedComponentParameters, WrongType
 from .slash.tools import ParseMethod, cache_data, format_name, handle_options, handle_thing
@@ -97,7 +98,7 @@ class Slash():
         self.parse_method: int = parse_method
         self.delete_unused: bool = delete_unused
         self.wait_sync: float = wait_sync
-        self.auto_defer: Tuple[bool, bool] = auto_defer if type(auto_defer) in [list, tuple] else (auto_defer, False)
+        self.auto_defer: Tuple[bool, bool] = auto_defer
 
         self._discord: com.Bot = client
         self.commands: Dict[(str, SlashCommand)] = {}
@@ -192,8 +193,6 @@ class Slash():
 
             if x:
                 context = SlashedSubCommand(self._discord, x, data, user, channel, x.guild_ids)
-                if self.auto_defer[0] is True:
-                    await context.defer(self.auto_defer[1])
                 await x.callback(context, **options)
                 return
 
@@ -808,7 +807,7 @@ class Components():
         self._buffer = bytearray()
         self._zlib = zlib.decompressobj()
 
-        self.auto_defer: Tuple[bool, bool] = auto_defer if type(auto_defer) in [list, tuple] else (auto_defer, False)
+        self.auto_defer: Tuple[bool, bool] = auto_defer
         self._listening_components: Dict[str, List[function]] = {}
         """A list of components that are listening for interaction"""
         self._discord: com.Bot = client
@@ -856,10 +855,9 @@ class Components():
             for listening_component in listening_components:
                 await listening_component(component, msg)
 
-
-        if data["data"]["component_type"] == 2:
+        if data["data"]["component_type"] == ComponentType.BUTTON:
             self._discord.dispatch("button_press", component, msg)
-        elif data["data"]["component_type"] == 3:
+        elif data["data"]["component_type"] == ComponentType.SELECT_MENU:
             self._discord.dispatch("menu_select", component, msg)
 
     async def send(self, channel, content=MISSING, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, 
@@ -1039,7 +1037,7 @@ class UI():
 
 
     """
-    def __init__(self, client, slash_options = {"parse_method": ParseMethod.AUTO, "delete_unused": False, "wait_sync": 1, "auto_defer": (True, False)}, auto_defer: Tuple[bool, bool] = (True, False)) -> None:
+    def __init__(self, client, slash_options = {"parse_method": ParseMethod.AUTO, "delete_unused": False, "wait_sync": 1}, auto_defer: Tuple[bool, bool] = (True, False)) -> None:
         """Creates a new ui object
         
         Example

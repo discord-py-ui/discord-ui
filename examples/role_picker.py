@@ -1,5 +1,5 @@
 # Example by 404kuso
-# https://github.com/KusoRedsto/discord-ui/tree/main/examples/role_picker.py
+# https://github.com/discord-py-ui/discord-ui/tree/main/examples/role_picker.py
 # 
 #       This example will use a slash subcommand and will send a select menu only visible to the user,
 #       where the user can choose between roles to get
