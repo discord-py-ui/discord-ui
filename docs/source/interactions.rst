@@ -20,5 +20,5 @@ Example
 Interaction
 ~~~~~~~~~~~~
 
-.. auto-class:: Interaction()
+.. autoclass:: Interaction()
     :members:
