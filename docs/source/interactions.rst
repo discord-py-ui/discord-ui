@@ -11,6 +11,7 @@ This event passes a :class:`Interaction` object which you can defer, respond to 
 Example
 
 .. code-block::
+
     # client stuff before
     from discord_ui import Interaction
 
