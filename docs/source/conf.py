@@ -12,19 +12,25 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../..'))
+
+sys.path.insert(0, os.path.abspath("../.."))
 
 # -- Project information -----------------------------------------------------
 
-project = 'discord-ui'
-copyright = '2021, 404kuso, RedstoneZockt'
-author = '404kuso, RedstoneZockt'
+project = "discord-ui"
+copyright = "2021, 404kuso, RedstoneZockt"
+author = "404kuso, RedstoneZockt"
 
 
 def get_version():
     """returns the version of the package"""
     with open("../../discord_ui/__init__.py", "r", encoding="utf-8") as f:
-        return [f for f in f.readlines() if f.startswith("__version__")][0].split('"')[1].split('"')[0]
+        return (
+            [f for f in f.readlines() if f.startswith("__version__")][0]
+            .split('"')[1]
+            .split('"')[0]
+        )
+
 
 # The full version, including alpha/beta/rc tags
 release = get_version()
@@ -35,11 +41,11 @@ release = get_version()
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosummary', 'sphinx_rtd_theme']
+extensions = ["sphinx.ext.autodoc", "sphinx.ext.autosummary", "sphinx_rtd_theme"]
 autosummary_generate = True
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -51,7 +57,7 @@ exclude_patterns = []
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'sphinx_rtd_theme'
+html_theme = "sphinx_rtd_theme"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
