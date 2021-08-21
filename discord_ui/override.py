@@ -23,22 +23,28 @@ def override_dpy():
 
     #region message override
     async def send(self: discord.TextChannel, content=None, **kwargs) -> Message:
-            payload = jsonifyMessage(content=content, **kwargs)
 
-            channel_id = self.id if type(self) is not commands.Context else self.channel.id
-            route = BetterRoute("POST", f"/channels/{channel_id}/messages")
-            
-            r = None
-            if kwargs.get("file") is None and kwargs.get("files") is None:
-                r = await self._state.http.request(route, json=payload)
-            else:
-                r = await send_files(route, files=_or(kwargs.get("files"), [kwargs.get("file")]), payload=payload, http=self._state.http)
-            
-            msg = Message(state=self._state, channel=self if type(self) is not commands.Context else self.channel, data=r)
-            if kwargs.get("delete_after") is not None:
-                await msg.delete(delay=kwargs.get("delete_after"))
+
+        channel_id = self.id if type(self) is not commands.Context else self.channel.id
+        route = BetterRoute("POST", f"/channels/{channel_id}/messages")
         
-            return msg
+        r = None
+        if kwargs.get("file") is None and kwargs.get("files") is None:
+            payload = jsonifyMessage(content=content, **kwargs)
+            r = await self._state.http.request(route, json=payload)
+        else:
+            if kwargs.get("file") is not None:
+                files = [kwargs.pop("file")]
+            elif kwargs.get("files") is not None:
+                files = kwargs.pop("files")
+            payload = jsonifyMessage(content=content, **kwargs)
+            r = await send_files(route, files=files, payload=payload, http=self._state.http)
+        
+        msg = Message(state=self._state, channel=self if type(self) is not commands.Context else self.channel, data=r)
+        if kwargs.get("delete_after") is not None:
+            await msg.delete(delay=kwargs.get("delete_after"))
+    
+        return msg
     def message_override(cls, *args, **kwargs):
         if cls is discord.message.Message:
             return object.__new__(Message)

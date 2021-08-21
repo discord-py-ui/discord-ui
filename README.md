@@ -144,6 +144,14 @@ You can find more (and better) examples [here](https://github.com/KusoRedsto/dis
 # Changelog
 
 -   <details>
+    <summary>3.2.5</summary>
+
+    ## **Fixed**
+    - #89 (thanks for reporting)
+
+    </details>
+
+-   <details>
     <summary>Fixed version issues with the package</summary>
     </details>
 
