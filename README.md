@@ -144,7 +144,7 @@ You can find more (and better) examples [here](https://github.com/KusoRedsto/dis
 # Changelog
 
 -   <details>
-    <summary>3.0.1</summary>
+    <summary>3.2.0</summary>
 
     ## **Fixed**
     I'm really sorry for all the issues this libary got, if you still find issues, please report them in https://github.com/KusoRedsto/discord-ui/issues
