@@ -152,14 +152,17 @@ You can find more (and better) examples [here](https://github.com/KusoRedsto/dis
     </details>
 
 -   <details>
-    <summary>Fixed version issues with the package</summary>
+    <summary>3.2.4</summary>
+
+    - Fixed version issues with the package
+
     </details>
 
 -   <details>
     <summary>3.2.2</summary>
 
     ## **Fixed**
-    #85: `AttributeError: module 'discord' has no attribute '_Components__version'`
+    - #85: `AttributeError: module 'discord' has no attribute '_Components__version'`
 
     </details>
 
