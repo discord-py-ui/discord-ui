@@ -814,7 +814,7 @@ class Components():
         self._discord: com.Bot = client
         if discord.__version__.startswith("2"):
             self._discord.add_listener(self._on_response, "on_socket_raw_receive")
-        elif discord.__version.startswith("1"):
+        elif discord.__version__.startswith("1"):
             self._discord.add_listener(self._on_response, 'on_socket_response')
     
     async def _on_response(self, msg):
