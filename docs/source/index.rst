@@ -67,6 +67,7 @@ Docs
 
    usage.rst
    ui.rst
+   interactions.rst
    components.rst
    slash.rst
  
