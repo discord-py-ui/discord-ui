@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'discord message components'
+project = 'discord-ui'
 copyright = '2021, 404kuso, RedstoneZockt'
 author = '404kuso, RedstoneZockt'
 

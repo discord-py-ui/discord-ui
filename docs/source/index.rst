@@ -2,7 +2,7 @@
 discord-ui documentation!
 ======================================================
 
-Welcome to the discord message components docs!
+Welcome to the discord-ui docs!
 This is a "extension" (I guess) or whatever you want to call it for `discord.py <https://github.com/Rapptz/discord.py>`__
 
 We (`Redstone <https://github.com/RedstoneZockt>`__ and me) decided to create a pip package for the 
