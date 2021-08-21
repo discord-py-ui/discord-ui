@@ -15,7 +15,7 @@ Example
 
     @client.listen("on_interaction_received")
     async def on_interaction(interaction: Interaction):
-        await interaction.respond("housten we have an interaction")
+        await interaction.respond("houston we got an interaction")
 
 Interaction
 ~~~~~~~~~~~~
