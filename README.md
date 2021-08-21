@@ -144,6 +144,14 @@ You can find more (and better) examples [here](https://github.com/KusoRedsto/dis
 # Changelog
 
 -   <details>
+    <summary>3.2.1</summary>
+
+    ## **Fixed**
+    #85: `AttributeError: module 'discord' has no attribute '_Components__version'`
+
+    </details>
+
+-   <details>
     <summary>3.2.0</summary>
 
     ## **Fixed**
