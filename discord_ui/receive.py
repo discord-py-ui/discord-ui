@@ -24,7 +24,7 @@ class Interaction():
     def __init__(self, state, data, user=MISSING, message=None) -> None:
         self._state: ConnectionState = state
 
-        self._deferred: bool = False
+        self.deferred: bool = False
         self._deferred_hidden: bool = False
         self._responded: bool = False
 
@@ -66,8 +66,9 @@ class Interaction():
                 Whether the loading thing should be only visible to the user; default False.
         
         """
-        if self._deferred:
-            raise AlreadyDeferred()
+        if self.deferred:
+            logging.error(AlreadyDeferred())
+            return
 
         body = {"type": 5}
         
@@ -76,7 +77,7 @@ class Interaction():
             self._deferred_hidden = True
         
         await self._state.http.request(BetterRoute("POST", f'/interactions/{self.id}/{self.token}/callback'), json=body)
-        self._deferred = True
+        self.deferred = True
 
     async def respond(self, content=MISSING, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, files=MISSING, nonce=MISSING,
     allowed_mentions=MISSING, mention_author=MISSING, components=MISSING, delete_after=MISSING, hidden=False,
@@ -134,8 +135,7 @@ class Interaction():
                     logging.warning(str(x) + "\n" + "The 'ninja_mode' parameter is not supported for slash commands!")
                     ninja_mode = False
                 else:
-                    print(x)
-                    return
+                    raise x
 
         if self._responded is True:
             return await self.send(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components, hidden=hidden)
@@ -148,7 +148,7 @@ class Interaction():
                 logging.warning("Your response should be hidden, but the interaction was deferred public. This results in a public response.")
             if self._deferred_hidden is True and hidden is False:
                 logging.warning("Your response should be public, but the interaction was deferred hidden. This results in a hidden response.")
-        hide_message = self._deferred_hidden or not self._deferred and hidden
+        hide_message = self._deferred_hidden or not self.deferred and hidden
 
 
         r = None
@@ -158,10 +158,10 @@ class Interaction():
         if hide_message:
             payload["flags"] = 64
 
-        if (file is not MISSING or files is not MISSING) and self._deferred is False:
+        if (file is not MISSING or files is not MISSING) and self.deferred is False:
             await self.defer(hidden=hide_message)
         
-        if self._deferred is False:
+        if self.deferred is False:
             route = BetterRoute("POST", f'/interactions/{self.id}/{self.token}/callback')
             r = await self._state.http.request(route, json={
                     "type": 4,
@@ -246,7 +246,7 @@ class Interaction():
         return await getResponseMessage(self._state, r, response=False)
 
     def _handle_auto_defer(self, auto_defer):
-        self._deferred = auto_defer[0]
+        self.deferred = auto_defer[0]
         self._deferred_hidden = auto_defer[1]
 
 class SelectedMenu(Interaction, SelectMenu):
@@ -310,7 +310,7 @@ class SlashedSubCommand(SlashedCommand, SubSlashCommand):
 class SlashedContext(Interaction, ContextCommand):
     def __init__(self, client, command: ContextCommand, data, user, channel, guild_ids = None) -> None:
         Interaction.__init__(self, client._connection, data, user)
-        ContextCommand.__init__(self)
+        ContextCommand.__init__(self, None, "EMPTY", guild_ids)
         self._json = command.to_dict()
         self.member: discord.Member = user
         self.channel: discord.TextChannel = channel

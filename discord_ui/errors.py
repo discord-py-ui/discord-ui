@@ -26,7 +26,7 @@ class InvalidEvent(Exception):
 class MissingListenedComponentParameters(Exception):
     """This exception is thrown whenever a callback for a listening component is missing parameters"""
     def __init__(self, *args: object) -> None:
-        super().__init__("Callback function needs to accept 2 parameters", *args)
+        super().__init__("Callback function for listening components needs to accept 2 parameters (the used component, the message)", *args)
 class CouldNotParse(Exception):
     """This exception is thrown whenever the libary was unable to parse the data with the given method"""
     def __init__(self, data, type, method, *args: object) -> None:

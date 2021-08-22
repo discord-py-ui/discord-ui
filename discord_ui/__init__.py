@@ -8,4 +8,4 @@ from .receive import Interaction, InteractionType, ResponseMessage, Message, Web
 from .override import override_dpy
 override_dpy()
 
-__version__ = "3.2.6"
+__version__ = "3.2.7"

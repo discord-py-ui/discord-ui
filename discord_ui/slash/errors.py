@@ -21,4 +21,4 @@ class NoAsyncCallback(Exception):
 class CallbackMissingContextCommandParameters(Exception):
     """This exception is thrown whenever a callback is missing the context parmeters"""
     def __init__(self, *args: object) -> None:
-        super().__init__("Callback function has to accept 2 parameters")
+        super().__init__("Callback function for context commands has to accept 2 parameters (the used command, the message/user on which the interaction was used)")

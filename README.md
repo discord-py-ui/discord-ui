@@ -138,11 +138,36 @@ async def on_message(message: discord.Message):
 client.run("your_token_here")
 ```
 
-
 You can find more (and better) examples [here](https://github.com/discord-py-ui/discord-ui/tree/main/examples)
 
 # Changelog
 
+
+-   <details>
+    <summary>3.2.7</summary>
+
+    ## **Added**
+    - warnings
+        - When a guild_permission with an invalid guild id is passed, it will throw an exception when syncing the commands
+        - When the value of a guild_permission is not of type `SlashPermission` it will throw an exception
+    - context-commands
+    > You can now have context commands with the same name as a normal slash command
+
+    ## **Changed**
+    - auto_defer
+    > auto_defer is now disabled by default
+    - slash sync
+    > You can now disable auto_sync for slash commmands and sync them by yourself with `Slash.sync_commands(delete_unused)`
+    - Interacion.defer
+    > `Interaction._deferred` is not `Interaction.deferred` and `Interaction.defer()` doesn't throw an exception anymore, it will just log the error with `logging.error()`
+
+    ## **Fixed**
+    - try
+    > There was a try/catch in the `Interaction.respond` function that would allow the code to continue when an exception occured while responding with ninja_mode
+    - context commands
+    > There was an issue adding context-commands
+
+    </details>
 
 -   <details>
     <summary>3.2.6</summary>

@@ -84,7 +84,7 @@ class Slash():
         
 
     """
-    def __init__(self, client, parse_method = ParseMethod.AUTO, delete_unused = False, wait_sync = 1, auto_defer = True) -> None:
+    def __init__(self, client, parse_method = ParseMethod.AUTO, auto_sync=True, delete_unused = False, wait_sync = 1, auto_defer = False) -> None:
         """Creates a new slash command thing
         
         Example
@@ -98,7 +98,8 @@ class Slash():
         self.parse_method: int = parse_method
         self.delete_unused: bool = delete_unused
         self.wait_sync: float = wait_sync
-        self.auto_defer: Tuple[bool, bool] = auto_defer
+        self.auto_defer: Tuple[bool, bool] = (auto_defer, False) if type(auto_defer) is bool else auto_defer
+        self.auto_sync = auto_sync
 
         self._discord: com.Bot = client
         self.commands: Dict[(str, SlashCommand)] = {}
@@ -111,8 +112,10 @@ class Slash():
 
         self.ready = False
         async def client_ready():
+            if self.auto_sync is False:
+                return
             await asyncio.sleep(_or(self.wait_sync, 1))
-            self._discord.loop.create_task(self.add_commands())
+            self._discord.loop.create_task(self.sync_commands(self.delete_unused))
             self.ready = True
         self._discord.add_listener(client_ready, "on_ready")
 
@@ -196,7 +199,19 @@ class Slash():
                 await x.callback(context, **options)
                 return
 
-    async def add_commands(self):
+    async def sync_commands(self, delete_unused=False):
+        """Synchronizes the slash commands with the api
+        
+        Parameters
+        ----------
+            delete_unused: :class:`bool`, optional
+                Whether the unused command should be deleted from the api; default ``False``
+        Raises
+        ------
+            :raises: :class:`InvalidArgument` : A slash command has an invalid guild_id
+            :raises: :class:`InvalidArgument` : A slash command has an invalid id specified in the guild_permissions 
+        
+        """
         added_commands = {
             "globals": {},
             "guilds": {}
@@ -238,8 +253,12 @@ class Slash():
         async def guild_stuff(command, guild_ids):
             """Adds the command to the guilds"""
             for x in guild_ids:
+                if command.guild_permissions is not MISSING:
+                    for x in list(command.guild_permissions.keys()):
+                        if str(x) not in own_guild_ids:
+                            raise InvalidArgument("guild_permissions invalid! Client is not in a guild with the id " + str(x))
                 if str(x) not in own_guild_ids:
-                    raise InvalidArgument("client is not in a server with the id '" + str(x) + "'")
+                    raise InvalidArgument("guild_ids invalid! Client is not in a server with the id '" + str(x) + "'")
             
                 if added_commands["guilds"].get(x) is None:
                     added_commands["guilds"][x] = {}
@@ -253,8 +272,7 @@ class Slash():
             await self.add_global_command(command)
             added_commands["globals"][command.name] = command
 
-        for x in commands:
-            command = commands[x]
+        async def add_command(command):
             # guild only command
             if command.guild_ids is not MISSING:
                 logging.debug("adding '" + str(command.name) + "' as guild_command")
@@ -267,8 +285,15 @@ class Slash():
             else:
                 logging.debug("adding '" + str(command.name) + "' as global command")
                 await global_stuff(command)
+        
+        for x in commands:
+            await add_command(commands[x])
 
-        if self.delete_unused:
+        for x in self.context_commands:
+            for com in self.context_commands[x]:
+                await add_command(self.context_commands[x][com])
+        
+        if delete_unused:
             api_coms = await self._get_global_commands()
             for apic in api_coms:
                 logging.debug("deleting global command '" + str(apic["name"]) + "'")
@@ -278,7 +303,7 @@ class Slash():
                 _id = str(x.id)
                 api_coms = await self._get_guild_commands(_id)
                 for apic in api_coms:
-                    if None in [added_commands["guilds"].get(_id), added_commands["guilds"][_id].get(apic["name"])]:
+                    if (added_commands["guilds"].get(int(_id)) is None and added_commands["guilds"].get(str(_id))) or added_commands["guilds"][_id].get(apic["name"]) is None:
                         logging.debug("deleting guild command '" + str(apic["name"]) + "' in guild " + str(_id))
                         await delete_guild_command(self._discord, apic["id"], _id)
 
@@ -350,20 +375,21 @@ class Slash():
             api_permissions = await get_command_permissions(self._discord, api_command["id"], guild_id)
         # If no command in that guild
         if api_command is None:
-            # Check global commands
-            api_command = await self._get_global_api_command(base.name)
-            # If global command exists, it will be deleted
-            if api_command is not None:
-                await delete_global_command(self._discord, api_command["id"])
+            # # Check global commands
+            # api_command = await self._get_global_api_command(base.name)
+            # # If global command exists, it will be deleted
+            # if api_command is not None:
+            #     await delete_global_command(self._discord, api_command["id"])
             await create_guild_command(base.to_dict(), self._discord, target_guild, base.permissions.to_dict())
         elif api_command != base or api_permissions != base.permissions:
-            if api_command != base:
+            if api_command != base and api_command["type"] == base._json["type"]:
                 await edit_guild_command(api_command["id"], self._discord, target_guild, base.to_dict(), base.permissions.to_dict())
             elif api_permissions != base.permissions:
                 await update_command_permissions(self._discord.user.id, self._discord.http.token, guild_id, api_command["id"], base.permissions.to_dict())
-        else:
+            else:
+                await create_guild_command(base.to_dict(), self._discord, target_guild, base.permissions.to_dict())
+        elif api_command == base and api_permissions != base.permissions:
             await update_command_permissions(self._discord.user.id, self._discord.http.token, guild_id, api_command["id"], base.permissions.to_dict())
-        # else:
 
     async def make_sub_command(self, base: SlashCommand, guild_id=MISSING):
         """Creates a new sub command and edits it if the base already exsits
@@ -796,7 +822,7 @@ class Components():
         async def my_func(component, msg):
             ...
     """
-    def __init__(self, client: com.Bot, auto_defer=(True, False)):
+    def __init__(self, client: com.Bot, auto_defer=False):
         """Creates a new compnent listener
         
         Example
@@ -807,7 +833,7 @@ class Components():
         self._buffer = bytearray()
         self._zlib = zlib.decompressobj()
 
-        self.auto_defer: Tuple[bool, bool] = auto_defer
+        self.auto_defer: Tuple[bool, bool] = (auto_defer, False) if type(auto_defer) is bool else auto_defer
         self._listening_components: Dict[str, List[function]] = {}
         """A list of components that are listening for interaction"""
         self._discord: com.Bot = client
@@ -1037,7 +1063,7 @@ class UI():
 
 
     """
-    def __init__(self, client, slash_options = {"parse_method": ParseMethod.AUTO, "delete_unused": False, "wait_sync": 1}, auto_defer: Tuple[bool, bool] = (True, False)) -> None:
+    def __init__(self, client, slash_options = {"parse_method": ParseMethod.AUTO, "delete_unused": False, "wait_sync": 1}, auto_defer = False) -> None:
         """Creates a new ui object
         
         Example

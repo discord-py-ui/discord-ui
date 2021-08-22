@@ -207,7 +207,12 @@ class OptionType:
 class AdditionalType:
     MESSAGE     =       44
     GUILD       =       45
-  
+class ApplicationType:
+    SLASH = 1
+    USER = 2
+    MESSAGE = 3
+
+
 class SlashPermission():
     """Permissions for a slash commannd
         
@@ -250,7 +255,7 @@ class SlashPermission():
             for _id, _type in allowed.items():
                 self._json.append(
                     {
-                        "id": _id.id if hasattr(_id, "id") else _id,
+                        "id": _id.id if type(_id) in [discord.User, discord.Member, discord.Role] else _id,
                         "type": _type,
                         "permission": True
                     }
@@ -259,7 +264,7 @@ class SlashPermission():
             for _id, _type in forbidden.items():
                 self._json.append(
                     {
-                        "id": _id.id if hasattr(_id, "id") else _id,
+                        "id": _id.id if type(_id) in [discord.User, discord.Member, discord.Role] else _id,
                         "type": _type,
                         "permission": False
                     }
@@ -344,7 +349,7 @@ class SlashCommand():
         ```
         """
         self._json = {
-            "type": 1
+            "type": ApplicationType.SLASH
         }
         self.name = name
         self.description = _or(description, name)
@@ -366,12 +371,37 @@ class SlashCommand():
             self.options = options
         if default_permission is not MISSING:
             self.default_permission = default_permission
-        self.guild_permissions: typing.Dict[(str, SlashPermission)] = guild_permissions or MISSING
+
+        if guild_permissions is not MISSING:
+            for _id, perm in list(guild_permissions.items()):
+                if type(_id) not in [str, int, discord.User, discord.Member, discord.Role]:
+                    raise WrongType("guild_permissions key " + str(_id), _id, ["str", "int", "discord.User", "discord.Member", "discord.Role"])
+                if type(perm) is not SlashPermission:
+                    raise WrongType("guild_permission[" + ("'" if type(_id) is str else "") + str(_id) + ("'" if type(_id) is str else "") + "]", perm, "SlashPermission")
+        self.guild_permissions: typing.Dict[(typing.Union[str, int], SlashPermission)] = guild_permissions or MISSING
         self.permissions = SlashPermission()
         
         self.guild_ids = guild_ids
     def __str__(self) -> str:
         return str(self.to_dict())
+    def __eq__(self, o: object) -> bool:
+        if type(o) is dict:
+            return (
+                o.get('type') == self._json["type"] 
+                and o.get('name') == self.name
+                and o.get('description') == self.description
+                and o.get('options') == self.options
+            )
+        elif type(o) is SlashCommand:
+            return (
+                o._json('type') == self._json["type"] 
+                and o.name == self.name
+                and o.description == self.description
+                and o.options == self.options
+            )
+        else:
+            return False
+
 
     # region command
     @property
@@ -434,86 +464,37 @@ class SlashCommand():
     def to_dict(self):
         return self._json
     
-    def __eq__(self, o: object) -> bool:
-        if type(o) is dict:
-            return (
-                o.get('name') == self.name
-                and o.get('description') == self.description
-                and o.get('options') == self.options
-            )
-        elif type(o) is SlashCommand:
-            return (
-                o.name == self.name
-                and o.description == self.description
-                and o.options == self.options
-            )
-        else:
-            return False
-
-
-class ContextCommand():
-    def __init__(self) -> None:
-        self._json = {}
-    def __str__(self) -> str:
-        return str(self.to_dict())
+    
+class ContextCommand(SlashCommand):
+    def __init__(self, callback, name, guild_ids, default_permission = False, guild_permissions = MISSING) -> None:
+        if callback is not None:
+            callback_params = inspect.signature(callback).parameters
+            if len(callback_params) < 2:
+                raise CallbackMissingContextCommandParameters()
+        super().__init__(callback, name, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
 
     @property
-    def name(self):
-        return self._json["name"]
-    @name.setter
-    def name(self, value):
-        self._json["name"] = value
+    def description(self):
+        return ""
+    @description.setter
+    def description(self, value):
+        pass
     @property
-    def default_permission(self):
-        return self._json["default_permission"]
-    @default_permission.setter
-    def default_permission(self, value):
-        self._json["default_permission"] = value
-
-    def to_dict(self):
-        return self._json
-
+    def options(self):
+        return []
+    @options.setter
+    def options(self, value):
+        pass
+        
 class UserCommand(ContextCommand):
     def __init__(self, callback, name, guild_ids = MISSING, default_permission = True, guild_permissions = MISSING) -> None:
-        super().__init__()
-        self._json = {
-            "type": 2
-        }
-        if callback is not None:
-            if not inspect.iscoroutinefunction(callback):
-                raise NoAsyncCallback()
-
-            callback_params = inspect.signature(callback).parameters
-            if not len(callback_params) >= 2:
-                raise CallbackMissingContextCommandParameters()
-
-        self.callback = callback
-        self.name = name
-        self.guild_ids = guild_ids
-        self.default_permission = default_permission
-        self.guild_permissions = guild_permissions
-        self.permissions = SlashPermission()
+        super().__init__(callback, name, guild_ids, default_permission, guild_permissions)
+        self._json["type"] = ApplicationType.USER
 
 class MessageCommand(ContextCommand):
     def __init__(self, callback, name, guild_ids = MISSING, default_permission = True, guild_permissions = MISSING) -> None:
-        super().__init__()
-        self._json = {
-            "type": 3
-        }
-        if callback is not None:
-            if not inspect.iscoroutinefunction(callback):
-                raise NoAsyncCallback()
-
-            callback_params = inspect.signature(callback).parameters
-            if not len(callback_params) >= 2:
-                raise CallbackMissingContextCommandParameters()
-
-        self.callback = callback
-        self.name = name
-        self.guild_ids = guild_ids
-        self.default_permission = default_permission
-        self.guild_permissions = guild_permissions
-        self.permissions = SlashPermission()
+        super().__init__(callback, name, guild_ids, default_permission, guild_permissions)
+        self._json["type"] = ApplicationType.MESSAGE
 
 class SubSlashCommand(SlashCommand):
     def __init__(self, callback, base_name, name, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
