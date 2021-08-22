@@ -138,8 +138,10 @@ class Slash():
         if int(data["type"]) not in [1, 2]:
             return
 
-        guild = cache_data(data["guild_id"], AdditionalType.GUILD, data, self._discord._connection)
-        user = discord.Member(data=data["member"], guild=guild, state=self._discord._connection)
+        guild = None
+        if data.get("guild_id") is not None:
+            guild = cache_data(data["guild_id"], AdditionalType.GUILD, data, self._discord._connection)
+        user = discord.Member(data=data["member"], guild=guild, state=self._discord._connection) if data.get("member") is not None else discord.User(state=self._discord._connection, data=data["user"])
         channel = await handle_thing(data["channel_id"], OptionType.CHANNEL, data, self.parse_method, self._discord)
 
         interaction = Interaction(self._discord._connection, data, user)
@@ -856,8 +858,10 @@ class Components():
         if data["type"] != 3:
             return
         
-        guild = cache_data(data["guild_id"], AdditionalType.GUILD, data, self._discord._connection)
-        user = discord.Member(data=data["member"], guild=guild, state=self._discord._connection)
+        guild = None
+        if data.get("guild_id") is not None:
+            guild = cache_data(data["guild_id"], AdditionalType.GUILD, data, self._discord._connection)
+        user = discord.Member(data=data["member"], guild=guild, state=self._discord._connection) if data.get("member") is not None else discord.User(state=self._discord._connection, data=data["user"])
         msg = await getResponseMessage(self._discord._connection, data=data, user=user, response=True)
         
         interaction = Interaction(self._discord._connection, data, user, msg)

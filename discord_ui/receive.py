@@ -29,28 +29,27 @@ class Interaction():
         self._responded: bool = False
 
         if user is not MISSING:
-            self.member = user
+            self.member: typing.Union[discord.Member, discord.User] = user
             """The user who created the interaction
             
-            :type: :class:`discord.Member`
+            :type: :class:`discord.Member` | :class:`discord.User`
             """
-
-        self._original_payload = data
-        self.application_id = data["application_id"]
-        self.token = data["token"]
+        self._original_payload: dict = data
+        self.application_id: int = data["application_id"]
+        self.token: str = data["token"]
         """The token for responding to the interaction"""
-        self.id = data["id"]
+        self.id: int = data["id"]
         """The id of the interaction"""
-        self.type = data["type"]
+        self.type: int = data["type"]
         """The type of the interaction. See :class:`~InteractionType` for more information"""
-        self.version = data["version"]
-        self.data = data["data"]
+        self.version: int = data["version"]
+        self.data: dict = data["data"]
         """The passed data of the interaction"""
-        self.channel_id = data["channel_id"]
+        self.channel_id: int = data.get("channel_id")
         """The channel-id where the interaction was created"""
-        self.guild_id = data["guild_id"]
+        self.guild_id: int = data.get("guild_id")
         """The guild-id where the interaction was created"""
-        self.message = message
+        self.message: Message = message
         """The message of the interaction"""
 
     async def defer(self, hidden=False):

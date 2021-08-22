@@ -159,6 +159,14 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>3.3.0</summary>
+
+    ## **Fixed**
+    - interaction usage in dms
+
+    </details>
+
+-   <details>
     <summary>3.2.9</summary>
     ## **Added**
     - ratelimit fix
