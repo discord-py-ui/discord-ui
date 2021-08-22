@@ -45,12 +45,19 @@ class Interaction():
         self.version: int = data["version"]
         self.data: dict = data["data"]
         """The passed data of the interaction"""
-        self.channel_id: int = data.get("channel_id")
+        self.channel_id: int = int(data.get("channel_id")) if data.get("channel_id") is not None else None
         """The channel-id where the interaction was created"""
-        self.guild_id: int = data.get("guild_id")
+        self.guild_id: int = int(data["guild_id"]) if data.get("guild_id") is not None else None
         """The guild-id where the interaction was created"""
         self.message: Message = message
         """The message of the interaction"""
+
+    @property
+    def guild(self):
+        return self._state._get_guild(self.guild_id)
+    @property
+    def channel(self):
+        return self._state.get_channel(self.channel_id)
 
     async def defer(self, hidden=False):
         """This will acknowledge the interaction. This will show the (*Bot* is thinking...) Dialog
@@ -291,30 +298,27 @@ class PressedButton(Interaction, Button):
 
 class SlashedCommand(Interaction, SlashCommand):
     """A :class:`~SlashCommand` object that was used"""
-    def __init__(self, client, command: SlashCommand, data, user, channel, guild_ids = None) -> None:
+    def __init__(self, client, command: SlashCommand, data, user, guild_ids = None) -> None:
         Interaction.__init__(self, client._connection, data, user)
         SlashCommand.__init__(self, None, "EMPTY", guild_ids=guild_ids)
         self._json = command.to_dict()
         self.member: discord.Member = user
-        """The user who created the interaciton"""
-        self.channel: discord.TextChannel = channel
         """The channel where the slash command was used"""
         self.guild_ids = guild_ids
 
 class SlashedSubCommand(SlashedCommand, SubSlashCommand):
     """A Sub-:class:`~SlashCommand` command that was used"""
-    def __init__(self, client, command, data, user, channel, guild_ids) -> None:
-        SlashedCommand.__init__(self, client, command, data, user, channel, guild_ids=guild_ids)
+    def __init__(self, client, command, data, user, guild_ids) -> None:
+        SlashedCommand.__init__(self, client, command, data, user, guild_ids=guild_ids)
         SubSlashCommand.__init__(self, None, "EMPTY", "EMPTY")
 
 
 class SlashedContext(Interaction, ContextCommand):
-    def __init__(self, client, command: ContextCommand, data, user, channel, guild_ids = None) -> None:
+    def __init__(self, client, command: ContextCommand, data, user, guild_ids = None) -> None:
         Interaction.__init__(self, client._connection, data, user)
         ContextCommand.__init__(self, None, "EMPTY", guild_ids)
         self._json = command.to_dict()
         self.member: discord.Member = user
-        self.channel: discord.TextChannel = channel
         self.guild_ids = guild_ids
 
 

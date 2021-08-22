@@ -156,7 +156,7 @@ class Slash():
                 options = {}
                 if data["data"].get("options") is not None:
                     options = await handle_options(data, data["data"]["options"], self.parse_method, self._discord)
-                context = SlashedCommand(self._discord, command=x, data=data, user=user, channel=channel, guild_ids=x.guild_ids)
+                context = SlashedCommand(self._discord, command=x, data=data, user=user, guild_ids=x.guild_ids)
                 # Handle autodefer
                 context._handle_auto_defer(self.auto_defer)
 
@@ -172,7 +172,7 @@ class Slash():
             x = self.context_commands["message"].get(data["data"]["name"])
             if x is not None:
                 message = await handle_thing(data["data"]["target_id"], 44, data, self.parse_method, self._discord)
-                context = SlashedContext(self._discord, command=x, data=data, user=user, channel=channel, guild_ids=x.guild_ids)
+                context = SlashedContext(self._discord, command=x, data=data, user=user, guild_ids=x.guild_ids)
                 # Handle autodefer
                 context._handle_auto_defer(self.auto_defer)
 
@@ -197,7 +197,7 @@ class Slash():
             options = await handle_options(data, fixed_options, self.parse_method, self._discord)
 
             if x:
-                context = SlashedSubCommand(self._discord, x, data, user, channel, x.guild_ids)
+                context = SlashedSubCommand(self._discord, x, data, user, x.guild_ids)
                 await x.callback(context, **options)
                 return
 
