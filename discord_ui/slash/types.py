@@ -499,7 +499,7 @@ class MessageCommand(ContextCommand):
         self._json["type"] = ApplicationType.MESSAGE
 
 class SubSlashCommand(SlashCommand):
-    def __init__(self, callback, base_name, name, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
+    def __init__(self, callback, base_name, name, description=MISSING, options=[], guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
         SlashCommand.__init__(self, callback, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
         self.base_name = format_name(base_name)
 
@@ -509,7 +509,7 @@ class SubSlashCommand(SlashCommand):
         return self.to_option().to_dict()
 
 class SubSlashCommandGroup(SlashCommand):
-    def __init__(self, callback, base_names, name, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
+    def __init__(self, callback, base_names, name, description=MISSING, options=[], guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
         if len(base_names) > 2:
             raise InvalidArgument("subcommand groups are currently limited to 2 bases")
         if any([len(x) > 32 or len(x) < 1 for x in base_names]):

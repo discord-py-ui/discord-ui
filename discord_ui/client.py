@@ -425,7 +425,7 @@ class Slash():
         logging.info("nuked all commands")
 
 
-    def command(self, name, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
+    def command(self, name, description=MISSING, options=[], guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
         """A decorator for a slash command
         
         command in discord:
@@ -503,7 +503,7 @@ class Slash():
             """
             self.commands[format_name(name)] = SlashCommand(callback, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
         return wrapper
-    def subcommand(self, base_name, name, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
+    def subcommand(self, base_name, name, description=MISSING, options=[], guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
         """A decotator for a subcommand
         
         command in discord
@@ -581,7 +581,7 @@ class Slash():
 
             self.subcommands[format_name(base_name)][format_name(name)] = SubSlashCommand(callback, base_name, name, description, options=options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
         return wrapper
-    def subcommand_group(self, base_names, name, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
+    def subcommand_group(self, base_names, name, description=MISSING, options=[], guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
         """A decorator for a subcommand group
         
         command in discord
