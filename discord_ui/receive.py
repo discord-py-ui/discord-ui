@@ -53,10 +53,18 @@ class Interaction():
         """The message of the interaction"""
 
     @property
-    def guild(self):
+    def guild(self) -> discord.Guild:
+        """The guild where the interaction was created
+        
+        :type: :class:`discord.Guild`
+        """
         return self._state._get_guild(self.guild_id)
     @property
-    def channel(self):
+    def channel(self) -> typing.Union[discord.TextChannel, discord.DMChannel]:
+        """The channel where the interaction was created
+        
+        :type: :class:`discord.TextChannel` | :class:`discord.DMChannel`
+        """
         return self._state.get_channel(self.channel_id)
 
     async def defer(self, hidden=False):
