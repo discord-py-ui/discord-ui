@@ -161,13 +161,15 @@ class Interaction():
         if (file is not MISSING or files is not MISSING) and self.deferred is False:
             await self.defer(hidden=hide_message)
         
-        if self.deferred is False:
+        if self.deferred is False and hide_message is False:
             route = BetterRoute("POST", f'/interactions/{self.id}/{self.token}/callback')
             r = await self._state.http.request(route, json={
                     "type": 4,
                     "data": payload
                 })
         else:
+            if self.deferred is False and hide_message is True:
+                await self.defer(hide_message)
             route = BetterRoute("PATCH", f'/webhooks/{self.application_id}/{self.token}/messages/@original')
             if file is not MISSING or files is not MISSING:
                 r = await send_files(route=route, files=[file] if files is MISSING else files, payload=payload, http=self._state.http)

@@ -4,7 +4,7 @@
     <p align="center">
         A discord.py user-interface extension
         <br />
-        <a href="https://pypi.org/project/discord-ui/"><b>pip package</b></a> 
+        <a href="https://pypi.org/project/discord-ui/"><b>pip package</b></a>
         ▪ 
         <a href="https://discord-ui.readthedocs.io/en/latest/"><b>read the docs</b></a> 
         ▪ 
@@ -64,7 +64,6 @@ you have to check both `bot` and `application.commands` fields
 ![](./docs/source/images/slash/invite_scope.png)
 
 ## Example
-
 
 Example for creating a simple slash command
 ```py
@@ -159,6 +158,14 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 
 # Changelog
 
+-   <details>
+    <summary>3.2.8</summary>
+
+    ## **Fixed**
+    - hidden responding
+    > When a hidden response was about to be send without defering the interaction it would thrown an error
+
+    </details>
 
 -   <details>
     <summary>3.2.7</summary>
