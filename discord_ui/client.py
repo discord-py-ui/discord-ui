@@ -313,13 +313,13 @@ class Slash():
         for x in await self._get_commands():
             if x["name"] == name:
                 return x
-    async def _get_guild_api_command(self, name, guild_id) -> Union[dict, None]:
+    async def _get_guild_api_command(self, name, typ, guild_id) -> Union[dict, None]:
         for x in await self._get_guild_commands(guild_id):
-            if x["name"] == name:
+            if x["name"] == name and x["type"] == typ:
                 return x
-    async def _get_global_api_command(self, name) -> Union[dict, None]:
+    async def _get_global_api_command(self, name, typ) -> Union[dict, None]:
         for x in await self._get_global_commands():
-            if x["name"] == name:
+            if x["name"] == name and x["type"] == typ:
                 return x
 
     async def _get_commands(self) -> List[dict]:
@@ -348,16 +348,12 @@ class Slash():
                 The slash command to add
         
         """
-        api_command = await self._get_global_api_command(base.name)
+        api_command = await self._get_global_api_command(base.name, base._json["type"])
         if api_command is None:
             await create_global_command(base.to_dict(), self._discord)
         else:
             if api_command != base:
-                if api_command.get("guild_id") is None:
-                    await edit_global_command(api_command["id"], self._discord, base.to_dict())
-                else:
-                    await delete_guild_command(self._discord, api_command["id"], api_command["guild_id"])
-                    await self.add_global_command(base)
+                await edit_global_command(api_command["id"], self._discord, base.to_dict())
     async def add_guild_command(self, base, guild_id):
         """Adds a slash command to a guild
         
@@ -370,25 +366,20 @@ class Slash():
         
         """
         target_guild = guild_id
-        api_command = await self._get_guild_api_command(base.name, guild_id)
+        api_command = await self._get_guild_api_command(base.name, base._json["type"], guild_id)
         if api_command is not None:
             api_permissions = await get_command_permissions(self._discord, api_command["id"], guild_id)
         # If no command in that guild
         if api_command is None:
             # # Check global commands
-            # api_command = await self._get_global_api_command(base.name)
+            # api_command = await self._get_global_api_command(base.name, base._json["type"])
             # # If global command exists, it will be deleted
             # if api_command is not None:
             #     await delete_global_command(self._discord, api_command["id"])
             await create_guild_command(base.to_dict(), self._discord, target_guild, base.permissions.to_dict())
-        elif api_command != base or api_permissions != base.permissions:
-            if api_command != base and api_command["type"] == base._json["type"]:
-                await edit_guild_command(api_command["id"], self._discord, target_guild, base.to_dict(), base.permissions.to_dict())
-            elif api_permissions != base.permissions:
-                await update_command_permissions(self._discord.user.id, self._discord.http.token, guild_id, api_command["id"], base.permissions.to_dict())
-            else:
-                await create_guild_command(base.to_dict(), self._discord, target_guild, base.permissions.to_dict())
-        elif api_command == base and api_permissions != base.permissions:
+        elif api_command != base:
+            await edit_guild_command(api_command["id"], self._discord, target_guild, base.to_dict(), base.permissions.to_dict())
+        elif api_permissions != base.permissions:
             await update_command_permissions(self._discord.user.id, self._discord.http.token, guild_id, api_command["id"], base.permissions.to_dict())
 
     async def make_sub_command(self, base: SlashCommand, guild_id=MISSING):

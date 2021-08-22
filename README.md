@@ -75,11 +75,28 @@ from discord_ui import UI, SlashOption
 client = commands.Bot(" ")
 ui = UI(client)
 
-@ui.slash.command("hello_world", description="a simple slash command", options=[SlashOption(bool, "cool", "whether this libary is cool", required=False)], guild_ids=["785567635802816595"])
+@ui.slash.command("hello_world", options=[SlashOption(bool, "cool", "whether this libary is cool", required=False)], guild_ids=["785567635802816595"])
 async def command(ctx, cool=True):
+    """This is a simple slash command"""
+    # you can use docstrings for the slash command description too
     await ctx.respond("You said this libary is " + str(cool))
 
 await client.run("your_token")
+```
+
+Example for creating a user-context command
+```py
+import discord
+from discord.ext import commands
+from discurd_ui import UI
+
+client = commands.Bot(" ")
+ui = UI(client)
+
+@ui.slash.user_command("avatar", guild_ids=["785567635802816595"])
+async def avatar(ctx, user: discord.Member):
+    """Sends the avatar of a user"""
+    await ctx.respond(embed=discord.Embed(description=user.display_name).set_image(url=user.avatar_url))
 ```
 
 Example for sending a button and receiving it
@@ -152,6 +169,8 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
         - When the value of a guild_permission is not of type `SlashPermission` it will throw an exception
     - context-commands
     > You can now have context commands with the same name as a normal slash command
+    - slashcommand description
+    > You can use docstrings `"""docstring"""` for setting the description of a slash commmand by setting the dosctring for the callback function
 
     ## **Changed**
     - auto_defer
@@ -166,6 +185,8 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     > There was a try/catch in the `Interaction.respond` function that would allow the code to continue when an exception occured while responding with ninja_mode
     - context commands
     > There was an issue adding context-commands
+    - Command checking
+    > Now, the libary only edits commands when changes were made 
 
     </details>
 

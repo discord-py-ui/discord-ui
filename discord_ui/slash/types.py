@@ -351,8 +351,6 @@ class SlashCommand():
         self._json = {
             "type": ApplicationType.SLASH
         }
-        self.name = name
-        self.description = _or(description, name)
         if callback is not None:
             if not inspect.iscoroutinefunction(callback):
                 raise NoAsyncCallback()
@@ -366,7 +364,9 @@ class SlashCommand():
                     if not op.required and param.default is param.empty:
                         raise OptionalOptionParameter(param.name)
 
-        self.callback = callback
+        self.callback: function = callback
+        self.name = name
+        self.description = _or(description, (self.callback.__doc__ if self.callback not in [None, MISSING] else None), name)
         if options is not MISSING:
             self.options = options
         if default_permission is not MISSING:
@@ -390,9 +390,9 @@ class SlashCommand():
                 o.get('type') == self._json["type"] 
                 and o.get('name') == self.name
                 and o.get('description') == self.description
-                and o.get('options') == self.options
+                and o.get('options', []) == self.options
             )
-        elif type(o) is SlashCommand:
+        elif isinstance(o, SlashCommand):
             return (
                 o._json('type') == self._json["type"] 
                 and o.name == self.name
@@ -401,6 +401,8 @@ class SlashCommand():
             )
         else:
             return False
+    def __ne__(self, o: object) -> bool:
+        return not self.__eq__(o)
 
 
     # region command
