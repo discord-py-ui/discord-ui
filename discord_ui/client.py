@@ -1047,6 +1047,9 @@ class UI():
                 ``parse_method``: :class:`int`, optional
                     How the received interaction argument data should be treated; Default ``ParseMethod.AUTO``
 
+                ``auto_sync``: :class:`bool`, optional
+                    Whether the libary should sync the slash commands automatically; Default ``True``
+
                 ``delete_unused``: :class:`bool`, optional
                     Whether the commands that are not registered by this slash ui should be deleted in the api; Default ``False``
         
@@ -1063,7 +1066,7 @@ class UI():
 
 
     """
-    def __init__(self, client, slash_options = {"parse_method": ParseMethod.AUTO, "delete_unused": False, "wait_sync": 1}, auto_defer = False) -> None:
+    def __init__(self, client, slash_options = {"parse_method": ParseMethod.AUTO, "auto_sync": True, "delete_unused": False, "wait_sync": 1}, auto_defer = False) -> None:
         """Creates a new ui object
         
         Example
