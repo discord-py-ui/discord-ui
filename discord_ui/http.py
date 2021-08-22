@@ -1,5 +1,6 @@
+import asyncio
 from .errors import WrongType
-from .tools import MISSING, _or, components_to_dict
+from .tools import MISSING, _or, components_to_dict, setup_logger
 
 import discord
 from discord.http import Route
@@ -7,6 +8,7 @@ from discord.http import Route
 import json
 from typing import List
 
+logging = setup_logger(__name__)
 
 class BetterRoute(Route):
     BASE = "https://discord.com/api/v9"
@@ -109,3 +111,7 @@ def jsonifyMessage(content=MISSING, tts=False, embed: discord.Embed=MISSING, emb
             payload["stickers"] = [s.id for s in stickers]
 
     return payload
+
+def handle_rate_limit(data):
+    logging.error("You are being rate limited. Retrying after " + str(data["retry_after"]) + " seconds")
+    return asyncio.sleep(data["retry_after"])

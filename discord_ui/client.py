@@ -303,7 +303,11 @@ class Slash():
                 _id = str(x.id)
                 api_coms = await self._get_guild_commands(_id)
                 for apic in api_coms:
-                    if (added_commands["guilds"].get(int(_id)) is None and added_commands["guilds"].get(str(_id))) or added_commands["guilds"][_id].get(apic["name"]) is None:
+                    if added_commands["guilds"].get(int(_id)) is not None:
+                        _id = int(_id)
+                    elif added_commands["guilds"].get(str(_id)) is not None:
+                        _id = str(_id)
+                    if added_commands["guilds"].get(_id) is None or added_commands["guilds"][_id].get(apic["name"]) is None:
                         logging.debug("deleting guild command '" + str(apic["name"]) + "' in guild " + str(_id))
                         await delete_guild_command(self._discord, apic["id"], _id)
 

@@ -159,6 +159,18 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>3.2.9</summary>
+    ## **Added**
+    - ratelimit fix
+    > The lib will now retry after the ratelimit reset and doesn't throw an HTTPException anymore
+
+    ## **Fixed**
+    - sync_commands
+    > Got `KeyError` exception while syncing commands
+
+    </details>
+
+-   <details>
     <summary>3.2.8</summary>
 
     ## **Fixed**
