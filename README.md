@@ -158,6 +158,16 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 
 # Changelog
 
+
+-   <details>
+    <summary>3.3.1</summary>
+
+    ## **Added**
+    - interaction
+    > `Interaction.channel` and `Interaction.guild`
+
+    </details>
+
 -   <details>
     <summary>3.3.0</summary>
 
