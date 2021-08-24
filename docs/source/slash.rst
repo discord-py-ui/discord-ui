@@ -12,7 +12,6 @@ Slash
 
 .. autoclass:: Slash
     :members:
-    :exclude-members: add_global_command, add_guild_command, make_sub_command
 
 SlashOption
 ~~~~~~~~~~~~
@@ -43,11 +42,9 @@ EphemeralMessage
 
 .. autoclass:: EphemeralMessage()
     :members:
-    :inherited-members:
 
 EphemeralResponseMessage
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autoclass:: EphemeralResponseMessage()
     :members:
-    :inherited-members:

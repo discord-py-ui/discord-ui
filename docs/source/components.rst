@@ -161,7 +161,7 @@ SelectedMenu
 .. autoclass:: SelectedMenu
     :members:
     :inherited-members:
-    :exclude-members: set_default_option, to_dict
+    :exclude-members: to_dict
 
 Tools
 =========
