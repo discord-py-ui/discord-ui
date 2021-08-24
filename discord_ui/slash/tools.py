@@ -61,19 +61,19 @@ def resolve(data, _state):
                 channel = None
                 if ChannelType(channel_data["type"]) is ChannelType.text:
                     channel = discord.TextChannel(data=channel_data, guild=guild, state=_state)
-                elif ChannelType(channel_data["type"]) is  ChannelType.voice:
+                elif ChannelType(channel_data["type"]) is ChannelType.voice:
                     channel = discord.VoiceChannel(data=channel_data, guild=guild, state=_state)
-                elif ChannelType(channel_data["type"]) is  ChannelType.category:
+                elif ChannelType(channel_data["type"]) is ChannelType.category:
                     channel = discord.CategoryChannel(data=channel_data, guild=guild, state=_state)
-                elif ChannelType(channel_data["type"]) is  ChannelType.group:
+                elif ChannelType(channel_data["type"]) is ChannelType.group:
                     channel = discord.GroupChannel(data=channel_data, guild=guild, state=_state)
-                elif ChannelType(channel_data["type"]) is  ChannelType.news:
+                elif ChannelType(channel_data["type"]) is ChannelType.news:
                     channel = discord.NewsChannel(data=channel_data, guild=guild, state=_state)
-                elif ChannelType(channel_data["type"]) is  ChannelType.private:
+                elif ChannelType(channel_data["type"]) is ChannelType.private:
                     channel = discord.DMChannel(data=channel_data, guild=guild, state=_state)
-                elif ChannelType(channel_data["type"]) is  ChannelType.store:
+                elif ChannelType(channel_data["type"]) is ChannelType.store:
                     channel = discord.StoreChannel(data=channel_data, guild=guild, state=_state)
-                elif ChannelType(channel_data["type"]) is  ChannelType.stage_voice:
+                elif ChannelType(channel_data["type"]) is ChannelType.stage_voice:
                     channel = discord.StageChannel(data=channel_data, guild=guild, state=_state)
                 resolved["channels"][channel_id] = channel
         elif x == "roles":

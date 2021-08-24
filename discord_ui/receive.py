@@ -1,12 +1,14 @@
+from discord.message import PartialMessage
 from discord_ui.slash.tools import handle_options
-from .errors import InvalidEvent, OutOfValidRange
+from .errors import InvalidEvent, OutOfValidRange, WrongType
 from .slash.errors import AlreadyDeferred, EphemeralDeletion
 from .slash.types import ContextCommand, SlashCommand, SubSlashCommand
 from .tools import MISSING, setup_logger
 from .http import BetterRoute, jsonifyMessage, send_files
-from .components import ActionRow, Button, LinkButton, SelectMenu, SelectOption
+from .components import ActionRow, Button, ComponentType, LinkButton, SelectMenu, SelectOption
 
 import discord
+from discord.ext.commands import Bot
 from discord.errors import HTTPException
 from discord.state import ConnectionState
 
@@ -357,12 +359,11 @@ async def getResponseMessage(state: ConnectionState, data, user=None, response =
     channel = state.get_channel(int(data["channel_id"]))
     if response and user:
         if data.get("message") is not None and data["message"]["flags"] == 64:
-            try:
-                return ResponseMessage(state=state, channel=channel, data=data, user=user)
-            except:
-                return EphemeralMessage(state=state, channel=channel, data=data["message"])
+            return EphemeralResponseMessage(state=state, channel=channel, data=data, user=user)
         return ResponseMessage(state=state, channel=channel, data=data, user=user)
 
+    if data.get("message") is not None and data["message"]["flags"] == 64:
+        return EphemeralMessage(state=state, channel=channel, data=data["message"])
     return Message(state=state, channel=channel, data=data)
 
 class Message(discord.Message):
@@ -371,6 +372,7 @@ class Message(discord.Message):
         self.__slots__ = discord.Message.__slots__ + ("components", "supressed")
         self._payload = data
 
+        self._state: ConnectionState = None
         super().__init__(state=state, channel=channel, data=data)
         self.components: typing.List[typing.Union[Button, LinkButton, SelectMenu]] = []
         """The components in the message
@@ -599,7 +601,8 @@ class Message(discord.Message):
                     if custom_id is not MISSING and btn.custom_id == custom_id:
                         return True
                     return True
-
+            if not isinstance(client, Bot):
+                raise WrongType("client", client, "discord.ext.commands.Bot")
             return (await client.wait_for('button_press' if event_name.lower() == "button" else "menu_select", check=check, timeout=timeout))[0]
         
         raise InvalidEvent(event_name, ["button", "select"])
@@ -665,17 +668,8 @@ class EphemeralComponent(Interaction):
 
 
 class EphemeralMessage(Message):
-    """Represents a hidden (ephemeral) message
-    
-    .. note::
-        
-        You will get this class for a message only if you sent a hidden response
-
-    This class is almost the same as the :class:`~Message` class, but you can't edit, delete or reply to the message
-    
-    If you want to "reply" to id, use the `interaction.send` method instead
-    """
-    def __init__(self, *, state, channel, data, application_id=MISSING, token=MISSING):
+    """Represents a hidden (ephemeral) message"""
+    def __init__(self, state, channel, data, application_id=MISSING, token=MISSING):
         Message.__init__(self, state=state, channel=channel, data=data)
         self._application_id = application_id
         self._interaction_token = token
@@ -684,3 +678,52 @@ class EphemeralMessage(Message):
         self._update(await self._state.http.request(r, json=jsonifyMessage(**fields)))        
     async def delete(self):
         raise EphemeralDeletion()
+
+class EphemeralResponseMessage(ResponseMessage):
+    """A ephemeral message wich was created from an interaction
+    
+    .. important::
+
+        Methods like `.edit()`, which change the original message, need a `token` paremeter passed in order to work
+    """
+    def __init__(self, *, state, channel, data, user):
+        ResponseMessage.__init__(self, state=state, channel=channel, data=data, user=user)
+
+    async def edit(self, token, **fields):
+        """Edits the message
+        
+        Parameters
+        ----------
+            token: :class:`str`
+                The token of the interaction with wich this ephemeral message was sent
+            fields: :class:`kwargs`
+                The fields to edit (ex. `content="...", embed=..., attachments=[...]`)
+
+            Example
+
+            .. code-block::
+
+                async def testing(ctx):
+                    msg = await ctx.send("hello hidden world", components=[Button("test")])
+                    btn = await msg.wait_for(client, "button")
+                    await btn.message.edit(ctx.token, content="edited", components=None)
+        
+        """
+        route = BetterRoute("PATCH", f"/webhooks/{self.interaction.application_id}/{token}/messages/{self.id}")
+        self._update(await self._state.http.request(route, json=jsonifyMessage(**fields)))
+    async def delete(self):
+        raise EphemeralDeletion()
+    async def disable_components(self, token, disable = True):
+        """Disables all component in the message
+        
+        Parameters
+        ----------
+            disable: :class:`bool`, optional
+                Whether to disable (``True``) or enable (``False``) als components; default True
+        
+        """
+        fixed = []
+        for x in self.components:
+            x.disabled = disable
+            fixed.append(x)
+        await self.edit(token, components=fixed)

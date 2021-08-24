@@ -158,6 +158,14 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 
 # Changelog
 
+-   <details>
+    <summary>3.3.2</summary>
+
+    ## **Added**
+    - EphemeralResponseMessage
+    > You can now edit a ephemeral message which was created from an interaction (ex. when a button in a hidden message was pressed)
+
+    </details>
 
 -   <details>
     <summary>3.3.1</summary>
