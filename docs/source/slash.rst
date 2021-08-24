@@ -44,3 +44,10 @@ EphemeralMessage
 .. autoclass:: EphemeralMessage()
     :members:
     :inherited-members:
+
+EphemeralResponseMessage
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: EphemeralResponseMessage()
+    :members:
+    :inherited-members:
