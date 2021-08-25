@@ -129,8 +129,9 @@ class Slash():
                 msg = self._zlib.decompress(self._buffer)
                 msg = msg.decode('utf-8')
                 self._buffer = bytearray()
+            if type(msg) is str:
                 msg = json.loads(msg)
-        
+
         if msg["t"] != "INTERACTION_CREATE":
             return
         data = msg["d"]
@@ -849,6 +850,7 @@ class Components():
                 msg = self._zlib.decompress(self._buffer)
                 msg = msg.decode('utf-8')
                 self._buffer = bytearray()
+            if type(msg) is str:
                 msg = json.loads(msg)
         
         if msg["t"] != "INTERACTION_CREATE":

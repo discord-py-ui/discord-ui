@@ -8,7 +8,7 @@
 #       own class, which enables `enable_debug_events` in order for our lib to work
 
 
-from .tools import MISSING, _or
+from .tools import MISSING
 from .receive import Message, WebhookMessage
 from .http import jsonifyMessage, BetterRoute, send_files
 
@@ -47,6 +47,7 @@ def override_dpy():
         return msg
     def message_override(cls, *args, **kwargs):
         if cls is discord.message.Message:
+            print("override message")
             return object.__new__(Message)
         else:
             return object.__new__(cls)
