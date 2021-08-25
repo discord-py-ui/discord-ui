@@ -4,6 +4,7 @@ from ..tools import MISSING, _or
 
 import typing
 import inspect
+
 import discord
 from discord.errors import InvalidArgument
 
@@ -34,7 +35,7 @@ class SlashOption():
             options: :class:`~SlashOption`
                 This parameter is only for subcommands to work, you shouldn't need to use that, unless you know what you're doing 
         """
-    def __init__(self, argument_type, name, description=MISSING, required=False, choices=MISSING, options=[]) -> None:
+    def __init__(self, argument_type, name, description=MISSING, required=False, choices=[], options=[]) -> None:
         """
         Creates a new option for a slash command
 
@@ -54,12 +55,13 @@ class SlashOption():
         if choices is not MISSING:
             self._json["choices"] = choices
     def __repr__(self) -> str:
-        return str(self.to_dict())
+        return f"<discord_ui.SlashOption({str(self.to_dict())})>"
     def __eq__(self, o: object) -> bool:
+        print("check", o)
         if isinstance(o, SlashOption):
-            return (self.name == o.name and self.description == o.description and self.required == o.required and self.choices == o.choices and self.options == o.options)
+            return (self.argument_type == o.argument_type and self.name == o.name and self.description == o.description and self.required == o.required and self.choices == o.choices and self.options == o.options)
         elif isinstance(o, dict):
-            return (self.name == o["name"] and self.description == o.get("description") and self.required == o.get("required", False) and self.choices == o.get("choices", []) and self.options == o.get("options"))
+            return (self.argument_type == o["type"] and self.name == o["name"] and self.description == o.get("description") and self.required == o.get("required", False) and self.choices == o.get("choices", []) and self.options == o.get("options", []))
         return False
     def __ne__(self, o: object) -> bool:
         return not self.__eq__(o)
@@ -290,7 +292,7 @@ class SlashPermission():
     def __ne__(self, o: object) -> bool:
         return not self.__eq__(o)
     def __repr__(self) -> str:
-        return f"<SlashOption({self.to_dict()})>"
+        return f"<discord_ui.SlashPermission({self.to_dict()})>"
 
     ROLE = 1
     USER = 2

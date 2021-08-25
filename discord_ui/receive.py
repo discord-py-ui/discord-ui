@@ -5,7 +5,7 @@ from .slash.errors import AlreadyDeferred, EphemeralDeletion
 from .slash.types import ContextCommand, SlashCommand, SubSlashCommand
 from .tools import MISSING, setup_logger
 from .http import BetterRoute, jsonifyMessage, send_files
-from .components import ActionRow, Button, ComponentType, LinkButton, SelectMenu, SelectOption
+from .components import ActionRow, Button, ComponentType, LinkButton, SelectMenu, SelectOption, make_component
 
 import discord
 from discord.ext.commands import Bot
@@ -407,46 +407,30 @@ class Message(discord.Message):
     def _update_components(self, data):
         """Updates the message components"""
         if data.get("components") is None:
-            return
-        if len(data["components"]) == 0:
             self.components = []
+            return
+        self.components = []
+        if len(data["components"]) == 0:
+            pass
         elif len(data["components"]) > 1:
             # multiple lines
             for componentWrapper in data["components"]:
                 # newline
                 for index, com in enumerate(componentWrapper["components"]):
-                    if com["type"] == 2:
-                        self.components.append(
-                            Button._fromData(com, index == 0)
-                                if "url" not in com else 
-                            LinkButton._fromData(com, index == 0)
-                        )
-                    elif com["type"] == 3:
-                        self.components.append(
-                            SelectMenu._fromData(com)
-                        )
+                    self.components.append(make_component(com, index==0))
         elif len(data["components"][0]["components"]) > 1:
             # All inline
             for index, com in enumerate(data["components"][0]["components"]):
-                if com["type"] == 2:
-                    self.components.append(Button._fromData(com, index == 0) if "url" not in com else LinkButton._fromData(com, index == 0))
-                elif com["type"] == 3:
-                    self.components.append(SelectedMenu._fromData(com))
+                self.components.append(make_component(com, index==0))
         else:
             # One button
-            component_type = int(data["components"][0]["components"][0]["type"])
             component = data["components"][0]["components"][0]
-
-            if component_type == 2:
-                self.components.append(Button._fromData(component) if "url" not in component else LinkButton._fromData(component))
-            elif component_type == 3:
-                self.components.append(SelectedMenu._fromData(component))
-            else:
-                logging.warn("ignoring unknown component type " + str(component_type))
+            self.components.append(make_component(component))
 
     def _update(self, data):
         super()._update(data)
         self._update_components(data)
+        print("updated components", [type(x) for x in self.components])
 
     async def edit(self, *, content=MISSING, embeds=MISSING, attachments=MISSING, suppress=MISSING, 
         delete_after=MISSING, allowed_mentions=MISSING, components=MISSING):

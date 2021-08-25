@@ -40,7 +40,7 @@ class SelectOption():
         if emoji is not MISSING:
             self.emoji = emoji
     def __repr__(self) -> str:
-        return "<SelectOption(" + self.content + ")>"
+        return f"<discord_ui.SelectOption({self.custom_id}:{self.content})>"
 
     @property
     def content(self) -> str:
@@ -194,9 +194,7 @@ class SelectMenu():
         SelectMenu(custom_id="my_id", options=[SelectOption(...)], min_values=2, placeholder="select something", default=0)
         ```
         """
-        self._json = {
-            "type": ComponentType.SELECT_MENU
-        }
+        self._json = { "type": ComponentType.SELECT_MENU }
         self.custom_id = custom_id
         self.disabled = disabled
         self.options = options
@@ -224,20 +222,13 @@ class SelectMenu():
         
         if default is not MISSING:
             self.set_default_option(default)
-
     def __str__(self) -> str:
         return self.custom_id
+    def __repr__(self) -> str:
+        return f"<discord_ui.SelectMenu({self.custom_id}:{self.options})>"
     
     @classmethod
     def _fromData(cls, data) -> 'SelectMenu':
-        """Returns a new SelectMenu from dict data
-        
-        Returns
-        -------
-            :class:`~SelectMenu`
-                The initialized SelectMenu
-        
-        """
         x = cls._empty()
         x._json = data
         return x
@@ -436,6 +427,10 @@ class Button():
         if emoji is not MISSING:
             self.emoji = emoji
         self.disabled = disabled
+    def __str__(self) -> str:
+        return self.content
+    def __repr__(self) -> str:
+        return f"<discord_ui.Button({self.custom_id}:{self.content})>"
 
     def to_dict(self):
         return self._json
@@ -617,9 +612,7 @@ class LinkButton():
         LinkButton("https://discord.com/", "press me (if you can)!", emoji="😀", disabled=True)
         ```
         """
-        self._json = {"type": ComponentType.BUTTON, "style": Colors.url}
-        if label is MISSING and emoji is MISSING:
-            raise InvalidArgument("You need to pass a label or an emoji")
+        self._json = { "type": ComponentType.BUTTON, "style": Colors.url }
 
         self.label = label
         self.url = url
@@ -629,6 +622,10 @@ class LinkButton():
         if emoji is not MISSING:
             self.emoji = emoji
 
+    def __repr__(self) -> str:
+        return f"<discord_ui.LinkButton({self.custom_id}:{self.content})>"
+    def __str__(self) -> str:
+        return self.content
 
     def to_dict(self):
         return self._json
@@ -796,7 +793,7 @@ class ActionRow():
         disbaled: :class:`bool`, optional
             Whether all components should be disabled; default False   
     """
-    def __init__(self, *items, disbaled = False):
+    def __init__(self, *items, disabled = False):
         """Creates a new component list
 
         Examples
@@ -809,6 +806,7 @@ class ActionRow():
         self.items = items[0] if all(type(i) is list for i in items) else items
         """The componetns in the action row"""
         self.component_type = 1
+        self.disable(disabled)
         
     def disable(self, disable=True) -> 'ActionRow':
         for i, _ in enumerate(self.items):
@@ -834,6 +832,16 @@ class ComponentType:
     """
     A list of component types
     """
-    ACTION_ROW = 1
-    BUTTON = 2
-    SELECT_MENU = 3
+    ACTION_ROW      =        1
+    BUTTON          =        2
+    SELECT_MENU     =        3
+
+def make_component(data, new_line = False):
+    if data["type"] == ComponentType.BUTTON:
+        if data["style"] == Colors.url:
+            return LinkButton._fromData(data, new_line)
+        return Button._fromData(data, new_line)
+    if data["type"] == ComponentType.SELECT_MENU:
+        return SelectMenu._fromData(data, new_line)
+    # if data["type"] == ComponentType.ACTION_ROW:
+        # return ActionRow._fromData(data)

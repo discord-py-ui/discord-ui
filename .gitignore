@@ -128,6 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# vscode
+# visual studio
 .vscode/
-test.py
+.vs/

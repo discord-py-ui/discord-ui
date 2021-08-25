@@ -1,10 +1,10 @@
-import aiohttp
-from aiohttp.client_reqrep import ClientResponse
 from ..tools import MISSING, get, setup_logger
 from ..http import BetterRoute, handle_rate_limit
 
 from discord.ext import commands as com
 from discord.errors import Forbidden, HTTPException, NotFound
+
+import aiohttp
 
 logging = setup_logger(__name__)
 

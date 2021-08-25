@@ -1,4 +1,4 @@
-from discord_ui.components import ComponentType
+from .components import ComponentType
 from .slash.errors import NoAsyncCallback
 from .errors import MissingListenedComponentParameters, WrongType
 from .slash.tools import ParseMethod, cache_data, format_name, handle_options, handle_thing
@@ -7,6 +7,7 @@ from .slash.types import AdditionalType, ContextCommand, MessageCommand, OptionT
 from .tools import MISSING, _or, get_index, setup_logger
 from .http import jsonifyMessage, BetterRoute, send_files
 from .receive import Interaction, Message, SlashedContext, WebhookMessage, SlashedCommand, SlashedSubCommand, getResponseMessage
+from .override import override_dpy as override_it
 
 import discord
 from discord.ext import commands as com
@@ -129,8 +130,8 @@ class Slash():
                 msg = self._zlib.decompress(self._buffer)
                 msg = msg.decode('utf-8')
                 self._buffer = bytearray()
-            if type(msg) is str:
-                msg = json.loads(msg)
+        if type(msg) is str:
+            msg = json.loads(msg)
 
         if msg["t"] != "INTERACTION_CREATE":
             return
@@ -773,6 +774,10 @@ class Components():
         client: :class:`discord.Client`
             The main discord client
 
+        override_dpy: :class:`bool`
+            Whether some of discord.py'ss default methods should be overriden with this libary's; Default ``True``
+                For more information see https://github.com/discord-py-ui/discord-ui/blob/main/discord_ui/override.py
+
         auto_defer: Tuple[:class:`bool`, :class:`bool`]
             Settings for the auto-defer; Default ``(True, False)``
 
@@ -820,7 +825,7 @@ class Components():
         async def my_func(component, msg):
             ...
     """
-    def __init__(self, client: com.Bot, auto_defer=False):
+    def __init__(self, client: com.Bot, override_dpy=True, auto_defer=False):
         """Creates a new compnent listener
         
         Example
@@ -828,6 +833,9 @@ class Components():
         Components(client)
         ```
         """
+        if override_dpy:
+            override_it()
+
         self._buffer = bytearray()
         self._zlib = zlib.decompressobj()
 
@@ -1032,7 +1040,7 @@ class Components():
                 self._listening_components[custom_id] = []
             self._listening_components[custom_id].append(callback)
         return wrapper
-    
+
 
 class UI():
     """The main extension for the package to use slash commands and message components
@@ -1041,6 +1049,10 @@ class UI():
         ----------
             client: :class:`discord.ext.commands.Bot`
                 The discord bot client
+
+            override_dpy: :class:`bool`
+                Whether some of discord.py'ss default methods should be overriden with this libary's; Default ``True``
+                    For more information see https://github.com/discord-py-ui/discord-ui/blob/main/discord_ui/override.py
 
             slash_options: :class:`dict`, optional
                 Settings for the slash command part; Default `{parse_method: ParseMethod.AUTO, delete_unused: False, wait_sync: 1}`
@@ -1067,7 +1079,7 @@ class UI():
 
 
     """
-    def __init__(self, client, slash_options = {"parse_method": ParseMethod.AUTO, "auto_sync": True, "delete_unused": False, "wait_sync": 1}, auto_defer = False) -> None:
+    def __init__(self, client, override_dpy=True, slash_options = {"parse_method": ParseMethod.AUTO, "auto_sync": True, "delete_unused": False, "wait_sync": 1}, auto_defer = False) -> None:
         """Creates a new ui object
         
         Example
@@ -1075,7 +1087,7 @@ class UI():
         UI(client, slash_options={"delete_unused": True, "wait_sync": 2})
         ```
         """
-        self.components = Components(client, auto_defer=auto_defer)
+        self.components = Components(client, override_dpy=override_dpy, auto_defer=auto_defer)
         """For using message components
         
         :type: :class:`~Components`

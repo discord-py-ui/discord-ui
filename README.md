@@ -19,17 +19,6 @@
 This is a [discord.py](https://github.com/Rapptz/discord.py) ui extension made by [404kuso](https://github.com/404kuso) and [RedstoneZockt](https://github.com/RedstoneZockt)
 for using discord's newest ui features like buttons, slash commands and context commands (we got dpy2 supported if you want to keep using our libary)
 
-Our libary overrides some of the functions in dpy, so this lib is easier to use.
-The `Messageable.send` function and the `Webhook.send` are 
-both overriden with our own custom method. 
-`discord.ext.commands.Bot` is overriden too, but only if you use dpy 2
-in order for our lib to work, so if you (somewhy) wanna check the type of the client, you need to 
-use `isinstance(your_client, discord.ext.commands.Bot)`, because `type(your_client)` will be of type `OverridenV2Bot`
-
-For more information about overriding, take a look at the [override module](https://github.com/discord-py-ui/discord-ui/blob/main/discord_ui/override.py)
-
-
-
 ## Installation
 
 ```cmd
@@ -42,7 +31,7 @@ python3 -m pip install discord-ui
 
 ## Docs
 
-You can read the docs [here](https://discord-ui.readthedocs.io/)
+You can read the docs [here](https://discord-ui.rtfd.io/)
 
 > The docs can include some typos or issues, if so, plz let me know
 
@@ -157,6 +146,30 @@ client.run("your_token_here")
 You can find more (and better) examples [here](https://github.com/discord-py-ui/discord-ui/tree/main/examples)
 
 # Changelog
+
+-   <details>
+    <summary>3.3.3</summary>
+
+    ## **Added**
+    - class representation
+    > classes have now a `__repr__` function
+    - UI(override_dpy)
+    > You can now choose whether you want to override some of dpy objects and functions (default is True) (see [the override module](https://github.com/discord-py-ui/discord-ui/blob/main/discord_ui/override.py) for more information)
+    > This also appeals to the `Components` class (Components(override_dpy))
+    > note: if you don't want to create a `UI` object, you can instead override dpy with the `override_dpy` method
+    ```py
+    from discord_ui import override_dpy
+
+    override_dpy()
+    ```
+
+    ## **Fixed**
+    - dpy2
+    > discord.py v2 now auto-decompresses socket data and passes a string instead of the uncompressed data.
+    - override dpy message
+    > when overriding dpy message object, the components would mix
+
+    </details>
 
 -   <details>
     <summary>3.3.2</summary>

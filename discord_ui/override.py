@@ -1,12 +1,11 @@
-# https://github.com/discord-py-ui/discord-ui/blob/main/discord_ui/override.py
-# 404kuso was here hehehe
-#
-#       This module overrides some methods of the discord's functions.
-#       This overrides the Messageable.send, Webhook.send, the Message.__new__ method (whenever a new Message is created, it will use our own Message type)
-#       The same goes for the WebhookMessage, it will be overriden by our own Webhook type.
-#       And last but not least, if you're using dpy 2, the discord.ext.commands.Bot will be overriden with our
-#       own class, which enables `enable_debug_events` in order for our lib to work
+"""https://github.com/discord-py-ui/discord-ui/blob/main/discord_ui/override.py
 
+    This module overrides some methods of the discord's functions.
+    This overrides the Messageable.send, Webhook.send, the Message.__new__ method (whenever a new Message is created, it will use our own Message type)
+    The same goes for the WebhookMessage, it will be overriden by our own Webhook type.
+    And last but not least, if you're using dpy 2, the discord.ext.commands.Bot will be overriden with our
+    own class, which enables `enable_debug_events` in order for our lib to work
+"""
 
 from .tools import MISSING
 from .receive import Message, WebhookMessage
@@ -16,6 +15,23 @@ import discord
 from discord.ext import commands
 
 import sys
+
+def override_dpy2_client():
+    module = sys.modules["discord"]
+
+    class OverridenV2Bot(commands.bot.Bot):
+        """A overriden client that enables `enable_debug_events` for receiving the events"""
+        def __init__(self, command_prefix, help_command = None, description = None, **options):
+            commands.bot.Bot.__init__(self, command_prefix, help_command=help_command, description=description, enable_debug_events=True, **options)
+
+    def client_override(cls, *args, **kwargs):
+        if cls is commands.bot.Bot:
+            return object.__new__(OverridenV2Bot)
+        else:
+            return object.__new__(cls)
+
+    if discord.__version__.startswith("2"):
+        module.ext.commands.bot.Bot.__new__ = client_override
 
 def override_dpy():
     """This method overrides dpy methods. You shouldn't need to use this method by your own, the lib overrides everything by default"""
@@ -76,20 +92,6 @@ def override_dpy():
     module.webhook.Webhook.send = send_webhook
     module.webhook.WebhookMessage.__new__ = webhook_message_override
     #endregion
-
-    class OverridenV2Bot(commands.bot.Bot):
-        """A overriden client that enables `enable_debug_events` for receiving the events"""
-        def __init__(self, command_prefix, help_command = None, description = None, **options):
-            commands.bot.Bot.__init__(self, command_prefix, help_command=help_command, description=description, enable_debug_events=True, **options)
-
-    def client_override(cls, *args, **kwargs):
-        if cls is commands.bot.Bot:
-            return object.__new__(OverridenV2Bot)
-        else:
-            return object.__new__(cls)
-
-    if discord.__version__.startswith("2"):
-        module.ext.commands.bot.Bot.__new__ = client_override
 
 
     sys.modules["discord"] = module
