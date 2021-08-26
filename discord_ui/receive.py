@@ -430,9 +430,8 @@ class Message(discord.Message):
     def _update(self, data):
         super()._update(data)
         self._update_components(data)
-        print("updated components", [type(x) for x in self.components])
 
-    async def edit(self, *, content=MISSING, embeds=MISSING, attachments=MISSING, suppress=MISSING, 
+    async def edit(self, *, content=MISSING, embed=MISSING, embeds=MISSING, attachments=MISSING, suppress=MISSING, 
         delete_after=MISSING, allowed_mentions=MISSING, components=MISSING):
         """Edits the message and updates its properties
 
@@ -444,6 +443,8 @@ class Message(discord.Message):
         ----------------
         content: :class:`str`
             The new message content
+        embed: :class:`discord.Embed`
+            The new embed of the message
         embeds: List[:class:`discord.Embed`]
             The new list of discord embeds
         attachments: List[:class:`discord.Attachment`]
@@ -457,9 +458,7 @@ class Message(discord.Message):
         components: List[:class:`~Button` | :class:`~LinkButton` | :class:`~SelectMenu`]
             A list of components to be included the message
         """
-        payload = jsonifyMessage(content, embeds=embeds, allowed_mentions=allowed_mentions, attachments=attachments, suppress=suppress, flags=self.flags.value, components=components)
-        if suppress:
-            self.suppressed = suppress
+        payload = jsonifyMessage(content, embed=embed, embeds=embeds, allowed_mentions=allowed_mentions, attachments=attachments, suppress=suppress, flags=self.flags.value, components=components)
         data = await self._state.http.edit_message(self.channel.id, self.id, **payload)
         self._update(data)
 

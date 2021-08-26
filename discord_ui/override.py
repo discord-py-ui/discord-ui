@@ -63,7 +63,6 @@ def override_dpy():
         return msg
     def message_override(cls, *args, **kwargs):
         if cls is discord.message.Message:
-            print("override message")
             return object.__new__(Message)
         else:
             return object.__new__(cls)

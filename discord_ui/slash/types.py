@@ -57,7 +57,6 @@ class SlashOption():
     def __repr__(self) -> str:
         return f"<discord_ui.SlashOption({str(self.to_dict())})>"
     def __eq__(self, o: object) -> bool:
-        print("check", o)
         if isinstance(o, SlashOption):
             return (self.argument_type == o.argument_type and self.name == o.name and self.description == o.description and self.required == o.required and self.choices == o.choices and self.options == o.options)
         elif isinstance(o, dict):

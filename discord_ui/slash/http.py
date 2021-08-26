@@ -49,7 +49,7 @@ async def delete_guild_command(client: com.Bot, command_id, guild_id):
         else:
             raise ex
     except Exception as ex:
-        print("caught exception", ex)
+        raise ex
 
 async def get_command_permissions(client: com.Bot, command_id, guild_id):
     try:
