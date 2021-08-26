@@ -148,6 +148,15 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>3.3.5</summary>
+    
+    ## **Fixed**
+    - SelectMenu
+    > SelectMenu issue when creating it from data
+
+    </details>
+
+-   <details>
     <summary>3.3.4</summary>
 
     ## **Changed**

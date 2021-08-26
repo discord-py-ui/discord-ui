@@ -842,6 +842,6 @@ def make_component(data, new_line = False):
             return LinkButton._fromData(data, new_line)
         return Button._fromData(data, new_line)
     if data["type"] == ComponentType.SELECT_MENU:
-        return SelectMenu._fromData(data, new_line)
+        return SelectMenu._fromData(data)
     # if data["type"] == ComponentType.ACTION_ROW:
         # return ActionRow._fromData(data)
