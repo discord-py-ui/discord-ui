@@ -148,6 +148,19 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>3.3.4</summary>
+
+    ## **Changed**
+    - edit
+    > `Message.edit` now takes a `embed` parameter
+
+    ## **Fixed**
+    - print
+    > Forgot to remove some `print` statements 
+
+    </details>
+
+-   <details>
     <summary>3.3.3</summary>
 
     ## **Added**
