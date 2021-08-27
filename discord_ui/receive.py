@@ -27,8 +27,8 @@ class Interaction():
         self._state: ConnectionState = state
 
         self.deferred: bool = False
+        self.responded: bool = False
         self._deferred_hidden: bool = False
-        self._responded: bool = False
 
         if user is not MISSING:
             self.member: typing.Union[discord.Member, discord.User] = user
@@ -153,7 +153,7 @@ class Interaction():
                 else:
                     raise x
 
-        if self._responded is True:
+        if self.responded is True:
             return await self.send(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components, hidden=hidden)
 
         
@@ -164,7 +164,7 @@ class Interaction():
                 logging.warning("Your response should be hidden, but the interaction was deferred public. This results in a public response.")
             if self._deferred_hidden is True and hidden is False:
                 logging.warning("Your response should be public, but the interaction was deferred hidden. This results in a hidden response.")
-        hide_message = self._deferred_hidden or not self.deferred and hidden
+        hide_message = self._deferred_hidden or not self.deferred and hidden is True
 
 
         r = None
@@ -180,9 +180,9 @@ class Interaction():
         if self.deferred is False and hide_message is False:
             route = BetterRoute("POST", f'/interactions/{self.id}/{self.token}/callback')
             r = await self._state.http.request(route, json={
-                    "type": 4,
-                    "data": payload
-                })
+                "type": 4,
+                "data": payload
+            })
         else:
             if self.deferred is False and hide_message is True:
                 await self.defer(hide_message)
@@ -191,7 +191,7 @@ class Interaction():
                 r = await send_files(route=route, files=[file] if files is MISSING else files, payload=payload, http=self._state.http)
             else:
                 r = await self._state.http.request(route, json=payload)
-        self._responded = True
+        self.responded = True
         
         if hide_message is True:
             return EphemeralMessage(state=self._state, channel=self._state.get_channel(int(r["channel_id"])), data=r, application_id=self.application_id, token=self.token)
@@ -243,7 +243,7 @@ class Interaction():
             .. note::
                 If the response is hidden, a EphemeralMessage will be returned, which is an empty class
         """
-        if self._responded is False:
+        if self.responded is False:
             return await self.respond(content=content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components, hidden=hidden)
 
         payload = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components)
@@ -254,8 +254,7 @@ class Interaction():
         route = BetterRoute("POST", f'/webhooks/{self.application_id}/{self.token}')
         
         if file is not MISSING or files is not MISSING:
-            r = await send_files(route=route,
-                files=[file] if files is MISSING else files, payload=payload, http=self._state.http)
+            r = await send_files(route=route, files=[file] if files is MISSING else files, payload=payload, http=self._state.http)
         else:
             r = await self._state.http.request(route, json=payload)
 
@@ -536,19 +535,7 @@ class Message(discord.Message):
             rows.append(c_row) 
         return rows
 
-    @typing.overload
-    async def wait_for(self, client, event_name="button") -> PressedButton: ...
-    @typing.overload 
-    async def wait_for(self, client, event_name="select") -> SelectedMenu: ...
-    @typing.overload
-    async def wait_for(self, client, event_name, custom_id) -> PressedButton: ...
-    @typing.overload
-    async def wait_for(self, client, event_name, custom_id) -> SelectedMenu: ...
-    @typing.overload
-    async def wait_for(self, client, event_name, timeout) -> PressedButton: ...
-    @typing.overload
-    async def wait_for(self, client, event_name, timeout) -> SelectedMenu: ...
-    async def wait_for(self, client, event_name: typing.Literal["select", "button"], custom_id=MISSING, timeout=None) -> typing.Union[PressedButton, SelectedMenu]:
+    async def wait_for(self, client, event_name: typing.Literal["select", "button"], custom_id=MISSING, check=lambda component: True, timeout=None) -> typing.Union[PressedButton, SelectedMenu]:
         """Waits for a message component to be invoked in this message
 
         Parameters
@@ -565,6 +552,10 @@ class Message(discord.Message):
         custom_id: :class:`str`, Optional
             Filters the waiting for a custom_id
         
+        check: :class:`function`
+            A check that has to return True in order to break from the event and return the received component
+                The function takes the received component as the parameter
+
         timeout: :class:`float`, Optional
             After how many seconds the waiting should be canceled. 
             Throws an :class:`asyncio.TimeoutError` Exception
@@ -579,14 +570,18 @@ class Message(discord.Message):
         :type: :class:`~PressedButton` | :class:`~SelectedMenu`
         """
         if event_name.lower() in ["button", "select"]:
-            def check(btn, msg):
+            def _check(com, msg):
                 if msg.id == self.id:
-                    if custom_id is not MISSING and btn.custom_id == custom_id:
-                        return True
-                    return True
+                    if custom_id is not MISSING and check is MISSING:
+                        return com.custom_id == custom_id
+                    if custom_id is MISSING and check is not MISSING:
+                        return check(com) is True
+                    if custom_id is not MISSING and check is not MISSING:
+                        return com.custom_id == custom_id and check(com) is True
+                    return False
             if not isinstance(client, Bot):
                 raise WrongType("client", client, "discord.ext.commands.Bot")
-            return (await client.wait_for('button_press' if event_name.lower() == "button" else "menu_select", check=check, timeout=timeout))[0]
+            return (await client.wait_for('button_press' if event_name.lower() == "button" else "menu_select", check=_check, timeout=timeout))[0]
         
         raise InvalidEvent(event_name, ["button", "select"])
 
