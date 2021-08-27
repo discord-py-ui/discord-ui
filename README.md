@@ -148,6 +148,15 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>3.3.6</summary>
+
+    ## **Changed**
+    - wait_for
+    > Message.wait_for now takes `by` and `check` as parameters and `event_name` and `client` switched place (`wait_for(client, "event_name")` is now `wait_for("event_name", client)`)
+
+    </details>
+
+-   <details>
     <summary>3.3.5</summary>
     
     ## **Fixed**
@@ -267,6 +276,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     > There was an issue adding context-commands
     - Command checking
     > Now, the libary only edits commands when changes were made 
+
 
     </details>
 

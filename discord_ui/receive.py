@@ -535,27 +535,26 @@ class Message(discord.Message):
             rows.append(c_row) 
         return rows
 
-    async def wait_for(self, client, event_name: typing.Literal["select", "button"], custom_id=MISSING, check=lambda component: True, timeout=None) -> typing.Union[PressedButton, SelectedMenu]:
+    async def wait_for(self, event_name: typing.Literal["select", "button"], client, custom_id=MISSING, by=None, check=lambda component: True, timeout=None) -> typing.Union[PressedButton, SelectedMenu]:
         """Waits for a message component to be invoked in this message
 
         Parameters
         -----------
-        client: :class:`discord.ext.commands.Bot`
-            The discord client
         event_name: :class:`str`
             The name of the event which will be awaited [``"select"`` | ``"button"``] 
-
             .. note::
 
                 The event_name must be ``select`` for a select menu selection and ``button`` for a button press
-        
+
+        client: :class:`discord.ext.commands.Bot`
+            The discord client
         custom_id: :class:`str`, Optional
             Filters the waiting for a custom_id
-        
-        check: :class:`function`
+        by: :class:`discord.User` | :class:`discord.Member` | :class:`int` | :class:`str`, Optional
+            The user or the user id by that has to create the component interaction
+        check: :class:`function`, Optional
             A check that has to return True in order to break from the event and return the received component
                 The function takes the received component as the parameter
-
         timeout: :class:`float`, Optional
             After how many seconds the waiting should be canceled. 
             Throws an :class:`asyncio.TimeoutError` Exception
@@ -572,13 +571,15 @@ class Message(discord.Message):
         if event_name.lower() in ["button", "select"]:
             def _check(com, msg):
                 if msg.id == self.id:
-                    if custom_id is not MISSING and check is MISSING:
-                        return com.custom_id == custom_id
-                    if custom_id is MISSING and check is not MISSING:
-                        return check(com) is True
-                    if custom_id is not MISSING and check is not MISSING:
-                        return com.custom_id == custom_id and check(com) is True
-                    return False
+                    statements = []
+                    if custom_id is not MISSING:
+                        statements.append(com.custom_id == custom_id)
+                    if by is not MISSING:
+                        statements.append(com.member.id == (by.id if hasattr(by, "id") else int(by)))
+                    if check is not MISSING:
+                        statements.append(check(com))
+                    return all(statements)
+                return False
             if not isinstance(client, Bot):
                 raise WrongType("client", client, "discord.ext.commands.Bot")
             return (await client.wait_for('button_press' if event_name.lower() == "button" else "menu_select", check=_check, timeout=timeout))[0]
