@@ -205,6 +205,10 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     > Listening component callback functions now only take one parameter, the used component
     - `on_button_press` and `on_menu_select`
     > These events now take a sole parameter, the used component. If you want to acces to message, use `passed_component.message`
+
+    ## **Removed**
+    - ResponseMessage
+    > Removed ResponseMessage
     </details>
 
 -   <details>

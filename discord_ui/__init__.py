@@ -37,7 +37,7 @@ from .slash.types import OptionType, SlashPermission, SlashOption
 from .slash.tools import ParseMethod
 from .tools import components_to_dict
 from .slash.tools import create_choice
-from .receive import Interaction, InteractionType, ResponseMessage, Message, WebhookMessage, PressedButton, SelectedMenu, SlashedCommand, SlashedSubCommand, EphemeralMessage, EphemeralResponseMessage
+from .receive import Interaction, InteractionType, Message, WebhookMessage, PressedButton, SelectedMenu, SlashedCommand, SlashedSubCommand, EphemeralMessage, EphemeralResponseMessage
 
 from .override import override_dpy, override_dpy2_client
 override_dpy2_client()

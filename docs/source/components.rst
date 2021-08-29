@@ -134,14 +134,6 @@ Message
 .. autoclass:: Message()
     :members:
 
-
-ResponseMessage
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: ResponseMessage()
-    :members:
-
-
 PressedButton
 ~~~~~~~~~~~~~~~~~~~~~~
 

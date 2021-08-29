@@ -345,21 +345,18 @@ async def getMessage(state: ConnectionState, data, response = True):
 
     Returns
     -------
-    :class:`~Message` | :class:`~ResponseMessage`
+    :class:`~Message` | :class:`~EphemeralMessage`
         The sent message
-
-    .. note::
-            If the message comes from an interaction, it will be of type :class:`~ResponseMessage`, if it is sent to a textchannel, it will be of type :class:`~Message`
     """
     channel = state.get_channel(int(data["channel_id"]))
     if response:
-        if data.get("message") is not None and data["message"]["flags"] == 64:
-            return EphemeralResponseMessage(state=state, channel=channel, data=data)
-        return Message(state=state, channel=channel, data=data)
+        if data.get("message") is not None and data.get("message", data)["flags"] == 64:
+            return EphemeralResponseMessage(state=state, channel=channel, data=data.get("message", data))
+        return Message(state=state, channel=channel, data=data.get("message", data))
 
     if data.get("message") is not None and data["message"]["flags"] == 64:
-        return EphemeralMessage(state=state, channel=channel, data=data["message"])
-    return Message(state=state, channel=channel, data=data)
+        return EphemeralMessage(state=state, channel=channel, data=data.get("message", data))
+    return Message(state=state, channel=channel, data=data.get("message", data))
 
 class Message(discord.Message):
     """A fixed :class:`discord.Message` optimized for components"""
@@ -651,7 +648,7 @@ class EphemeralResponseMessage(Message):
 
         Methods like `.edit()`, which change the original message, need a `token` paremeter passed in order to work
     """
-    def __init__(self, *, state, channel, data, user):
+    def __init__(self, *, state, channel, data):
         Message.__init__(self, state=state, channel=channel, data=data)
 
     async def edit(self, token, **fields):
