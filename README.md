@@ -107,7 +107,7 @@ async def on_message(message: discord.Message):
             Button("my_custom_id")
         ])
         try:
-            btn = await msg.wait_for(client, "button", timeout=20)
+            btn = await msg.wait_for("button", client, by=message.author, timeout=20)
             await btn.respond("you pressed `" + btn.content + "`")
         except TimeoutError:
             await msg.delete()
@@ -135,12 +135,37 @@ async def on_message(message: discord.Message):
             SelectOption("my_other_value", emoji="🤗", description="this is a test too")
         ], max_values=2)])
         try:
-            sel = await msg.wait_for(client, "select", timeout=20)
+            sel = await msg.wait_for("select", client, by=message.author, timeout=20)
             await sel.respond("you selected `" + str([x.content for x in sel.selected_values]) + "`")
         except TimeoutError:
             await msg.delete()
 
 client.run("your_token_here")
+```
+
+Example for cogs
+```py
+from discord.ext import commands
+from discord_ui import UI
+from discord_ui.cogs import slash_cog, subslash_cog, listening_component_cog
+
+bot = commands.Bot(" ")
+ui = UI(bot)
+
+class Example(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+    
+    @slash_cog(name="example", guild_ids=[785567635802816595])
+    async def example(self, ctx):
+        await ctx.respond("gotchu")
+
+    @subslash_cog(base_names="example", name="command"):
+    async def example_command(sef, ctx):
+        await ctx.respond("okayy")
+    
+bot.add_cog(Example(bot))
+bot.run("your token")
 ```
 
 You can find more (and better) examples [here](https://github.com/discord-py-ui/discord-ui/tree/main/examples)

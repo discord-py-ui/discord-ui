@@ -670,7 +670,7 @@ class EphemeralResponseMessage(Message):
 
                 async def testing(ctx):
                     msg = await ctx.send("hello hidden world", components=[Button("test")])
-                    btn = await msg.wait_for(client, "button")
+                    btn = await msg.wait_for("button", client)
                     await btn.message.edit(ctx.token, content="edited", components=None)
         
         """

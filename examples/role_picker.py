@@ -39,7 +39,7 @@ async def command(ctx: SlashedCommand):
         # Wait for a selection on a select menu with the custom_id 
         # 'role_picker' by the user who used the slash command, 
         # with a timeout of 20 seconds
-        menu = await msg.wait_for(client, "select", timeout=20)
+        menu = await msg.wait_for("select", client, timeout=20)
         # Get all roles in the current guild
         roles = await ctx.channel.guild.fetch_roles()
         given_roles = []

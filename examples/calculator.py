@@ -41,7 +41,7 @@ async def test(ctx: SlashedCommand):
     while True:
         try:
             # Wait for a button press with a timeout of 20 seconds
-            btn = await msg.wait_for(client, "button", timeout=20)
+            btn = await msg.wait_for("button", client, timeout=20)
             # Respond to the button, that it was received
             await btn.respond(ninja_mode=True)
             # If the button was the equal button
