@@ -201,7 +201,7 @@ class SelectMenu(Component):
     custom_id: :class:`str`
         The custom_id for identifying the menu, max 100 characters
     options: List[:class:`~SelectOption`]
-        A list of optionns to select from
+        A list of options to select from
     min_values: :class:`int`, optional
         The minimum number of items that must be chosen; default ``1``, min 0, max 25
     max_values: :class:`int`, optional

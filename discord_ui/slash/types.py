@@ -32,7 +32,7 @@ class SlashOption():
 
                         The choice value has to be of the same type as the type this option accepts
 
-            options: :class:`~SlashOption`
+            options: List[:class:`~SlashOption`]
                 This parameter is only for subcommands to work, you shouldn't need to use that, unless you know what you're doing 
         """
     def __init__(self, argument_type, name, description=MISSING, required=False, choices=[], options=[]) -> None:
@@ -132,6 +132,10 @@ class SlashOption():
 
     @property
     def options(self) -> typing.List['SlashOption']:
+        """The parameters for the command
+
+        :type: List[:class:`~SlashOptions`], optional
+        """
         return [SlashOption._from_data(x) for x in self._json.get("options", [])]
     @options.setter
     def options(self, options):
@@ -509,6 +513,10 @@ class SlashCommand():
     # region permissions
     @property
     def default_permission(self) -> bool:
+        """Whether this command can be used by default or not
+        
+        :type: :class:`bool`
+        """
         return self._json.get("default_permission", False)
     @default_permission.setter
     def default_permission(self, value):

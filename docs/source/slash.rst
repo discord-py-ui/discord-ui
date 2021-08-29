@@ -104,3 +104,8 @@ EphemeralResponseMessage
 
 .. autoclass:: EphemeralResponseMessage()
     :members:
+
+Tools
+=========
+
+.. autofunction:: create_choice
