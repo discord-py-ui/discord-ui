@@ -4,7 +4,7 @@ from .slash.errors import NoAsyncCallback
 from .errors import MissingListenedComponentParameters, WrongType
 from .slash.tools import ParseMethod, cache_data, format_name, handle_options, handle_thing
 from .slash.http import create_global_command, create_guild_command, delete_global_command, delete_guild_command, delete_guild_commands, edit_global_command, edit_guild_command, get_command, get_command_permissions, get_global_commands, get_guild_commands, delete_global_commands, get_id, update_command_permissions
-from .slash.types import AdditionalType, CommandType, ContextCommand, MessageCommand, OptionType, SlashCommand, SlashOption, SubSlashCommandGroup, UserCommand
+from .slash.types import AdditionalType, CommandType, ContextCommand, MessageCommand, OptionType, SlashCommand, SlashOption, SlashSubcommand, UserCommand
 from .tools import MISSING, _or, get_index, setup_logger
 from .http import jsonifyMessage, BetterRoute, send_files
 from .receive import Interaction, Message, PressedButton, SelectedMenu, SlashedContext, WebhookMessage, SlashedCommand, SlashedSubCommand, getMessage
@@ -102,7 +102,7 @@ class Slash():
 
         self._discord: com.Bot = client
         self.commands: Dict[(str, SlashCommand)] = {}
-        self.subcommands: Dict[(str, Dict[(str, Union[dict, SubSlashCommandGroup])])] = {}
+        self.subcommands: Dict[(str, Dict[(str, Union[dict, SlashSubcommand])])] = {}
         self.context_commands: Dict[str, ContextCommand] = {"message": {}, "user": {}}
         if discord.__version__.startswith("2"):
             self._discord.add_listener(self._on_response, "on_socket_raw_receive")
@@ -295,36 +295,48 @@ class Slash():
         }
         own_guild_ids = [x.id for x in self._discord.guilds]
         
+        
         #region gather commands
         commands = self.commands
-        for x in self.subcommands:
-            for y in self.subcommands[x]:
-                sub = self.subcommands[x][y]
+        for _base in self.subcommands:
+            # get first base
+            for _sub in self.subcommands[_base]:
+                # get second base/command
+                sub = self.subcommands[_base][_sub]
+                # when command has subcommand groups
                 if type(sub) is dict:
-                    for z in self.subcommands[x][y]:
-                        group = self.subcommands[x][y][z]
-                        if commands.get(group.base_names[0]) is not None:
-                            index = get_index(commands[group.base_names[0]].options, group.base_names[1], lambda x: getattr(x, "name"))
+                    for _group in self.subcommands[_base][_sub]:
+                        # the subcommand group
+                        group = self.subcommands[_base][_sub][_group]
+                        # if there's already a base command
+                        if commands.get(_base) is not None:
+                            # Check if base already has an option with the subs name
+                            index = get_index(commands[_base].options, _sub, lambda x: getattr(x, "name"))
+                            # if first base_name already exists
                             if index > -1:
-                                _ops = commands[group.base_names[0]].options[index].options
-                                _ops.append(group.to_option())
-                                commands[group.base_names[0]].options[index].options = _ops
+                                # add to sub options
+                                base_ops = commands[_base].options
+                                base_ops[index].options += [group.to_option()]
+                                commands[_base].options = base_ops
+                            # if not exists
                             else:
-                                _ops = commands[group.base_names[0]].options
-                                _ops.append(SlashOption(OptionType.SUB_COMMAND_GROUP, group.base_names[1], options=[group.to_option()]))
-                                commands[group.base_names[0]].options = _ops
+                                # create sub option + group option
+                                commands[_base].options += [SlashOption(OptionType.SUB_COMMAND_GROUP, _sub, options=[group.to_option()])]
+                        # if no base command
                         else:
-                            commands[group.base_names[0]] = SlashCommand(None, group.base_names[0], MISSING, [
-                                    SlashOption(OptionType.SUB_COMMAND_GROUP, group.base_names[1], options=[group.to_option()])
+                            # create base0 command together with base1 option and groupcommand option
+                            commands[_base] = SlashCommand(None, _base, MISSING, [
+                                    SlashOption(OptionType.SUB_COMMAND_GROUP, _sub, options=[group.to_option()])
                                 ],
-                                guild_ids=group.guild_ids, default_permission=group.default_permission, guild_permissions=group.guild_permission)
+                                guild_ids=group.guild_ids, default_permission=group.default_permission, guild_permissions=group.guild_permissions)
+                # if is basic subcommand
                 else:
-                    if commands.get(sub.base_names[0]) is not None:
-                        _ops = commands[sub.base_names[0]].options
-                        _ops.append(sub.to_option())
-                        commands[sub.base_names[0]].options = _ops
+                    # If base exists
+                    if commands.get(_base) is not None:
+                        commands[_base].options += [sub.to_option()]
                     else:
-                        commands[sub.base_names[0]] = SlashCommand(None, sub.base_names[0], options=[sub.to_dict()], guild_ids=sub.guild_ids, default_permission=sub.default_permission, guild_permissions=sub.guild_permissions)
+                        # create base0 command with name option
+                        commands[_base] = SlashCommand(None, _base, options=[sub.to_dict()], guild_ids=sub.guild_ids, default_permission=sub.default_permission, guild_permissions=sub.guild_permissions)
         #endregion
 
         async def guild_stuff(command, guild_ids):
@@ -639,21 +651,31 @@ class Slash():
         else:
             del self.context_commands["user"][old_name]
             self.context_commands["user"][command.name] = command
-    def _add_to_cache(self, base: SlashCommand):
+    def _add_to_cache(self, base: Union[SlashCommand, SlashSubcommand]):
         if base.command_type is CommandType.Slash:
+            # basic slash command
             if type(base) in [SlashCommand, CogCommand]:
                 self.commands[base.name] = base
+            # subcommand or subgroup
             else:
+                # when subcommands is missing base
                 if self.subcommands.get(base.base_names[0]) is None:
                     self.subcommands[base.base_names[0]] = {}
+                # subgroup
                 if len(base.base_names) > 1:
+                    # if cache is missing second base_name 
                     if self.subcommands[base.base_names[0]].get(base.base_names[1]) is None:
                         self.subcommands[base.base_names[0]][base.base_names[1]] = {}
+                    # add to internal cache
                     self.subcommands[base.base_names[0]][base.base_names[1]][base.name] = base
+                # subcommand
                 else:
+                    # add to cache
                     self.subcommands[base.base_names[0]][base.name] = base
+        # context user command
         elif base.command_type == CommandType.User:
             self.context_commands["user"][base.name] = base
+        # context message command
         elif base.command_type == CommandType.Message:
             self.context_commands["message"][base.name] = base
 
@@ -712,12 +734,12 @@ class Slash():
                 If ``api`` is True, this function will return a promise
         """
         command = SlashCommand(callback, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
-        self.commands[format_name(name)] = command
+        self._add_to_cache(command)
         if api is True:
             if self.ready is False:
                 raise Exception("Slashcommands are not ready yet")
             return self.create_command(command) 
-    def command(self, name, description=MISSING, options=[], guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
+    def command(self, name=MISSING, description=MISSING, options=[], guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
         """A decorator for a slash command
         
         command in discord:
@@ -725,8 +747,8 @@ class Slash():
 
         Parameters
         ----------
-            name: :class:`str`
-                1-32 characters long name
+            name: :class:`str`, optional
+                1-32 characters long name; default MISSING
                 .. note::
 
                     The name will be corrected automaticaly (spaces will be replaced with "-" and the name will be lowercased)
@@ -794,7 +816,7 @@ class Slash():
             """
             self.add_command(name, callback, description, options, guild_ids, default_permission, guild_permissions)
         return wrapper
-    def subcommand(self, base_names, name, description=MISSING, options=[], guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
+    def subcommand(self, base_names, name=MISSING, description=MISSING, options=[], guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
         """A decorator for a subcommand group
         
         command in discord
@@ -805,8 +827,8 @@ class Slash():
             base_names: List[:class:`str`] | :class:`str`
                 The names of the parent bases, currently limited to 2
                     If you want to make a subcommand (``/base name``), you have to use a str instead of a list
-            name: :class:`str`
-                1-32 characters long name
+            name: :class:`str`, optional
+                1-32 characters long name; default MISSING
                 .. note::
 
                     The name will be corrected automaticaly (spaces will be replaced with "-" and the name will be lowercased)
@@ -893,22 +915,19 @@ class Slash():
             if sub is not None and self.subcommands[base].get(sub) is None:
                 self.subcommands[base][sub] = {}
             
-            command = SubSlashCommandGroup(callback, base_names, name, description, options=options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
-            if sub is not None:
-                self.subcommands[base][sub][format_name(name)] = command
-            else:
-                self.subcommands[base][format_name(name)] = command
+            command = SlashSubcommand(callback, base_names, name, description, options=options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
+            self._add_to_cache(command)
 
         return wrapper
-    def user_command(self, name, guild_ids=MISSING, default_permission=True, guild_permissions = MISSING):
+    def user_command(self, name=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions = MISSING):
         """Decorator for user context commands in discord.
             ``Right-click username`` -> ``apps`` -> ``commands is displayed here``
 
 
         Parameters
         ----------
-            name: :class:`str`
-                The name of the command
+            name: :class:`str`, optional
+                The name of the command; default MISSING
             guild_ids: List[:class:`str` | :class:`int`]
                 A list of guilds where the command can be used
             default_permission: :class:`bool`, optional
@@ -946,15 +965,15 @@ class Slash():
         def wraper(callback):
             self.context_commands["user"][format_name(name)] = UserCommand(callback, name, guild_ids, default_permission, guild_permissions)
         return wraper
-    def message_command(self, name, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
+    def message_command(self, name=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
         """Decorator for message context commands in discord.
             ``Right-click message`` -> ``apps`` -> ``commands is displayed here``
 
 
         Parameters
         ----------
-            name: :class:`str`
-                The name of the command
+            name: :class:`str`, optional
+                The name of the command; default MISSING
             guild_ids: List[:class:`str` | :class:`int`]
                 A list of guilds where the command can be used
             default_permission: :class:`bool`, optional

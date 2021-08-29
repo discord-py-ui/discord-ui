@@ -47,7 +47,7 @@ class SlashOption():
         self._json = {}
         self.argument_type = argument_type
         self.name = name
-        self.description = _or(description, name)
+        self.description = _or(description, self.name)
         if required is True:
             self.required = required
         if options is not MISSING:
@@ -165,7 +165,7 @@ class OptionType:
     STRING                  =          String               =           3
     INTEGER                 =          Integer              =           4
     BOOLEAN                 =          Boolean              =           5
-    MEMBER     =   USER     =          Member               =   User  = 6
+    MEMBER     =   USER     =          Member               =  User =   6
     CHANNEL                 =          Channel              =           7
     ROLE                    =          Role                 =           8
     MENTIONABLE             =          Mentionable          =           9
@@ -397,8 +397,7 @@ class SlashCommand():
         }
 
         # Check options before callback because callback makes an option check
-        if options is not MISSING:
-            self.options: typing.List[SlashOption] = options
+        self.options: typing.List[SlashOption] = options
 
         if callback is not None:
             if not inspect.iscoroutinefunction(callback):
@@ -415,7 +414,7 @@ class SlashCommand():
         
         self.callback: function = callback
         self.name = _or(name, self.callback.__name__ if self.callback not in [None, MISSING] else None)
-        self.description = _or(description, (inspect.getdoc(self.callback) if self.callback not in [None, MISSING] else None), name)
+        self.description = _or(description, (inspect.getdoc(self.callback) if self.callback not in [None, MISSING] else None), self.name)
         if default_permission is MISSING:
             default_permission = True
         self.default_permission: bool = default_permission
@@ -525,7 +524,7 @@ class SlashCommand():
 
     def to_dict(self):
         return self._json
-class SubSlashCommandGroup(SlashCommand):
+class SlashSubcommand(SlashCommand):
     def __init__(self, callback, base_names, name, description=MISSING, options=[], guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
         if type(base_names) is str:
             base_names = [base_names]

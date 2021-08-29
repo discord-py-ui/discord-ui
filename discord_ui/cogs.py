@@ -1,6 +1,6 @@
 from .components import ComponentType
 from .tools import MISSING
-from .slash.types import MessageCommand, SlashCommand, SubSlashCommandGroup, UserCommand
+from .slash.types import MessageCommand, SlashCommand, SlashSubcommand, UserCommand
 
 import discord
 from discord.errors import InvalidArgument
@@ -265,9 +265,9 @@ class CogCommand(BaseSlash, SlashCommand):
     def __init__(self, *args, **kwargs) -> None:
         SlashCommand.__init__(self, *args, **kwargs)
         BaseSlash.__init__(self, args[0])
-class CogSubCommandGroup(BaseSlash, SubSlashCommandGroup):
+class CogSubCommandGroup(BaseSlash, SlashSubcommand):
     def __init__(self, *args, **kwargs) -> None:
-        SubSlashCommandGroup.__init__(self, *args, **kwargs)
+        SlashSubcommand.__init__(self, *args, **kwargs)
         BaseSlash.__init__(self, args[0])
 class CogMessageCommand(BaseSlash, MessageCommand):
     def __init__(self, *args, **kwargs) -> None:

@@ -1,7 +1,7 @@
 from discord.ext.commands import Bot
 from .errors import InvalidEvent, OutOfValidRange, WrongType
 from .slash.errors import AlreadyDeferred, EphemeralDeletion
-from .slash.types import ContextCommand, SlashCommand, SlashPermission, SubSlashCommandGroup
+from .slash.types import ContextCommand, SlashCommand, SlashPermission, SlashSubcommand
 from .tools import MISSING, setup_logger
 from .http import BetterRoute, jsonifyMessage, send_files
 from .components import ActionRow, Button, LinkButton, SelectMenu, SelectOption, make_component
@@ -306,11 +306,11 @@ class SlashedCommand(Interaction, SlashCommand):
         """The options that were received"""
         self.permissions: SlashPermission = guild_permissions.get(self.guild_id)
         """The permissions for the guild"""
-class SlashedSubCommand(SlashedCommand, SubSlashCommandGroup):
+class SlashedSubCommand(SlashedCommand, SlashSubcommand):
     """A Sub-:class:`~SlashCommand` command that was used"""
     def __init__(self, client, command, data, user, args = None, guild_ids = None, guild_permissions=None) -> None:
         SlashedCommand.__init__(self, client, command, data, user, args, guild_ids=guild_ids, guild_permissions=guild_permissions)
-        SubSlashCommandGroup.__init__(self, None, "EMPTY", "EMPTY")
+        SlashSubcommand.__init__(self, None, "EMPTY", "EMPTY")
 
 class SlashedContext(Interaction, ContextCommand):
     def __init__(self, client, command: ContextCommand, data, user, param, guild_ids = None, guild_permissions = None) -> None:
