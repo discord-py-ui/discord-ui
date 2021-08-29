@@ -165,7 +165,35 @@ class SelectOption():
         x._json = data
         return x
 
-class SelectMenu():
+class Component():
+    def __init__(self, component_type) -> None:
+        self._json = {"type": component_type}
+    @property
+    def component_type(self):
+        """
+        The message component type
+
+        :type: :class:`int`
+        """
+        return self._json["type"]
+    @property
+    def custom_id(self) -> str:
+        """
+        The custom_id of the menu to identify it
+
+        :type: :class:`str`
+        """
+        return self._json["custom_id"]
+    @custom_id.setter
+    def custom_id(self, value: str):
+        if len(value) > 100 or len(value) < 1:
+            raise InvalidLength("custom_id", 0, 100)
+        if type(value) is not str:
+            raise WrongType("custom_id", value, "str")
+        self._json["custom_id"] = value
+
+
+class SelectMenu(Component):
     """A select menu
 
     Parameters
@@ -194,7 +222,7 @@ class SelectMenu():
         SelectMenu(custom_id="my_id", options=[SelectOption(...)], min_values=2, placeholder="select something", default=0)
         ```
         """
-        self._json = { "type": ComponentType.SELECT_MENU }
+        Component.__init__(self, ComponentType.SELECT_MENU)
         self.custom_id = custom_id
         self.disabled = disabled
         self.options = options
@@ -246,33 +274,6 @@ class SelectMenu():
         return SelectMenu("empty", [SelectOption("EMPTY", "EMPTY", "EMPTY")], 0, 0)
 
     # region props
-    @property
-    def component_type(self) -> int:
-        """
-        The message component type
-        
-            .. note::
-                The message component type will be always 3, because 3 is a select menu
-        
-        :type: :class:`int`
-        """
-        return self._json["type"]
-    @property
-    def custom_id(self) -> str:
-        """
-        The custom_id of the menu to identify it
-
-        :type: :class:`str`
-        """
-        return self._json["custom_id"]
-    @custom_id.setter
-    def custom_id(self, value: str):
-        if len(value) > 100 or len(value) < 1:
-            raise InvalidLength("custom_id", 0, 100)
-        if type(value) is not str:
-            raise WrongType("custom_id", value, "str")
-        self._json["custom_id"] = value
-
     @property
     def options(self) -> List[SelectOption]:
         """
@@ -381,7 +382,7 @@ class SelectMenu():
         return self._json
 
 # region Button
-class Button():
+class Button(Component):
     """A discord-ui button
 
     Parameters
@@ -398,7 +399,7 @@ class Button():
             You can either use a string for a color or an int. Color strings are: 
             (`primary`, `blurple`), (`secondary`, `grey`), (`succes`, `green`) and (`danger`, `Red`)
             
-            If you want to use integers, take a lot at the :class:`~Colors` class
+            If you want to use integers, take a lot at the :class:`~ButtonStyles` class
 
     emoji: :class:`discord.Emoji` | :class:`str`, optional
         The emoji displayed before the text; default MISSING
@@ -416,7 +417,7 @@ class Button():
         Button("my_custom_id", "This is a cool button", "green", new_line=True)
         ```
         """
-        self._json = {"type": ComponentType.BUTTON}
+        Component.__init__(self, ComponentType.BUTTON)
         if label is MISSING and emoji is MISSING:
             raise InvalidArgument("You need to pass a label or an emoji")
         
@@ -437,18 +438,6 @@ class Button():
 
     # region props
     @property
-    def component_type(self) -> int:
-        """
-        The message component type
-
-            .. note::
-                The message component type will be always 2 (button)
-        
-        :type: :class:`int`
-        """
-        return self._json["type"]
-
-    @property
     def content(self) -> str:
         """
         The complete content in the button ("{emoji} {label}")
@@ -456,26 +445,7 @@ class Button():
         :type: :class:`str`
         """
         return (self.emoji + " " if self.emoji is not None else "") + (self.label or '')
-
-    @property
-    def custom_id(self) -> str:
-        """
-        The unique custom_id for identifiying the button
-
-        :type: :class:`str`
-        """
-        return self._json["custom_id"]
-    @custom_id.setter
-    def custom_id(self, val: str):
-        if type(val) is not str:
-            raise WrongType("custom_id", val, "str")
-        if len(val) > 100:
-            raise InvalidLength("custom_id", _max=100)
-        if len(val) < 1:
-            raise InvalidLength("custom_id", _min=0)
-
-        self._json["custom_id"] = str(val)
-
+        
     @property
     def label(self) -> str:
         """
@@ -507,9 +477,9 @@ class Button():
         return self._json["style"]
     @color.setter
     def color(self, val):
-        if Colors.getColor(val) is None:
+        if ButtonStyles.getColor(val) is None:
             raise InvalidArgument(str(val) + " is not a valid color")
-        self._json["style"] = Colors.getColor(val)
+        self._json["style"] = ButtonStyles.getColor(val)
     
     @property
     def emoji(self) -> str:
@@ -612,7 +582,7 @@ class LinkButton():
         LinkButton("https://discord.com/", "press me (if you can)!", emoji="😀", disabled=True)
         ```
         """
-        self._json = { "type": ComponentType.BUTTON, "style": Colors.url }
+        self._json = { "type": ComponentType.BUTTON, "style": ButtonStyles.url }
 
         self.label = label
         self.url = url
@@ -757,7 +727,7 @@ class LinkButton():
         return b
 
 
-class Colors:
+class ButtonStyles:
     """
     A list of button styles (colors) in message components
     """
@@ -832,13 +802,13 @@ class ComponentType:
     """
     A list of component types
     """
-    ACTION_ROW      =        1
-    BUTTON          =        2
-    SELECT_MENU     =        3
+    ACTION_ROW      =       Action_row       =           1
+    BUTTON          =        Button          =           2
+    SELECT_MENU     =        Select          =           3
 
 def make_component(data, new_line = False):
     if data["type"] == ComponentType.BUTTON:
-        if data["style"] == Colors.url:
+        if data["style"] == ButtonStyles.url:
             return LinkButton._fromData(data, new_line)
         return Button._fromData(data, new_line)
     if data["type"] == ComponentType.SELECT_MENU:

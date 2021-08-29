@@ -12,6 +12,8 @@ class _MISSING:
         return self.__repr__()
     def __sizeof__(self) -> int:
         return 0
+    def get(self, *args):
+        return self
 
 MISSING = _MISSING()
 
@@ -54,7 +56,7 @@ def get_index(l: list, elem: Any, mapping = lambda x: x, default: int = -1) -> i
         i += 1
     return default
 
-def get(l: list, elem: Any, mapping = lambda x: x, default: Any = None):
+def get(l: list, elem: Any, mapping = lambda x: x, default: Any = None, check=lambda x: True):
     """Gets a element from a list
     
     Parameters
@@ -80,8 +82,8 @@ def get(l: list, elem: Any, mapping = lambda x: x, default: Any = None):
     get(any_list, 4, lambda x: x[1])
     ```
     """
-    for x in l: 
-        if mapping(x) == elem: 
+    for x in l:
+        if mapping(x) == elem and check(x) is True:
             return x
     return default
 
@@ -109,7 +111,8 @@ def components_to_dict(*components) -> List[dict]:
     -------
         :returns: The converted data
         :type: List[:class:`dict`]
-    
+
+
     """
     wrappers: List[List[Any]] = []
     component_list = []

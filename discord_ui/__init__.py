@@ -32,7 +32,7 @@ If you need any help or assist, join our [discord](https://discord.gg/bDJCGD994p
 
 
 from .client import Components, Slash, UI
-from .components import ActionRow, Button, LinkButton, SelectMenu, SelectOption, Colors
+from .components import ActionRow, Button, LinkButton, SelectMenu, SelectOption, ButtonStyles
 from .slash.types import OptionType, SlashPermission, SlashOption
 from .slash.tools import ParseMethod
 from .tools import components_to_dict
@@ -43,4 +43,4 @@ override_dpy2_client()
 
 
 __title__ = "discord-ui"
-__version__ = "3.3.6"
+__version__ = "4.0.0"

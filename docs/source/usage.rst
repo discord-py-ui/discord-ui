@@ -45,7 +45,7 @@ In this example, we'll wait for a message with the content "!test"
 
 .. code-block::
 
-    @client.listen
+    @client.listen()
     async def on_message(message):
         if message.content == "!test":
             ...
@@ -116,7 +116,7 @@ To receive a button press or a selection, we can listen to the ``button_press`` 
 .. code-block::
 
     @client.listen('on_button_press')
-    async def on_button(btn, message):
+    async def on_button(btn):
         # respond
         await btn.respond("you clicked on " + btn.content)
 
@@ -124,7 +124,7 @@ To receive a button press or a selection, we can listen to the ``button_press`` 
    :width: 600
 
 
-To get the user who pressed the button, you use ``btn.member``.
+To get the user who pressed the button, you use ``btn.membauthorer``.
 If you want to acces the message on which the button is, you use ``messsage``
 
 **Select menu**
@@ -132,7 +132,7 @@ If you want to acces the message on which the button is, you use ``messsage``
 .. code-block::
 
     @client.listen('on_menu_select')
-    async def on_menu(menu, message):
+    async def on_menu(menu):
         # respond
         await menu.respond("you selected " + ', '.join([value.content for value in menu.selected_values]))
  
@@ -154,7 +154,7 @@ or
 
 .. code-block::
 
-    async def on_component(component, message):
+    async def on_component(component):
         await component.respond("yo")
 
 where the ``component`` parameter the pressed button or the selected menu
@@ -170,14 +170,14 @@ You can send a message and directly wait for a button press and respond to it
 
 .. code-block::
 
-    @client.listen
+    @client.listen()
     async def on_message(message):
         if message.content == "!test":
             btn = await (
                 await message.channel.send(message.channel, "hello", components=[
                     Button("custom_id", "there")
                 ])
-            ).wait_for("button")
+            ).wait_for("button", client)
             await btn.respond("you pressed a button")
 
 
@@ -186,11 +186,10 @@ And we got listening components with a function that will always be executed if 
 .. code-block::
 
     @ui.components.listening_component(custom_id="listening")
-    async def listening_component(component, message):
-        await component.respond("we got a component in this")
+    async def listening_component(component):
+        await component.respond("we got a component in the message " + str(component.message.id))
 
-
-    @client.listen
+    @client.listen()
     async def on_message(message):
         if message.content == "!test":
             await message.channel.send(message.channel, "listening", components=[
@@ -410,14 +409,14 @@ A subcommand is a slash command with the same base name that can have multiple s
     |-- subcommand1
     |-- subcommand2
 
-The only difference between ``subcommand`` and ``slashcommand`` is that you got a new ``base_name`` parameter.
-This is the name of the parent command 
+The only difference between ``subcommand`` and ``slashcommand`` is that you got a new ``base_names`` parameter.
+This is the name/names of the parent command 
 
 For example
 
 .. code-block::
 
-    @ui.slash.subcommand(base_name="hello", name="world", description="this is a subcommand")
+    @ui.slash.subcommand(base_names="hello", name="world", description="this is a subcommand")
     async def command(ctx):
         ...
 
@@ -440,14 +439,11 @@ A subcommand group is a group of subucommands, you could see it like a subcomman
     |---subcommand
         |---subcommand
 
-The difference between ``subcommand_group`` and ``subcommand`` is, that we got a new ``base_names`` parameter
-They are the names of the parent commands
-
 For example
 
 .. code-block::
 
-    @ui.slash.subcommand_group(base_names=["hello", "beautiful"], name="world", description="this is a subcommand group")
+    @ui.slash.subcommand(base_names=["hello", "beautiful"], name="world", description="this is a subcommand group")
     async def command(ctx):
         ...
 
@@ -455,6 +451,7 @@ Would look like this
 
 .. image:: images/slash/hello_beautiful_world_subcommandgroup.png
     :width: 1000
+
 
 context-commands
 -----------------
@@ -487,3 +484,76 @@ They both work in the same way as slash commands, so responding to them will sti
 .. note::
 
     ``message`` and ``user`` are just example names for the parameters, you can use whatever you want for them
+
+
+easier ways
+~~~~~~~~~~~~
+
+There are some few things that can be done in easier ways
+
+
+application-command names and descriptions
+--------------------------------------------
+
+If you want to register a slash command, you can leave out the name and description parameter, they will be replaced with the callback function name and the docstring of the callback
+
+
+.. code-block::
+
+    @slash.command(guild_ids=[785567635802816595])
+    async def test(ctx):                  # The name of the slash command will be 'test', because the function's name is test
+        """this is a test command"""      # the description of the command will be the docstring
+        ...
+
+Same goes for subcommands and context-commands
+
+.. code-block::
+
+    # subcommand
+    @slash.subcommand(base_names=["hello"], guild_ids=[785567635802816595])
+    async def world(ctx):
+        # Note: If you don't pass description and don't use a docstring, the empty description will be replaced with the commands name
+        ...
+
+    # context command
+    @slash.message_command(guild_ids=[785567635802816595])
+    async def quote(ctx, message):
+        ...
+
+
+SlashOption types
+-----------------
+
+You can set the type of an SlashOption in various ways
+
+.. code-block::
+
+    SlashOption("int", ...)                         # Option takes an integer
+    SlashOption(int, ...)                           # Option takes an integer
+    SlashOption(4, ...)                             # Option takes an integer
+    SlashOption(OptionType.Integer, ...)            # Option takes an integer
+    SlashOption(OptionType.INTEGER, ...)            # Option takes an integer
+
+    # same goes for other types
+    SlashOption("user", ...)                        # Option takes a member
+    SlashOption(discord.User, ...)                  # Option takes a member
+    SlashOption(discord.Member, ...)                # Option takes a member
+    SlashOption(6, ...)                             # Option takes a member
+    SlashOption(OptionType.User, ...)               # Option takes a member
+    SlashOption(OptionType.USER, ...)               # Option takes a member
+    SlashOption(OptionType.Member, ...)             # Option takes a member
+    SlashOption(OptionType.MEMBER, ...)             # Option takes a member
+
+button colors
+--------------
+
+You can set the color of a button with many ways
+
+.. code-block::
+
+    Button(..., color="red")                        # red button
+    Button(..., color="rEd")                        # red button
+    Button(..., color="danger")                     # red button
+    Button(..., color="DANger")                     # red button
+    Button(..., color=ButtonStyles.red)             # red button
+    Button(..., color=ButtonStyles.Danger)          # red button

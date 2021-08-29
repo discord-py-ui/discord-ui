@@ -5,16 +5,11 @@
 Message-components
 ====================
 
-
-Setup
-====================
-
 Components
-~~~~~~~~~~~~~~~~~~~~~~
+===========
 
 .. autoclass:: Components
     :members:
-
 
 .. code-block::
 
@@ -23,7 +18,7 @@ Components
     from discord_ui import Components
 
     client = commands.Bot(" ")
-    client.components = Components(client) 
+    components = Components(client) 
 
 Events
 ================
@@ -35,20 +30,19 @@ We got 2 events to listen for your client
     
 This event will be dispatched whenever a button was pressed
 
-Two parameters will be passed:
+A sole parameter will be passed:
 
-*  :class:`~PressedButton`
-*  :class:`~ResponseMessage`
+*  :class:`~PressedButton`: The pressed button
 
 .. code-block::
 
     @client.listen('on_button_press')
-    def on_button(btn: PressedButton, msg: ResponseMessage):
+    def on_button(btn: PressedButton):
         ...
 
 .. code-block::
 
-    await client.wait_for('button_press', check=lambda btn, msg: ...)
+    await client.wait_for('button_press', check=lambda btn: ...)
 
 
 ``menu_select``
@@ -56,20 +50,19 @@ Two parameters will be passed:
 
 This event will be dispatched whenever a value was selected in a :class:`~SelectedMenu`
 
-Two parameters will be passed
+A sole paremeter will be passed
 
-*  :class:`~SelectedMenu`
-*  :class:`~ResponseMessage`
+*  :class:`~SelectedMenu`: The menu where a value was selected
 
 .. code-block::
 
     @client.listen('on_menu_select')
-    def on_button(menu: SelectedMenu, msg: ResponseMessage):
+    def on_button(menu: SelectedMenu):
         ...
 
 .. code-block::
 
-    await client.wait_for('menu_select', check=lambda menu, message: ...)
+    await client.wait_for('menu_select', check=lambda menu: ...)
 
 
 Components
@@ -87,13 +80,14 @@ LinkButton
 
 .. autoclass:: LinkButton
     :members:
+    :inherited-members:
     :exclude-members: to_dict
 
 
-Colors
+ButtonStyles
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: Colors
+.. autoclass:: ButtonStyles
 
     .. note::
 
@@ -111,6 +105,7 @@ SelectMenu
 
 .. autoclass:: SelectMenu
     :members:
+    :inherited-members:
     :exclude-members: to_dict
 
 
@@ -127,6 +122,7 @@ ActionRow
 
 .. autoclass:: ActionRow
     :members:
+
 
 Interactions
 =================

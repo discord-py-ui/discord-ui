@@ -148,12 +148,38 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
-    <summary>3.3.6</summary>
+    <summary>4.0.0</summary>
+
+    ## **Added**
+    **You now have much more control over your slash commands!**
+    - Permissions
+    > You can update your permissions with the `Slash.update_permissions` function
+    - Creating commands
+    > You can now create slash commands without the decorator in a much more eaisier way! Check out the `Slash.add_command` function
+    - Edit commands
+    > You can edit commands in code with the `Slash.edit_command` function
+
+    - Listening components
+    > You can add and remove listening components now with the `Components.add_listening_component`, `Components.remove_listening_component` and `Components.remove_listening_components` functions
+
+    - Cogs
+    > You can now use cog decorators like `slash_cog`, `subslash_cog` and `listening_component_cog`
+
+    ## **Fixed**
+    - SlashCommand
+    > Slash commands wouldn't be updated if only `default_permission` was changed
 
     ## **Changed**
     - wait_for
     > Message.wait_for now takes `by` and `check` as parameters and `event_name` and `client` switched place (`wait_for(client, "event_name")` is now `wait_for("event_name", client)`)
-
+    - listening components
+    > You can specify listening_components now more presicely, you can add messages, users, and a check to filter
+    - Interaction.member
+    > `Interaction.member` is now `Interaction.author`
+    - listening comonents
+    > Listening component callback functions now only take one parameter, the used component
+    - `on_button_press` and `on_menu_select`
+    > These events now take a sole parameter, the used component. If you want to acces to message, use `passed_component.message`
     </details>
 
 -   <details>

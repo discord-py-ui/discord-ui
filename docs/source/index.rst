@@ -3,11 +3,7 @@ discord-ui documentation!
 ======================================================
 
 Welcome to the discord-ui docs!
-This is a "extension" (I guess) or whatever you want to call it for `discord.py <https://github.com/Rapptz/discord.py>`__
-
-We (`Redstone <https://github.com/RedstoneZockt>`__ and me) decided to create a pip package for the 
-new ui features that discord added. If you want to keep using our lib with dpy2, we added support for discordpy2 
-
+This libary is an extension to `discord.py <https://github.com/Rapptz/discord.py>`__ made for using the ui features that discord added
 
 .. important::
 
@@ -31,13 +27,6 @@ We got some cool features for you like:
    *  Creating and receiving the new context commands
 
    and some more things
-
-.. important::
-   
-   The ``Messageable.send`` and ``Webhook.send`` functions are overriden by default with our custom method. 
-   If you're using dpy2, the default ``discord.ext.commands.Bot`` is overriden with a custom Bot that enables degbug events
-   in order to let our lib function proberly
-
 
 Installation
 ---------------------
@@ -67,6 +56,7 @@ Docs
 
    usage.rst
    ui.rst
+   cogs.rst
    interactions.rst
    components.rst
    slash.rst
@@ -81,4 +71,4 @@ Links
 *  `discord.py <https://github.com/Rapptz/discord.py>`__
 *  `discord message component docs <https://discord.com/developers/docs/interactions/message-components>`__
 *  `discord application commands docs <https://discord.com/developers/docs/interactions/application-commands>`__
-*  And in case you don't like our package, check out `this cool libary for slash commands and slash components <https://github.com/discord-py-slash-commands/discord-py-interactions>`__
+*  And in case you don't like our package, check out `this cool libary for slash commands and slash components <https://github.com/discord-py-interactions/discord-py-interactions>`__

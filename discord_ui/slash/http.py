@@ -10,7 +10,11 @@ logging = setup_logger(__name__)
 
 async def get_command(command_name, client: com.Bot, guild_id=MISSING):
     return get(
-        (await get_global_commands(client)) if guild_id is MISSING else (await get_guild_commands(client, guild_id)),
+        (
+            await get_global_commands(client)
+        ) if guild_id is MISSING else (
+            await get_guild_commands(client, guild_id)
+        ),
         command_name, lambda x: x.get("name")
     )
 async def get_id(command_name, client: com.bot, guild_id=MISSING):
@@ -100,10 +104,11 @@ async def edit_global_command(command_id: str, client: com.Bot, new_command: dic
             await handle_rate_limit(await ex.response.json())
             return await edit_global_command(command_id, client, new_command)
         raise ex
-async def edit_guild_command(command_id, client: com.Bot, guild_id: str, new_command: dict, permissions: dict):
+async def edit_guild_command(command_id, client: com.Bot, guild_id: str, new_command: dict, permissions: dict=MISSING):
     try:
         data = await client.http.request(BetterRoute("PATCH", f"/applications/{client.user.id}/guilds/{guild_id}/commands/{command_id}"), json=new_command)
-        return await update_command_permissions(client.user.id, client.http.token, guild_id, data["id"], permissions)
+        if permissions is not MISSING:
+            return await update_command_permissions(client.user.id, client.http.token, guild_id, data["id"], permissions)
     except HTTPException as ex:
         if ex.status == 429:
             await handle_rate_limit(await ex.response.json())

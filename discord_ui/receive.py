@@ -1,11 +1,10 @@
-from discord.message import PartialMessage
-from discord_ui.slash.tools import handle_options
+from discord.ext.commands import Bot
 from .errors import InvalidEvent, OutOfValidRange, WrongType
 from .slash.errors import AlreadyDeferred, EphemeralDeletion
-from .slash.types import ContextCommand, SlashCommand, SubSlashCommand
+from .slash.types import ContextCommand, SlashCommand, SlashPermission, SubSlashCommandGroup
 from .tools import MISSING, setup_logger
 from .http import BetterRoute, jsonifyMessage, send_files
-from .components import ActionRow, Button, ComponentType, LinkButton, SelectMenu, SelectOption, make_component
+from .components import ActionRow, Button, LinkButton, SelectMenu, SelectOption, make_component
 
 import discord
 from discord.ext.commands import Bot
@@ -18,9 +17,9 @@ logging = setup_logger("discord-ui")
 
 
 class InteractionType:
-    PING = 1
-    APPLICATION_COMMAND = 2
-    MESSAGE_COMPONENT = 3
+    PING                        =       Ping        =           1
+    APPLICATION_COMMAND         =      Command      =           2
+    MESSAGE_COMPONENT           =     Component     =           3
 
 class Interaction():
     def __init__(self, state, data, user=MISSING, message=None) -> None:
@@ -29,15 +28,13 @@ class Interaction():
         self.deferred: bool = False
         self.responded: bool = False
         self._deferred_hidden: bool = False
+        self._original_payload: dict = data
 
         if user is not MISSING:
-            self.member: typing.Union[discord.Member, discord.User] = user
-            """The user who created the interaction
-            
-            :type: :class:`discord.Member` | :class:`discord.User`
-            """
-        self._original_payload: dict = data
+            self.author: typing.Union[discord.Member, discord.User] = user
+            """The user who created the interaction"""
         self.application_id: int = data["application_id"]
+        """The ID of the bot application"""
         self.token: str = data["token"]
         """The token for responding to the interaction"""
         self.id: int = data["id"]
@@ -199,7 +196,7 @@ class Interaction():
         
         if not hide_message:
             responseMSG = await self._state.http.request(BetterRoute("GET", f"/webhooks/{self.application_id}/{self.token}/messages/@original"))
-            msg = await getResponseMessage(self._state, data=responseMSG, response=False)
+            msg = await getMessage(self._state, data=responseMSG, response=False)
             if delete_after is not MISSING:
                 await msg.delete(delete_after)
             return msg
@@ -260,7 +257,7 @@ class Interaction():
 
         if hidden is True:
             return EphemeralMessage(state=self._state, channel=self._state.get_channel(r["channel_id"]), data=r, application_id=self.application_id, token=self.token)
-        return await getResponseMessage(self._state, r, response=False)
+        return await getMessage(self._state, r, response=False)
 
     def _handle_auto_defer(self, auto_defer):
         self.deferred = auto_defer[0]
@@ -268,70 +265,69 @@ class Interaction():
 
 class SelectedMenu(Interaction, SelectMenu):
     """A :class:`~SelectMenu` object in which an item was selected"""
-    def __init__(self, data, user, s, state, msg) -> None:
-        Interaction.__init__(self, state, data, user, msg)
+    def __init__(self, data, user, s, msg, client) -> None:
+        Interaction.__init__(self, client._connection, data, user, msg)
         SelectMenu.__init__(self, "EMPTY", [SelectOption("EMPTY", "EMPTY")], 0, 0)
         self._json = s.to_dict()
+        self.bot: Bot = client
+        #region selected_values
         self.selected_values: typing.List[SelectOption] = []
-        """The list of values which were selected
-        
-        :type: :class:`~SelectOption`
-        """
-        
+        """The list of values which were selected"""
         for val in data["data"]["values"]:
             for x in self.options:
                 if x.value == val:
                     self.selected_values.append(x)
-
-        self.member: discord.Member = user
-        """The member who selected the value"""
+        #endregion
+        self.author: discord.Member = user
+        """The user who selected the value"""
 
 class PressedButton(Interaction, Button):
     """A :class:`~Button` object that was pressed"""
-    def __init__(self, data, user, b, state, message) -> None:
-        Interaction.__init__(self, state, data, user, message)
+    def __init__(self, data, user, b, message, client) -> None:
+        Interaction.__init__(self, client._connection, data, user, message)
         Button.__init__(self, "empty", "empty")
         self._json = b.to_dict()
-
-        """interaction: :class:`dict`
-        
-        The most important stuff from the received interaction
-        
-        *  ``token``
-                The interaction token
-        *   ``id``
-                The ID for the interaction
-        """
-        self.member: discord.Member = user
+        self.bot: Bot = client
+        self.author: discord.Member = user
         """The user who pressed the button"""
 
 class SlashedCommand(Interaction, SlashCommand):
     """A :class:`~SlashCommand` object that was used"""
-    def __init__(self, client, command: SlashCommand, data, user, guild_ids = None) -> None:
+    def __init__(self, client, command: SlashCommand, data, user, args = None, guild_ids = None, guild_permissions = None) -> None:
         Interaction.__init__(self, client._connection, data, user)
-        SlashCommand.__init__(self, None, "EMPTY", guild_ids=guild_ids)
+        SlashCommand.__init__(self, None, "EMPTY", guild_ids=guild_ids, guild_permissions=guild_permissions)
+        self.bot: Bot = client
         self._json = command.to_dict()
-        self.member: discord.Member = user
+        self.author: discord.Member = user
         """The channel where the slash command was used"""
         self.guild_ids = guild_ids
-
-class SlashedSubCommand(SlashedCommand, SubSlashCommand):
+        """The ids of the guilds where the command is available"""
+        self.args: typing.Dict[str, typing.Union[str, int, bool, discord.Member, discord.TextChannel, discord.Role, float]] = args
+        """The options that were received"""
+        self.permissions: SlashPermission = guild_permissions.get(self.guild_id)
+        """The permissions for the guild"""
+class SlashedSubCommand(SlashedCommand, SubSlashCommandGroup):
     """A Sub-:class:`~SlashCommand` command that was used"""
-    def __init__(self, client, command, data, user, guild_ids) -> None:
-        SlashedCommand.__init__(self, client, command, data, user, guild_ids=guild_ids)
-        SubSlashCommand.__init__(self, None, "EMPTY", "EMPTY")
-
+    def __init__(self, client, command, data, user, args = None, guild_ids = None, guild_permissions=None) -> None:
+        SlashedCommand.__init__(self, client, command, data, user, args, guild_ids=guild_ids, guild_permissions=guild_permissions)
+        SubSlashCommandGroup.__init__(self, None, "EMPTY", "EMPTY")
 
 class SlashedContext(Interaction, ContextCommand):
-    def __init__(self, client, command: ContextCommand, data, user, guild_ids = None) -> None:
+    def __init__(self, client, command: ContextCommand, data, user, param, guild_ids = None, guild_permissions = None) -> None:
         Interaction.__init__(self, client._connection, data, user)
-        ContextCommand.__init__(self, None, "EMPTY", guild_ids)
+        ContextCommand.__init__(self, None, "EMPTY", guild_ids=guild_ids, guild_permissions=guild_permissions)
+        self.bot: Bot = client
         self._json = command.to_dict()
-        self.member: discord.Member = user
-        self.guild_ids = guild_ids
+        self.guild_ids: typing.List[int] = guild_ids
+        """The guild_ids where the command is available"""
+        self.param: typing.Union[Message, discord.Member, discord.User] = param
+        """The parameter that was received"""
+        self.permissions: SlashPermission = guild_permissions.get(self.guild_id)
+        """The permissions for the guild"""
+        
 
 
-async def getResponseMessage(state: ConnectionState, data, user=None, response = True):
+async def getMessage(state: ConnectionState, data, response = True):
     """
     Async function to get the response message
 
@@ -356,10 +352,10 @@ async def getResponseMessage(state: ConnectionState, data, user=None, response =
             If the message comes from an interaction, it will be of type :class:`~ResponseMessage`, if it is sent to a textchannel, it will be of type :class:`~Message`
     """
     channel = state.get_channel(int(data["channel_id"]))
-    if response and user:
+    if response:
         if data.get("message") is not None and data["message"]["flags"] == 64:
-            return EphemeralResponseMessage(state=state, channel=channel, data=data, user=user)
-        return ResponseMessage(state=state, channel=channel, data=data, user=user)
+            return EphemeralResponseMessage(state=state, channel=channel, data=data)
+        return Message(state=state, channel=channel, data=data)
 
     if data.get("message") is not None and data["message"]["flags"] == 64:
         return EphemeralMessage(state=state, channel=channel, data=data["message"])
@@ -582,27 +578,17 @@ class Message(discord.Message):
                 return False
             if not isinstance(client, Bot):
                 raise WrongType("client", client, "discord.ext.commands.Bot")
-            return (await client.wait_for('button_press' if event_name.lower() == "button" else "menu_select", check=_check, timeout=timeout))[0]
+            return (await client.wait_for('button_press' if event_name.lower() == "button" else "menu_select", check=_check, timeout=timeout))
         
         raise InvalidEvent(event_name, ["button", "select"])
 
-
 class ResponseMessage(Message):
     r"""A message Object which extends the `Message` Object optimized for an interaction component"""
-    def __init__(self, *, state, channel, data, user):
+    def __init__(self, *, state, channel, data, user, interaction_component = None):
         Message.__init__(self, state=state, channel=channel, data=data["message"])
         self.interaction = Interaction(state, data, user, self)
+        self.interaction_component = interaction_component
 
-        self.interaction_component = None
-
-        if int(data["data"]["component_type"]) == 2:
-            for x in self.buttons:
-                if hasattr(x, 'custom_id') and x.custom_id == data["data"]["custom_id"]:
-                    self.interaction_component = PressedButton(data, user, x, self._state, self)
-        elif int(data["data"]["component_type"]) == 3:
-            for x in self.select_menus:
-                if x.custom_id == data["data"]["custom_id"]:
-                    self.interaction_component = SelectedMenu(data, user, x, self._state, self)
 
 class WebhookMessage(Message, discord.WebhookMessage):
     def __init__(self, *, state, channel, data):
@@ -658,7 +644,7 @@ class EphemeralMessage(Message):
     async def delete(self):
         raise EphemeralDeletion()
 
-class EphemeralResponseMessage(ResponseMessage):
+class EphemeralResponseMessage(Message):
     """A ephemeral message wich was created from an interaction
     
     .. important::
@@ -666,7 +652,7 @@ class EphemeralResponseMessage(ResponseMessage):
         Methods like `.edit()`, which change the original message, need a `token` paremeter passed in order to work
     """
     def __init__(self, *, state, channel, data, user):
-        ResponseMessage.__init__(self, state=state, channel=channel, data=data, user=user)
+        Message.__init__(self, state=state, channel=channel, data=data)
 
     async def edit(self, token, **fields):
         """Edits the message

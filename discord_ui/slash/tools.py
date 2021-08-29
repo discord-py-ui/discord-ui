@@ -29,11 +29,11 @@ class ParseMethod:
     - ``AUTO``      [4]
         This will try all methods beginning (RESOLVE, FETCH, CACHE, RAW) and changes to the next method whenever an exception occurs
     """
-    RAW         =       0
-    RESOLVE     =       1
-    FETCH       =       2
-    CACHE       =       3
-    AUTO        =       4
+    RAW         =       Raw         =       0
+    RESOLVE     =       Resolve     =       1
+    FETCH       =       Fetch       =       2
+    CACHE       =       Cache       =       3
+    AUTO        =       Auto        =       4
 
 def format_name(value):
     return str(value).lower().replace(" ", "-")

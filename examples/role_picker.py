@@ -53,7 +53,7 @@ async def command(ctx: SlashedCommand):
                 # (in our case the value is the id of the role the user should get) 
                 if str(_r.id) == str(role.value):
                     # Add the role to the user
-                    await menu.member.add_roles(_r)
+                    await menu.author.add_roles(_r)
                     # Add the current role name to an array where all the given roles are
                     given_roles.append(_r.name)
 
