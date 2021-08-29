@@ -25,6 +25,7 @@ We got some cool features for you like:
    *  Setting up permissions for slash commmands
    *  Deleting unused slash commands
    *  Creating and receiving the new context commands
+   *  Add/edit commands in code directly
 
    and some more things
 
