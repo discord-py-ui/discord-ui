@@ -380,7 +380,7 @@ class Message(discord.Message):
 
     # region attributes
     @property
-    def buttons(self):
+    def buttons(self) -> typing.List[typing.Union[Button, LinkButton]]:
         """The button components in the message
         
         :type: List[:class:`~Button` | :class:`~LinkButton`]
@@ -389,7 +389,7 @@ class Message(discord.Message):
             return [x for x in self.components if type(x) in [Button, LinkButton]]
         return []
     @property
-    def select_menus(self):
+    def select_menus(self) -> typing.List[SelectMenu]:
         """The select menus components in the message
 
         :type: List[:class:`~SelectMenu`]

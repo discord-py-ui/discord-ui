@@ -330,10 +330,10 @@ class SlashPermission():
     USER        =       User      =   2
 
     @property
-    def allowed(self) -> typing.List[typing.Union[str, int]]:
+    def allowed(self) -> dict:
         return [x for x in self._json if x["permission"] == True]
     @property
-    def forbidden(self) -> typing.List[typing.Union[str, int]]:
+    def forbidden(self) -> dict:
         return [x for x in self._json if x["permission"] == False]
 
 
@@ -453,7 +453,7 @@ class SlashCommand():
 
     # region command
     @property
-    def command_type(self):
+    def command_type(self) -> int:
         return self._json["type"]
 
     @property
@@ -508,7 +508,7 @@ class SlashCommand():
     # endregion
     # region permissions
     @property
-    def default_permission(self):
+    def default_permission(self) -> bool:
         return self._json.get("default_permission", False)
     @default_permission.setter
     def default_permission(self, value):
@@ -544,13 +544,13 @@ class ContextCommand(SlashCommand):
         super().__init__(callback, name, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
 
     @property
-    def description(self):
+    def description(self) -> str:
         return ""
     @description.setter
     def description(self, value):
         pass
     @property
-    def options(self):
+    def options(self) -> list:
         return []
     @options.setter
     def options(self, value):

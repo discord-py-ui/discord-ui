@@ -184,3 +184,20 @@ async def handle_thing(value, typ, data, method, _discord, auto=False) -> typing
     else:
         logging.warning("Unkonw parsemethod: " + str(method) + "\nReturning raw value")
         return value
+
+def create_choice(name, value) -> dict:
+    """A function that will create a choice for a :class:`~SlashOption`
+    
+    Parameters
+    ----------
+        name: :class:`str`
+            The name of the choice
+        value: :class:`Any`
+            The value that will be received when the user selected this choice
+    Returns
+    -------
+        :returns: The created choice
+        :type: :class:`dict`
+    
+    """
+    return {"name": name, "value": value}

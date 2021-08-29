@@ -169,7 +169,7 @@ class Component():
     def __init__(self, component_type) -> None:
         self._json = {"type": component_type}
     @property
-    def component_type(self):
+    def component_type(self) -> int:
         """
         The message component type
 
@@ -370,7 +370,7 @@ class SelectMenu(Component):
         self._json["disabled"] = value
 
     @property
-    def hash(self):
+    def hash(self) -> str:
         """Hash for the selectmenu
 
         :type: :class:`str`
