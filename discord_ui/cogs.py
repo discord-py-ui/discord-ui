@@ -5,7 +5,6 @@ from .slash.types import MessageCommand, SlashCommand, SlashSubcommand, UserComm
 import discord
 from discord.errors import InvalidArgument
 from discord.ext.commands import errors
-from discord.ext.commands.core import ErrorT, HookT
 from discord.ext.commands.cooldowns import BucketType, CooldownMapping
 
 import asyncio
@@ -175,7 +174,7 @@ class BaseCallable():
             return bucket.get_retry_after(current)
 
         return 0.0
-    def error(self, coro: ErrorT) -> ErrorT:
+    def error(self, coro):
         """A decorator that registers a coroutine as a local error handler.
 
         A local error handler is an :func:`.on_command_error` event limited to
@@ -204,7 +203,7 @@ class BaseCallable():
         .. versionadded:: 1.7
         """
         return hasattr(self, 'on_error')
-    def before_invoke(self, coro: HookT) -> HookT:
+    def before_invoke(self, coro):
         """A decorator that registers a coroutine as a pre-invoke function.
 
         This function is called directly before the command is
@@ -229,7 +228,7 @@ class BaseCallable():
 
         self._before_invoke = coro
         return coro
-    def after_invoke(self, coro: HookT) -> HookT:
+    def after_invoke(self, coro):
         """A decorator that registers a coroutine as a post-invoke function.
 
         A post-invoke function is called directly after the command is
