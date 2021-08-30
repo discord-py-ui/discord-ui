@@ -1,0 +1,75 @@
+.wy-nav-content, .wy-nav-content-wrap {
+    /* background-color: #23272A; */
+    /* color: white; */
+}
+
+.btn.btn-neutral {
+    border: 1px solid #2C2F33;
+    border-radius: 5px;
+    color: white
+}
+
+.admonition-title {
+    border-top: 1px solid white;
+    border-radius: 5px;
+}
+
+.admonition {
+    border: 1px solid white;
+    border-radius: 10px;
+    color: black;
+}
+
+code.docutils.literal.notranslate, .highlight, div.highlight-default.notranslate {
+    background-color: #2C2F33;
+    border: 2px solid #2C2F33;
+    border-radius: 5px;
+    line-height: 1em;
+    font-weight: 80;
+    color: white;
+}
+
+.wy-nav-side {
+    background-color: #23272A;
+}
+.wy-side-nav-search {
+    background-color: #5865F2;
+    border: 4px solid #5865F2;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
+.toctree-l1.current {
+    /* border: 0.5px solid white; */
+    border-radius: 2.5px;
+}
+
+dt::before {
+    content: " "
+}
+
+/* #region Scrollbar */
+/* Breite */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 6px;
+}
+  
+/* Hintergrund von dem außer dem Scrollding */
+::-webkit-scrollbar-track {
+    background: #1b1b1b ;
+    border: 1px solid #1b1b1b;
+    /* border-radius: 15px; */
+}
+   
+/* Farbe von dem Scrollding */
+::-webkit-scrollbar-thumb {
+    background: #5865F2;
+    border: 1px solid #5865F2;
+    border-radius: 15px;
+}
+    
+/* Hover Farbe */
+::-webkit-scrollbar-thumb:hover {
+    background: #5865F2;
+}

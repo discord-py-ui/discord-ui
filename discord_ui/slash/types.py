@@ -351,6 +351,7 @@ class SlashCommand():
             name: :class:`str`
                 1-32 characters long name
                     If name is not passed, the name of the callback function will be used; default MISSING
+                    
                 .. important::
 
                     The name will be corrected automaticaly (spaces will be replaced with "-" and the name will be lowercased)

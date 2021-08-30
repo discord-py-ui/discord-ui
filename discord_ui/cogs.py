@@ -307,6 +307,7 @@ def slash_cog(name=MISSING, description=MISSING, options=[], guild_ids=MISSING, 
     ----------
         name: :class:`str`, optional
             1-32 characters long name; default MISSING
+
             .. note::
 
                 The name will be corrected automaticaly (spaces will be replaced with "-" and the name will be lowercased)
@@ -371,6 +372,7 @@ def subslash_cog(base_names, name=MISSING, description=MISSING, options=[], guil
                 If you want to make a subcommand (``/base name``), you have to use a str instead of a list
         name: :class:`str`, optional
             1-32 characters long name; default MISSING
+            
             .. note::
 
                 The name will be corrected automaticaly (spaces will be replaced with "-" and the name will be lowercased)
@@ -463,6 +465,7 @@ def context_cog(type: Literal["user", 2, "message", 3], name=MISSING, guild_ids=
                         The used slash command
                     message: :class:`~Message`
                         The message on which the command was used
+                    
                     .. note::
 
                         ``ctx`` and ``message`` are just example names, you can use whatever you want for that

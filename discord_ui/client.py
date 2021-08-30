@@ -283,6 +283,7 @@ class Slash():
         ----------
             delete_unused: :class:`bool`, optional
                 Whether the unused command should be deleted from the api; default ``False``
+        
         Raises
         ------
             :raises: :class:`InvalidArgument` : A slash command has an invalid guild_id
@@ -442,6 +443,7 @@ class Slash():
         ----------
             command: :class:`SlashCommand` | :class:`ContextCommand`
                 The command that should be added
+        
         Raises
         ------
             :raises: :class:`InvalidArgument` : When a guild-id in ``guild_ids`` is not a valid server where the bot client is in it
@@ -577,6 +579,7 @@ class Slash():
                 The new guild permissions for the command
             callback: :class:`function`, optional, optional
                 The new command callback; default ``MISSING``
+        
         Raises
         ------
             :raises: :class:`NotFound` : When a command in the internal cache doesn't exsist
@@ -710,6 +713,7 @@ class Slash():
 
         name: :class:`str`
             1-32 characters long name
+
             .. note::
 
                 The name will be corrected automaticaly (spaces will be replaced with "-" and the name will be lowercased)
@@ -749,6 +753,7 @@ class Slash():
         ----------
             name: :class:`str`, optional
                 1-32 characters long name; default MISSING
+                
                 .. note::
 
                     The name will be corrected automaticaly (spaces will be replaced with "-" and the name will be lowercased)
@@ -829,6 +834,7 @@ class Slash():
                     If you want to make a subcommand (``/base name``), you have to use a str instead of a list
             name: :class:`str`, optional
                 1-32 characters long name; default MISSING
+                
                 .. note::
 
                     The name will be corrected automaticaly (spaces will be replaced with "-" and the name will be lowercased)
@@ -990,6 +996,7 @@ class Slash():
                         The used slash command
                     message: :class:`~Message`
                         The message on which the command was used
+              
                     .. note::
 
                         ``ctx`` and ``message`` are just example names, you can use whatever you want for that
@@ -1255,6 +1262,7 @@ class Components():
                 allowed mentions for the message; default None
             components: List[:class:`~Button` | :class:`~LinkButton` | :class:`~SelectMenu`], optional
                 the message components to include with the message; default None
+        
         Returns
         -------
             :returns: The message sent, if wait was True, else nothing will be returned

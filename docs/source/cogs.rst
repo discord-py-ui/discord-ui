@@ -13,10 +13,10 @@ To use cog tools, you have to import the module
 
     from discord_ui.cogs import slash_cog, subslash_cog, context_cog, listening_component_cog
 
-    .. important::
+.. important::
 
-        You need a :class:`~Slash` instance for slashcommands cogs and a :class:`~Component` instance for listening components. 
-        The best would be to initialze a `~UI` instance, because it will initialize a component instance and a slash instance
+    You need a :class:`~Slash` instance for slashcommands cogs and a :class:`~Component` instance for listening components. 
+    The best would be to initialze a :class:`~UI` instance, because it will initialize a component instance and a slash instance
 
 
 Example

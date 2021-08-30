@@ -639,6 +639,7 @@ class EphemeralMessage(Message):
         r = BetterRoute("PATCH", f"/webhooks/{self._application_id}/{self._interaction_token}/messages/{self.id}")
         self._update(await self._state.http.request(r, json=jsonifyMessage(**fields)))        
     async def delete(self):
+        """Override for delete function that will throw an exception"""
         raise EphemeralDeletion()
 
 class EphemeralResponseMessage(Message):
@@ -674,6 +675,7 @@ class EphemeralResponseMessage(Message):
         route = BetterRoute("PATCH", f"/webhooks/{self.interaction.application_id}/{token}/messages/{self.id}")
         self._update(await self._state.http.request(route, json=jsonifyMessage(**fields)))
     async def delete(self):
+        """Override for delete function that will throw an exception"""
         raise EphemeralDeletion()
     async def disable_components(self, token, disable = True):
         """Disables all component in the message

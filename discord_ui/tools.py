@@ -107,6 +107,7 @@ def components_to_dict(*components) -> List[dict]:
     Raises
     ------
         :raises: :class:`Exception` : Invalid Data was passed
+    
     Returns
     -------
         :returns: The converted data

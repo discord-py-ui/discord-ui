@@ -14,12 +14,12 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../..'))
 
+
 # -- Project information -----------------------------------------------------
 
 project = 'discord-ui'
 copyright = '2021, 404kuso, RedstoneZockt'
 author = '404kuso, RedstoneZockt'
-
 
 def get_version():
     """returns the version of the package"""
@@ -56,4 +56,16 @@ html_theme = 'sphinx_rtd_theme'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-# html_static_path = ['_static']
+html_static_path = ['_static']
+
+# def setup(app):
+#     app.add_css_file('css/main.css')
+
+# html_context = {
+#     'css_files': ['_static/css/main.css'],
+#     'js_files': ['_static/js/override_colors.js'],
+# }
+
+def setup(app):
+    app.add_css_file('css/main.css')
+    app.add_js_file("js/override_colors.js")

@@ -194,6 +194,7 @@ def create_choice(name, value) -> dict:
             The name of the choice
         value: :class:`Any`
             The value that will be received when the user selected this choice
+    
     Returns
     -------
         :returns: The created choice

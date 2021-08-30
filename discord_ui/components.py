@@ -789,6 +789,7 @@ class ActionRow():
         ----------
             check: :class:`lambda`
                 What condition has to be True that the component will pass the filter
+        
         Returns
         -------
             :returns: The filtered components
