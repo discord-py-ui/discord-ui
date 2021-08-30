@@ -196,7 +196,7 @@ class Slash():
             x = self.context_commands["user"].get(data["data"]["name"])
             if x is not None:
                 member = await handle_thing(data["data"]["target_id"], OptionType.MEMBER, data, self.parse_method, self._discord)
-                context = SlashedContext(self._discord, command=x, data=data, user=user, channel=channel, param=member, guild_ids=x.guild_ids, guild_permissions=x.guild_permissions)
+                context = SlashedContext(self._discord, command=x, data=data, user=user, param=member, guild_ids=x.guild_ids, guild_permissions=x.guild_permissions)
                 # Handle autodefer
                 context._handle_auto_defer(self.auto_defer)
 

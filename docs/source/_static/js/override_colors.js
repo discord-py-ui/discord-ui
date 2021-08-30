@@ -42,11 +42,13 @@ window.onload = function() {
     change_color("k", "#eb52ff")
     // function name
     change_color("nf", "#5865F2")
+    // create class instance
+    // change_color("n", )
     
     // built-in function calls
     change_color("nb", "#ecfc5b")
     // +, -, *, /, =
-    change_color("o", "#69f5f2")
+    // change_color("o", "#69f5f2")
     //#endregion
 
     // fix code

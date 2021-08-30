@@ -173,6 +173,15 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>4.0.1</summary>
+    
+    ## **Fixed**
+    - discord.ext import error
+
+
+    </details>
+
+-   <details>
     <summary>4.0.0</summary>
 
     ## **Added**
