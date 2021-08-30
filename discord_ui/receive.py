@@ -535,9 +535,10 @@ class Message(discord.Message):
         -----------
         event_name: :class:`str`
             The name of the event which will be awaited [``"select"`` | ``"button"``] 
+            
             .. note::
 
-                The event_name must be ``select`` for a select menu selection and ``button`` for a button press
+                ``event_name`` must be ``select`` for a select menu selection and ``button`` for a button press
 
         client: :class:`discord.ext.commands.Bot`
             The discord client
