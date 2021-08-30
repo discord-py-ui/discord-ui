@@ -394,7 +394,6 @@ def subslash_cog(base_names, name=MISSING, description=MISSING, options=[], guil
 
     Decorator
     ---------
-
         callback: :class:`method(ctx)`
             The asynchron function that will be called if the command was used
                 ctx: :class:`~SlashedSubCommand`
@@ -405,8 +404,7 @@ def subslash_cog(base_names, name=MISSING, description=MISSING, options=[], guil
                     ``ctx`` is just an example name, you can use whatever you want for that
     
     Example
-    -------
-    
+    --------
     subcommand
 
     .. code-block::
