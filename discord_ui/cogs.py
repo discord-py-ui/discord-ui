@@ -5,7 +5,6 @@ from .slash.types import MessageCommand, SlashCommand, SlashSubcommand, UserComm
 import discord
 from discord.errors import InvalidArgument
 from discord.ext.commands import errors
-from discord.ext.commands._types import Error, Hook
 from discord.ext.commands.core import ErrorT, HookT
 from discord.ext.commands.cooldowns import BucketType, CooldownMapping
 
@@ -50,7 +49,7 @@ class BaseCallable():
         if hasattr(self.callback, "__commands_max_concurrency__"):
             self._max_concurrency = self.callback.__commands_max_concurrency__
 
-        self._before_invoke: Optional[Hook] = None
+        self._before_invoke = None
         try:
             before_invoke = self.callback.__before_invoke__
         except AttributeError:
@@ -58,7 +57,7 @@ class BaseCallable():
         else:
             self.before_invoke(before_invoke)
 
-        self._after_invoke: Optional[Hook] = None
+        self._after_invoke = None
         try:
             after_invoke = self.callback.__after_invoke__
         except AttributeError:
@@ -197,7 +196,7 @@ class BaseCallable():
         if not asyncio.iscoroutinefunction(coro):
             raise TypeError('The error handler must be a coroutine.')
 
-        self.on_error: Error = coro
+        self.on_error = coro
         return coro
     def has_error_handler(self) -> bool:
         """:class:`bool`: Checks whether the command has an error handler registered.
