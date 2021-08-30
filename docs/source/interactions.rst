@@ -24,9 +24,3 @@ Interaction
 
 .. autoclass:: Interaction()
     :members:
-
-InteractionTypes
-~~~~~~~~~~~~~~~~~
-
-.. autoclass:: InteractionType
-    :members:
