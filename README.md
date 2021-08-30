@@ -173,6 +173,14 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>4.0.2</summary>
+
+    ## **Fixed**
+    - Issue with receiving context commands
+
+    </details>
+
+-   <details>
     <summary>4.0.1</summary>
     
     ## **Fixed**
