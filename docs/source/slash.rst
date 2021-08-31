@@ -12,7 +12,6 @@ Slash
 .. autoclass:: Slash
     :members:
 
-
 .. code-block::
 
     import discord

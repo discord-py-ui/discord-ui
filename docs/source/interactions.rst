@@ -19,6 +19,7 @@ Example
     async def on_interaction(interaction: Interaction):
         await interaction.respond("houston we got an interaction")
 
+
 Interaction
 ~~~~~~~~~~~~
 
