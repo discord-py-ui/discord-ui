@@ -40,10 +40,10 @@ To install this package, open your terminal or command line and type
 .. code-block::
 
    # windows
-   py -m install discord-ui
+   > py -m install discord-ui
 
    # linux
-   python3 -m pip install discord-ui
+   $ python3 -m pip install discord-ui
 
 
 Examples
