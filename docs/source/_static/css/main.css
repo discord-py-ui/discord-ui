@@ -33,7 +33,8 @@ code.docutils.literal.notranslate, .highlight, div.highlight-default.notranslate
     background-color: #23272A;
 }
 .wy-side-nav-search, .wy-nav-top {
-    background-color: #5865F2;
+    /* background-color: #5865F2; */
+    background: #5865F2;
     border: 4px solid #5865F2;
     border-bottom-left-radius: 6px;
     border-bottom-right-radius: 6px;
