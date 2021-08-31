@@ -55,4 +55,7 @@ window.onload = function() {
     result = document.getElementsByTagName("code");
     for (let i = 0; i < result.length; i++)
         result[i].style["font-weight"] = 100
+
+    // mobile only
+    change_color("wy-nav-top", "#5865F2")
 }
