@@ -172,7 +172,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 
 # Changelog
 
--   <detailsl>
+-   <details>
     <summary>4.0.4</summary>
 
     ## **Fixed**
