@@ -173,6 +173,15 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>4.0.3</summary>
+    
+    ## **Fixed**
+    - Message.wait_for
+
+
+    </details>
+
+-   <details>
     <summary>4.0.2</summary>
 
     ## **Fixed**

@@ -563,8 +563,8 @@ class Message(discord.Message):
         :type: :class:`~PressedButton` | :class:`~SelectedMenu`
         """
         if event_name.lower() in ["button", "select"]:
-            def _check(com, msg):
-                if msg.id == self.id:
+            def _check(com):
+                if com.message.id == self.id:
                     statements = []
                     if custom_id is not MISSING:
                         statements.append(com.custom_id == custom_id)
