@@ -48,7 +48,7 @@ window.onload = function() {
     // async, def, await 
     change_color("k", "#eb52ff")
     // function name
-    change_color("nf", "#5865F2")
+    change_color("nf", "#5c9aff")
     // create class instance
     // change_color("n", )
     
@@ -84,5 +84,17 @@ window.onload = function() {
         result[i].style["background-color"] = "#fcfcfc";
         result[i].style["border-left"] = "5px solid #fcfcfc";
     }
+
+
+    // Makes page full size
+    result = document.getElementsByClassName("wy-nav-content")
+    if (result.length > 0)
+        result[0].style["max-width"] = "100%";
+
+    // displays the menu icon
+    result = document.getElementsByClassName("wy-nav-top")
+    if (result.length > 0)
+        result[0].style["color"] = "white";
+
     setTimeout(() => document.getElementsByClassName("rst-content")[0].innerHTML += "\n<p style='color: gray;'>Modified by <a href='https://github.com/404kuso' target='_blank'>404kuso</a></p>", 100)
 }

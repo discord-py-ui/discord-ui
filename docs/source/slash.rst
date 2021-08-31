@@ -1,6 +1,5 @@
 .. currentmodule:: discord_ui
 
-
 =====================
 Application-commands
 =====================

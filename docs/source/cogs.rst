@@ -44,6 +44,7 @@ Example
     bot.add_cog(Example(bot))
     bot.run("token")
 
+
 slash_cog
 ==========
 
