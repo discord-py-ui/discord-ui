@@ -372,7 +372,6 @@ class Message(discord.Message):
         :type: List[]:class:`~Button` | :class:`~LinkButton` | :class:`SelectMenu`]
         """
         self.suppressed = False
-        
         self._update_components(data)
 
     # region attributes
@@ -528,7 +527,7 @@ class Message(discord.Message):
             rows.append(c_row) 
         return rows
 
-    async def wait_for(self, event_name: typing.Literal["select", "button"], client, custom_id=MISSING, by=None, check=lambda component: True, timeout=None) -> typing.Union[PressedButton, SelectedMenu]:
+    async def wait_for(self, event_name: typing.Literal["select", "button"], client, custom_id=MISSING, by=MISSING, check=lambda component: True, timeout=None) -> typing.Union[PressedButton, SelectedMenu]:
         """Waits for a message component to be invoked in this message
 
         Parameters
@@ -566,11 +565,11 @@ class Message(discord.Message):
             def _check(com):
                 if com.message.id == self.id:
                     statements = []
-                    if custom_id is not MISSING:
+                    if custom_id not in [MISSING, None]:
                         statements.append(com.custom_id == custom_id)
-                    if by is not MISSING:
+                    if by not in [MISSING, None]:
                         statements.append(com.member.id == (by.id if hasattr(by, "id") else int(by)))
-                    if check is not MISSING:
+                    if check not in [MISSING, None]:
                         statements.append(check(com))
                     return all(statements)
                 return False
