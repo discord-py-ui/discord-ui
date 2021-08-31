@@ -3,7 +3,7 @@ discord-ui documentation!
 ======================================================
 
 Welcome to the discord-ui docs!
-This libary is an extension to `discord.py <https://github.com/Rapptz/discord.py>`__ made for using the ui features that discord added
+This libary is an extension to `discord.py <https://github.com/Rapptz/discord.py>`__ made for using the ui and interaction features in discord and python
 
 .. important::
 
@@ -38,6 +38,7 @@ To install this package, open your terminal or command line and type
 
    # windows
    py -m install discord-ui
+
    # linux
    python3 -m pip install discord-ui
 
@@ -51,6 +52,7 @@ we have some examples `here <https://github.com/discord-py-ui/discord-ui/tree/ma
 Docs
 ---------------------
 
+Doc index
 
 .. toctree::
    :maxdepth: 1
@@ -67,6 +69,7 @@ Links
 ---------------------
 
 *  `Pip package <https://pypi.org/project/discord-ui/>`__
+*  `Git repo <https://github.com/discord-py-ui/discord-ui>`__
 *  `404kuso <https://github.com/404kuso>`__
 *  `RedstoneZockt <https://github.com/RedstoneZockt>`__
 *  `discord.py <https://github.com/Rapptz/discord.py>`__

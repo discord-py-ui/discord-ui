@@ -29,8 +29,8 @@ code.docutils.literal.notranslate, .highlight, div.highlight-default.notranslate
     color: white;
 }
 
-.wy-nav-side {
-    background-color: #23272A;
+.wy-nav-shift {
+    background-color: #2C2F33;
 }
 .wy-side-nav-search, .wy-nav-top {
     /* background-color: #5865F2; */
@@ -48,6 +48,8 @@ code.docutils.literal.notranslate, .highlight, div.highlight-default.notranslate
 dt::before {
     content: " "
 }
+
+
 
 /* #region Scrollbar */
 /* Breite */

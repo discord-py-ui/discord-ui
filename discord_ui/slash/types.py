@@ -419,7 +419,7 @@ class SlashCommand():
         if default_permission is MISSING:
             default_permission = True
         self.default_permission: bool = default_permission
-        if guild_permissions is not MISSING:
+        if guild_permissions not in [MISSING, None]:
             for _id, perm in list(guild_permissions.items()):
                 if type(_id) not in [str, int, discord.User, discord.Member, discord.Role]:
                     raise WrongType("guild_permissions key " + str(_id), _id, ["str", "int", "discord.User", "discord.Member", "discord.Role"])
