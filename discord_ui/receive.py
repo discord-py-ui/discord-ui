@@ -1,4 +1,3 @@
-from discord.ext.commands import Bot
 from .errors import InvalidEvent, OutOfValidRange, WrongType
 from .slash.errors import AlreadyDeferred, EphemeralDeletion
 from .slash.types import ContextCommand, SlashCommand, SlashPermission, SlashSubcommand
@@ -11,7 +10,11 @@ from discord.ext.commands import Bot
 from discord.errors import HTTPException
 from discord.state import ConnectionState
 
-import typing
+from typing import List, Union, Dict
+try:
+    from typing import Literal
+except:
+    from typing_extensions import Literal
 
 logging = setup_logger("discord-ui")
 
@@ -31,7 +34,7 @@ class Interaction():
         self._original_payload: dict = data
 
         if user is not MISSING:
-            self.author: typing.Union[discord.Member, discord.User] = user
+            self.author: Union[discord.Member, discord.User] = user
             """The user who created the interaction"""
         self.application_id: int = data["application_id"]
         """The ID of the bot application"""
@@ -59,7 +62,7 @@ class Interaction():
         """
         return self._state._get_guild(self.guild_id)
     @property
-    def channel(self) -> typing.Union[discord.TextChannel, discord.DMChannel]:
+    def channel(self) -> Union[discord.TextChannel, discord.DMChannel]:
         """The channel where the interaction was created
         
         :type: :class:`discord.TextChannel` | :class:`discord.DMChannel`
@@ -94,7 +97,7 @@ class Interaction():
 
     async def respond(self, content=MISSING, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, files=MISSING, nonce=MISSING,
     allowed_mentions=MISSING, mention_author=MISSING, components=MISSING, delete_after=MISSING, hidden=False,
-    ninja_mode=False) -> typing.Union['Message', 'EphemeralMessage']:
+    ninja_mode=False) -> Union['Message', 'EphemeralMessage']:
         """Responds to the interaction
         
         Parameters
@@ -202,7 +205,7 @@ class Interaction():
             return msg
 
     async def send(self, content=None, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, files=MISSING, nonce=MISSING,
-    allowed_mentions=MISSING, mention_author=MISSING, components=MISSING, hidden=False) -> typing.Union['Message', 'EphemeralMessage']:
+    allowed_mentions=MISSING, mention_author=MISSING, components=MISSING, hidden=False) -> Union['Message', 'EphemeralMessage']:
         """Sends a message to the interaction using a webhook
         
         Parameters
@@ -272,7 +275,7 @@ class SelectedMenu(Interaction, SelectMenu):
         self._json = s.to_dict()
         self.bot: Bot = client
         #region selected_values
-        self.selected_values: typing.List[SelectOption] = []
+        self.selected_values: List[SelectOption] = []
         """The list of values which were selected"""
         for val in data["data"]["values"]:
             for x in self.options:
@@ -303,7 +306,7 @@ class SlashedCommand(Interaction, SlashCommand):
         """The channel where the slash command was used"""
         self.guild_ids = guild_ids
         """The ids of the guilds where the command is available"""
-        self.args: typing.Dict[str, typing.Union[str, int, bool, discord.Member, discord.TextChannel, discord.Role, float]] = args
+        self.args: Dict[str, Union[str, int, bool, discord.Member, discord.TextChannel, discord.Role, float]] = args
         """The options that were received"""
         self.permissions: SlashPermission = guild_permissions.get(self.guild_id)
         """The permissions for the guild"""
@@ -319,9 +322,9 @@ class SlashedContext(Interaction, ContextCommand):
         ContextCommand.__init__(self, None, "EMPTY", guild_ids=guild_ids, guild_permissions=guild_permissions)
         self.bot: Bot = client
         self._json = command.to_dict()
-        self.guild_ids: typing.List[int] = guild_ids
+        self.guild_ids: List[int] = guild_ids
         """The guild_ids where the command is available"""
-        self.param: typing.Union[Message, discord.Member, discord.User] = param
+        self.param: Union[Message, discord.Member, discord.User] = param
         """The parameter that was received"""
         self.permissions: SlashPermission = guild_permissions.get(self.guild_id)
         """The permissions for the guild"""
@@ -367,7 +370,7 @@ class Message(discord.Message):
 
         self._state: ConnectionState = None
         super().__init__(state=state, channel=channel, data=data)
-        self.components: typing.List[typing.Union[Button, LinkButton, SelectMenu]] = []
+        self.components: List[Union[Button, LinkButton, SelectMenu]] = []
         """The components in the message
         
         :type: List[]:class:`~Button` | :class:`~LinkButton` | :class:`SelectMenu`]
@@ -377,7 +380,7 @@ class Message(discord.Message):
 
     # region attributes
     @property
-    def buttons(self) -> typing.List[typing.Union[Button, LinkButton]]:
+    def buttons(self) -> List[Union[Button, LinkButton]]:
         """The button components in the message
         
         :type: List[:class:`~Button` | :class:`~LinkButton`]
@@ -386,7 +389,7 @@ class Message(discord.Message):
             return [x for x in self.components if type(x) in [Button, LinkButton]]
         return []
     @property
-    def select_menus(self) -> typing.List[SelectMenu]:
+    def select_menus(self) -> List[SelectMenu]:
         """The select menus components in the message
 
         :type: List[:class:`~SelectMenu`]
@@ -514,7 +517,7 @@ class Message(discord.Message):
 
         :type: List[:class:`~Button` | :class:`LinkButton` | :class:`SelectMenu`]
         """
-        rows: typing.List[typing.List[typing.Union[Button, LinkButton, SelectMenu]]] = []
+        rows: List[List[Union[Button, LinkButton, SelectMenu]]] = []
 
         c_row = []
         i = 0
@@ -528,7 +531,7 @@ class Message(discord.Message):
             rows.append(c_row) 
         return rows
 
-    async def wait_for(self, event_name: typing.Literal["select", "button"], client, custom_id=MISSING, by=MISSING, check=lambda component: True, timeout=None) -> typing.Union[PressedButton, SelectedMenu]:
+    async def wait_for(self, event_name: Literal["select", "button"], client, custom_id=MISSING, by=MISSING, check=lambda component: True, timeout=None) -> Union[PressedButton, SelectedMenu]:
         """Waits for a message component to be invoked in this message
 
         Parameters

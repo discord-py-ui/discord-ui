@@ -10,7 +10,11 @@ from discord.ext.commands.cooldowns import BucketType, CooldownMapping
 import asyncio
 import datetime
 import inspect
-from typing import Literal, Optional, Union
+from typing import Optional, Union
+try:
+    from typing import Literal
+except:
+    from typing_extensions import Literal
 
 class WrongListener(errors.CheckFailure):
     """Exception raised when a listening component received a component event that doesn't meet the check conditions

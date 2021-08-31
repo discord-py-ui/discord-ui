@@ -20,7 +20,11 @@ import json
 import inspect
 import asyncio
 import contextlib
-from typing import Coroutine, Dict, List, Literal, Tuple, Union
+from typing import Coroutine, Dict, List, Tuple, Union
+try:
+    from typing import Literal
+except:
+    from typing_extensions import Literal
 
 logging = setup_logger(__name__)
 
@@ -1140,7 +1144,6 @@ class Components():
         if data["type"] != 3:
             return
         
-        print(data)
         guild = None
         if data.get("guild_id") is not None:
             guild = cache_data(data["guild_id"], AdditionalType.GUILD, data, self._discord._connection)

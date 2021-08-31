@@ -469,7 +469,6 @@ class SlashCommand():
         return self._json["name"]
     @name.setter
     def name(self, value):
-        print(value)
         if value in [None, MISSING]:
             raise InvalidArgument("You have to specify a name")
         if type(value) is not str:

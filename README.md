@@ -173,6 +173,19 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>4.1.0</summary>
+
+    ## **Added**
+    - py 3.6 < support
+    > You should be able to use this package with python 3.6 or newer
+
+    ## **Fixed**
+    - print
+    > Forgot to remove print statements💀
+
+    </details>
+
+-   <details>
     <summary>4.0.4</summary>
 
     ## **Fixed**
