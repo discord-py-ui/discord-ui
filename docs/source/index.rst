@@ -29,6 +29,7 @@ We got some cool features for you like:
 
    and some more things
 
+
 Installation
 ---------------------
 
@@ -61,7 +62,7 @@ Docs
    interactions.rst
    components.rst
    slash.rst
- 
+
 
 Links
 ---------------------
@@ -73,4 +74,4 @@ Links
 *  `discord.py <https://github.com/Rapptz/discord.py>`__
 *  `discord message component docs <https://discord.com/developers/docs/interactions/message-components>`__
 *  `discord application commands docs <https://discord.com/developers/docs/interactions/application-commands>`__
-*  And in case you don't like our package, check out `this cool libary for slash commands and slash components <https://github.com/discord-py-interactions/discord-py-interactions>`__
+*  And in case you don't like our package, check out `another good libary <https://github.com/discord-py-interactions/discord-py-interactions>`__

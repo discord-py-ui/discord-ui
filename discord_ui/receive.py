@@ -268,6 +268,7 @@ class SelectedMenu(Interaction, SelectMenu):
     def __init__(self, data, user, s, msg, client) -> None:
         Interaction.__init__(self, client._connection, data, user, msg)
         SelectMenu.__init__(self, "EMPTY", [SelectOption("EMPTY", "EMPTY")], 0, 0)
+        
         self._json = s.to_dict()
         self.bot: Bot = client
         #region selected_values

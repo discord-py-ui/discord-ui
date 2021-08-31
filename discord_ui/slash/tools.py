@@ -46,7 +46,7 @@ def resolve(data, _state):
             for m_id in data["data"]["resolved"]["members"]:
                 member_data = data["data"]["resolved"]["members"][m_id]
                 member_data["user"] = data["data"]["resolved"]["users"][m_id]
-                resolved["members"][m_id] = discord.Member(data=member_data, guild=_state._get_guild(data["guild_id"]), state=_state)
+                resolved["members"][m_id] = discord.Member(data=member_data, guild=_state._get_guild(int(data["guild_id"])), state=_state)
         elif x == "messages":
             resolved["messages"] = {}
             for message_id in data["data"]["resolved"]["messages"]:
@@ -124,9 +124,9 @@ def cache_data(value, typ, data, _state):
     elif typ == OptionType.CHANNEL:
         return _state._get_channel(int(value))
     elif typ == OptionType.ROLE:
-        return _state._get_guild(int(data["guild_id"])).get_role(value)
+        return _state._get_guild(int(data["guild_id"])).get_role(int(value))
     elif typ == AdditionalType.MESSAGE:
-        return _state._get_guild(int(data["guild_id"])).get_partial_message(value)
+        return _state._get_guild(int(data["guild_id"])).get_partial_message(int(value))
     elif typ == AdditionalType.GUILD:
         return _state._get_guild(int(value))
     else:

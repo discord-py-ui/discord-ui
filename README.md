@@ -172,12 +172,22 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 
 # Changelog
 
+-   <detailsl>
+    <summary>4.0.4</summary>
+
+    ## **Fixed**
+    - slashcommand
+    > when a user was passed in an option, its guild was always None
+    - context commands
+    > if no name passed, the context command wouldn't take the callback name as the name of the command
+
+    </details>
+
 -   <details>
     <summary>4.0.3</summary>
-    
+
     ## **Fixed**
     - Message.wait_for
-
 
     </details>
 

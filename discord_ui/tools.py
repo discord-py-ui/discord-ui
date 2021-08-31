@@ -19,7 +19,7 @@ MISSING = _MISSING()
 
 def _or(*args, default=None):
     for i in range(len(args)):
-        if args[i] is not MISSING and args[i] is not None:
+        if args[i] not in [MISSING, None]:
             return args[i]
     return default
 

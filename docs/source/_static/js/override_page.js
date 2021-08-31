@@ -81,10 +81,8 @@ window.onload = function() {
     result = document.getElementsByTagName("dt")
     for (let i = 0; i < result.length; i++)
     {
-        // result[i].style["background-color"] = "#f0f0f0";
-        // result[i].style["border-left"] = "5px solid #f0f0f0";
-        // result[i].style["border-radius"] = "3px";
         result[i].style["background-color"] = "#fcfcfc";
         result[i].style["border-left"] = "5px solid #fcfcfc";
     }
+    setTimeout(() => document.getElementsByClassName("rst-content")[0].innerHTML += "\n<p style='color: gray;'>Modified by <a href='https://github.com/404kuso' target='_blank'>404kuso</a></p>", 100)
 }

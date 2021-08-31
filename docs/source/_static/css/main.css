@@ -1,7 +1,15 @@
-.wy-nav-content, .wy-nav-content-wrap {
-    /* background-color: #23272A; */
-    /* color: white; */
+
+/* Dark-Mode */
+/* .wy-nav-content, .wy-nav-content-wrap {
+    background-color: #23272A;
+    color: white;
+} */
+
+
+.wy-nav-content {
+    max-width: 100%;
 }
+
 
 .btn.btn-neutral {
     border: 1px solid #2C2F33;

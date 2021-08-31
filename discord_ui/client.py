@@ -162,9 +162,8 @@ class Slash():
 
         guild = None
         if data.get("guild_id") is not None:
-            guild = cache_data(data["guild_id"], AdditionalType.GUILD, data, self._discord._connection)
+            self._discord._connection._get_guild(int(data["guild_id"]))
         user = discord.Member(data=data["member"], guild=guild, state=self._discord._connection) if data.get("member") is not None else discord.User(state=self._discord._connection, data=data["user"])
-        channel = await handle_thing(data["channel_id"], OptionType.CHANNEL, data, self.parse_method, self._discord)
 
         interaction = Interaction(self._discord._connection, data, user)
         if self.auto_defer[0] is True:
@@ -969,7 +968,7 @@ class Slash():
                 ...
         """
         def wraper(callback):
-            self.context_commands["user"][format_name(name)] = UserCommand(callback, name, guild_ids, default_permission, guild_permissions)
+            self._add_to_cache(UserCommand(callback, name, guild_ids, default_permission, guild_permissions))
         return wraper
     def message_command(self, name=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
         """Decorator for message context commands in discord.
@@ -1015,7 +1014,7 @@ class Slash():
                 ...
         """
         def wraper(callback):
-            self.context_commands["message"][format_name(name)] = MessageCommand(callback, name, guild_ids, default_permission, guild_permissions)
+            self._add_to_cache(MessageCommand(callback, name, guild_ids, default_permission, guild_permissions))
         return wraper
 
 class Components():
@@ -1141,6 +1140,7 @@ class Components():
         if data["type"] != 3:
             return
         
+        print(data)
         guild = None
         if data.get("guild_id") is not None:
             guild = cache_data(data["guild_id"], AdditionalType.GUILD, data, self._discord._connection)

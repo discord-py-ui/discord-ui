@@ -469,6 +469,7 @@ class SlashCommand():
         return self._json["name"]
     @name.setter
     def name(self, value):
+        print(value)
         if value in [None, MISSING]:
             raise InvalidArgument("You have to specify a name")
         if type(value) is not str:
@@ -544,12 +545,12 @@ class SlashSubcommand(SlashCommand):
 
 
 class ContextCommand(SlashCommand):
-    def __init__(self, callback, name, guild_ids, default_permission = True, guild_permissions = MISSING) -> None:
+    def __init__(self, callback, name=MISSING, guild_ids=MISSING, default_permission = True, guild_permissions = MISSING) -> None:
         if callback is not None:
             callback_params = inspect.signature(callback).parameters
             if len(callback_params) < 2:
                 raise CallbackMissingContextCommandParameters()
-        super().__init__(callback, name, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
+        super().__init__(callback, name=name, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
 
     @property
     def description(self) -> str:
@@ -565,11 +566,11 @@ class ContextCommand(SlashCommand):
         pass
         
 class UserCommand(ContextCommand):
-    def __init__(self, callback, name, guild_ids = MISSING, default_permission = True, guild_permissions = MISSING) -> None:
+    def __init__(self, callback, name=MISSING, guild_ids = MISSING, default_permission = True, guild_permissions = MISSING) -> None:
         super().__init__(callback, name, guild_ids, default_permission, guild_permissions)
         self._json["type"] = CommandType.USER
 
 class MessageCommand(ContextCommand):
-    def __init__(self, callback, name, guild_ids = MISSING, default_permission = True, guild_permissions = MISSING) -> None:
+    def __init__(self, callback, name=MISSING, guild_ids = MISSING, default_permission = True, guild_permissions = MISSING) -> None:
         super().__init__(callback, name, guild_ids, default_permission, guild_permissions)
         self._json["type"] = CommandType.MESSAGE

@@ -63,9 +63,9 @@ html_static_path = ['_static']
 
 # html_context = {
 #     'css_files': ['_static/css/main.css'],
-#     'js_files': ['_static/js/override_colors.js'],
+#     'js_files': ['_static/js/override_page.js'],
 # }
 
 def setup(app):
     app.add_css_file('css/main.css')
-    app.add_js_file("js/override_colors.js")
+    app.add_js_file("js/override_page.js")
