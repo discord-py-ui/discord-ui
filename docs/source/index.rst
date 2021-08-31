@@ -52,8 +52,6 @@ we have some examples `here <https://github.com/discord-py-ui/discord-ui/tree/ma
 Docs
 ---------------------
 
-Doc index
-
 .. toctree::
    :maxdepth: 1
 

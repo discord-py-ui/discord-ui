@@ -1,3 +1,10 @@
+/*
+
+    This override module is needed to change some values I Could not change in a custom css
+    (I know this is a shit idea but it kinda works)
+
+*/
+
 function change_color(class_name, color) {
     result = document.getElementsByClassName(class_name)
     for (var i = 0; i < result.length; i++) {
