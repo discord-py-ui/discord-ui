@@ -173,6 +173,24 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>4.1.4</summary>
+
+    ## **Fixed**
+    - slashcommands in forbidden guilds
+    > when trying to get slash commands in a guild with no `appication.commands` permission, it won't throw an exepction anymore
+
+    </details>
+
+-   <details>
+    <summary>4.1.2</summary>
+
+    ## **Fixed**
+    - Subcommands editing
+    > subcommand checks were wrong and this would result in errors like `In options.0.options.2: Option name 'name' is already used in these options`
+
+    </details>
+
+-   <details>
     <summary>4.1.1</summary>
 
     ## **Fixed**

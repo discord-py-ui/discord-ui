@@ -130,4 +130,7 @@ async def get_guild_commands(client, guild_id):
         if ex.status == 429:
             await handle_rate_limit(await ex.response.json())
             return await get_guild_commands(client, guild_id)
+        if ex.status == 403:
+            logging.warning("got forbidden in " + str(guild_id))
+            return []
         raise ex

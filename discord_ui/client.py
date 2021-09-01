@@ -506,6 +506,7 @@ class Slash():
                 await delete_global_command(self._discord, global_command["id"])
             await create_guild_command(base.to_dict(), self._discord, target_guild, base.permissions.to_dict())
         elif api_command != base:
+            # for some reason, if you sync commands with cogs, it will duplicate the options of a subgroup command
             # print("api_command", api_command, "\n", "base", base.to_dict())
             await edit_guild_command(api_command["id"], self._discord, target_guild, base.to_dict(), base.permissions.to_dict())
         elif api_permissions != base.permissions:

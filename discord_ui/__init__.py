@@ -44,4 +44,4 @@ override_dpy2_client()
 
 
 __title__ = "discord-ui"
-__version__ = "4.1.1"
+__version__ = "4.1.4"
