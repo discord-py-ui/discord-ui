@@ -1,7 +1,7 @@
 from .errors import InvalidEvent, OutOfValidRange, WrongType
 from .slash.errors import AlreadyDeferred, EphemeralDeletion
 from .slash.types import ContextCommand, SlashCommand, SlashPermission, SlashSubcommand
-from .tools import MISSING, setup_logger
+from .tools import MISSING, setup_logger, _none
 from .http import BetterRoute, jsonifyMessage, send_files
 from .components import ActionRow, Button, LinkButton, SelectMenu, SelectOption, make_component
 
@@ -303,7 +303,7 @@ class SlashedCommand(Interaction, SlashCommand):
         self.bot: Bot = client
         self._json = command.to_dict()
         self.author: discord.Member = user
-        """The channel where the slash command was used"""
+        """The user who used the command"""
         self.guild_ids = guild_ids
         """The ids of the guilds where the command is available"""
         self.args: Dict[str, Union[str, int, bool, discord.Member, discord.TextChannel, discord.Role, float]] = args
@@ -569,11 +569,11 @@ class Message(discord.Message):
             def _check(com):
                 if com.message.id == self.id:
                     statements = []
-                    if custom_id not in [MISSING, None]:
+                    if not _none(custom_id):
                         statements.append(com.custom_id == custom_id)
-                    if by not in [MISSING, None]:
+                    if not _none(by):
                         statements.append(com.member.id == (by.id if hasattr(by, "id") else int(by)))
-                    if check not in [MISSING, None]:
+                    if not _none(check):
                         statements.append(check(com))
                     return all(statements)
                 return False

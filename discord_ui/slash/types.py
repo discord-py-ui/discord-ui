@@ -1,4 +1,4 @@
-from ..tools import MISSING, _or
+from ..tools import MISSING, _or, _default, _none
 from ..errors import InvalidLength, WrongType
 from .errors import CallbackMissingContextCommandParameters, MissingOptionParameter, NoAsyncCallback, OptionalOptionParameter
 
@@ -414,21 +414,21 @@ class SlashCommand():
                         raise OptionalOptionParameter(param.name)
         
         self.callback: function = callback
-        self.name = _or(name, self.callback.__name__ if self.callback not in [None, MISSING] else None)
-        self.description = _or(description, (inspect.getdoc(self.callback) if self.callback not in [None, MISSING] else None), self.name)
+        self.name = _or(name, self.callback.__name__ if not _none(self.callback) else None)
+        self.description = _or(description, (inspect.getdoc(self.callback) if not _none(self.callback) else None), self.name)
         if default_permission is MISSING:
             default_permission = True
         self.default_permission: bool = default_permission
-        if guild_permissions not in [MISSING, None]:
+        if not _none(guild_permissions):
             for _id, perm in list(guild_permissions.items()):
                 if type(_id) not in [str, int, discord.User, discord.Member, discord.Role]:
                     raise WrongType("guild_permissions key " + str(_id), _id, ["str", "int", "discord.User", "discord.Member", "discord.Role"])
                 if type(perm) is not SlashPermission:
                     raise WrongType("guild_permission[" + ("'" if type(_id) is str else "") + str(_id) + ("'" if type(_id) is str else "") + "]", perm, "SlashPermission")
         
-        self.guild_permissions: typing.Dict[(typing.Union[str, int], SlashPermission)] = guild_permissions or MISSING
+        self.guild_permissions: typing.Dict[(typing.Union[str, int], SlashPermission)] = _default(MISSING, guild_permissions)
         self.permissions: SlashPermission = SlashPermission()
-        self.guild_ids: typing.List[int] = [int(x) for x in _or(guild_ids, [])]
+        self.guild_ids: typing.List[int] = _default(MISSING, [int(x) for x in _or(guild_ids, [])])
 
     def __str__(self) -> str:
         return str(self.to_dict())
@@ -469,7 +469,7 @@ class SlashCommand():
         return self._json["name"]
     @name.setter
     def name(self, value):
-        if value in [None, MISSING]:
+        if _none(value):
             raise InvalidArgument("You have to specify a name")
         if type(value) is not str:
             raise WrongType("name", value, "str")

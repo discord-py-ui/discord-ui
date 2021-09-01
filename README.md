@@ -173,6 +173,22 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>4.1.1</summary>
+
+    ## **Fixed**
+    - Interaction.author.voice
+    > For some reason the voice property of the creator or the interaction would be set
+
+    - Global slashcommands
+    > They wouldn't be registered to the api
+
+    - Subcommands editing
+    * not fixed yet
+    > subcommand checks were wrong and this would result in errors like `In options.0.options.2: Option name 'name' is already used in these options`
+
+    </details>
+
+-   <details>
     <summary>4.1.0</summary>
 
     ## **Added**

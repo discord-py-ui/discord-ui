@@ -17,11 +17,20 @@ class _MISSING:
 
 MISSING = _MISSING()
 
+def _none(*args, empty_array=False):
+    return all(x in [None, MISSING] + ([[]] if empty_array is True else []) for x in args)
 def _or(*args, default=None):
     for i in range(len(args)):
-        if args[i] not in [MISSING, None]:
+        if not _none(args[i]):
             return args[i]
     return default
+def _default(default, *args, empty_array=True):
+    if _none(*args, empty_array=empty_array):
+        return default
+    if len(args) == 1:
+        return args[0]
+    return args
+
 
 def get_index(l: list, elem: Any, mapping = lambda x: x, default: int = -1) -> int:
     """Returns the index of an element in the list

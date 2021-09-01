@@ -164,10 +164,7 @@ class Slash():
         if int(data["type"]) not in [1, 2]:
             return
 
-        guild = None
-        if data.get("guild_id") is not None:
-            self._discord._connection._get_guild(int(data["guild_id"]))
-        user = discord.Member(data=data["member"], guild=guild, state=self._discord._connection) if data.get("member") is not None else discord.User(state=self._discord._connection, data=data["user"])
+        user = discord.Member(data=data["member"], guild=self._discord._connection._get_guild(int(data["guild_id"])), state=self._discord._connection) if data.get("member") is not None else discord.User(state=self._discord._connection, data=data["user"])
 
         interaction = Interaction(self._discord._connection, data, user)
         if self.auto_defer[0] is True:
@@ -377,17 +374,17 @@ class Slash():
                 for guild in list(command.guild_permissions.keys()):
                     await self.update_permissions(command.name, command.type, guild_id=guild, permissions=command.guild_permissions[guild], global_command=True)
             # global command
-            else:
+            elif command.guild_ids is MISSING and command.guild_permissions is MISSING:
                 logging.debug("adding '" + str(command.name) + "' as global command")
                 await global_stuff(command)
-        
+
         for x in commands:
             await add_command(commands[x])
 
         for x in self.context_commands:
             for com in self.context_commands[x]:
                 await add_command(self.context_commands[x][com])
-        
+
         if delete_unused:
             api_coms = await self._get_global_commands()
             for apic in api_coms:
@@ -509,6 +506,7 @@ class Slash():
                 await delete_global_command(self._discord, global_command["id"])
             await create_guild_command(base.to_dict(), self._discord, target_guild, base.permissions.to_dict())
         elif api_command != base:
+            # print("api_command", api_command, "\n", "base", base.to_dict())
             await edit_guild_command(api_command["id"], self._discord, target_guild, base.to_dict(), base.permissions.to_dict())
         elif api_permissions != base.permissions:
             await update_command_permissions(self._discord.user.id, self._discord.http.token, guild_id, api_command["id"], base.permissions.to_dict())
@@ -1144,10 +1142,7 @@ class Components():
         if data["type"] != 3:
             return
         
-        guild = None
-        if data.get("guild_id") is not None:
-            guild = cache_data(data["guild_id"], AdditionalType.GUILD, data, self._discord._connection)
-        user = discord.Member(data=data["member"], guild=guild, state=self._discord._connection) if data.get("member") is not None else discord.User(state=self._discord._connection, data=data["user"])
+        user = discord.Member(data=data["member"], guild=self._discord._connection._get_guild(int(data["guild_id"])), state=self._discord._connection) if data.get("member") is not None else discord.User(state=self._discord._connection, data=data["user"])
         msg = await getMessage(self._discord._connection, data=data, response=True)
         
         interaction = Interaction(self._discord._connection, data, user, msg)
