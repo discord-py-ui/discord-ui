@@ -1,35 +1,18 @@
 ======================================================
-discord-ui documentation!
+Home
 ======================================================
 
 
 Welcome to the discord-ui docs!
-This libary is an extension to `discord.py <https://github.com/Rapptz/discord.py>`__ made for using the ui and interaction features in discord and python
 
-.. important::
+This libary is an extension to `discord.py <https://github.com/Rapptz/discord.py>`__ made for using 
+the ui and interaction features in discord together with python
 
-   If you want to use slash commands, in the oauth2 invite link generation, 
-   you have to check both ``bot`` and ``application.commands`` fields
 
-   .. image:: images/slash/invite_scope.png
-      :width: 1000
-
-We got some cool features for you like:
-
-.. note::
-
-   *  Sending buttons and select menus very easy
-   *  Receiving their interaction
-   *  Responding to their interacion
-   *  Creating slashcommands, subcommands and subcommand groups
-   *  Receiving them and respond to them, including message components
-   *  Setting up permissions for slash commmands
-   *  Deleting unused slash commands
-   *  Creating and receiving the new context commands
-   *  Add/edit commands in code directly
-
-   and some more things
-
+With this libary, you can send message components like Buttons, LinkButtons and SelectMenus, 
+receive data like who pressed the button and who selected which value in a menu, create 
+application-commands like slash-commands, message-commands and user-commands, receive their interaction and 
+the used options.
 
 
 Installation
@@ -37,13 +20,19 @@ Installation
 
 To install this package, open your terminal or command line and type
 
+
+Windows
+
 .. code-block::
 
-   # windows
    > py -m install discord-ui
 
-   # linux
+Linux
+
+.. code-block::
+
    $ python3 -m pip install discord-ui
+
 
 
 Examples

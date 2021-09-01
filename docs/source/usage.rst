@@ -124,7 +124,7 @@ To receive a button press or a selection, we can listen to the ``button_press`` 
    :width: 600
 
 
-To get the user who pressed the button, you use ``btn.membauthorer``.
+To get the user who pressed the button, you use ``btn.author``.
 If you want to acces the message on which the button is, you use ``messsage``
 
 **Select menu**
@@ -139,7 +139,7 @@ If you want to acces the message on which the button is, you use ``messsage``
 .. image:: images/components/select_menu_example.gif
    :width: 600
 
-To get the user who selected a value, you use ``menu.member``.
+To get the user who selected a value, you use ``menu.author``.
 To get the value(s) selected by the user, you need to acces ``menu.selected_values``
 
 
@@ -201,6 +201,16 @@ And we got listening components with a function that will always be executed if 
 
 Slash-commands
 ====================
+
+
+.. important::
+
+   If you want to use slash commands, in the oauth2 invite link generation, 
+   you have to check both ``bot`` and ``application.commands`` fields
+
+   .. image:: images/slash/invite_scope.png
+      :width: 900
+
 
 
 To create a new slash command, we need to acces the ``slash`` attribute from the initialized ``ui``

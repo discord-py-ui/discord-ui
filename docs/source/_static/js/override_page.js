@@ -49,9 +49,9 @@ window.onload = function() {
     change_color("k", "#eb52ff")
     // function name
     change_color("nf", "#5c9aff")
-    // create class instance
-    // change_color("n", )
-    
+    // Decorators
+    change_color("nd", "#FE0")
+
     // built-in function calls
     change_color("nb", "#ecfc5b")
     // +, -, *, /, =
