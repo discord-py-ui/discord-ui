@@ -89,9 +89,7 @@ window.onload = function() {
     // attribute einzeln in eine Zeile packen
     result = document.getElementsByClassName("py property")
     for (let i = 0; i < result.length; i++)
-    {
         result[i].style["display"] = "block";
-    }
 
 
     // Makes page full size

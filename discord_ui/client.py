@@ -1030,7 +1030,7 @@ class Components():
             The main discord client
 
         override_dpy: :class:`bool`
-            Whether some of discord.py'ss default methods should be overriden with this libary's; Default ``True``
+            Whether some of discord.py's default methods should be overriden with this libary's; Default ``True``
                 For more information see https://github.com/discord-py-ui/discord-ui/blob/main/discord_ui/override.py
 
         auto_defer: Tuple[:class:`bool`, :class:`bool`]
@@ -1388,7 +1388,7 @@ class UI():
                 The discord bot client
 
             override_dpy: :class:`bool`
-                Whether some of discord.py'ss default methods should be overriden with this libary's; Default ``True``
+                Whether some of discord.py's default methods should be overriden with this libary's; Default ``True``
                     For more information see https://github.com/discord-py-ui/discord-ui/blob/main/discord_ui/override.py
 
             slash_options: :class:`dict`, optional

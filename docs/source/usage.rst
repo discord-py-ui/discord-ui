@@ -125,7 +125,7 @@ To receive a button press or a selection, we can listen to the ``button_press`` 
 
 
 To get the user who pressed the button, you use ``btn.author``.
-If you want to acces the message on which the button is, you use ``messsage``
+If you want to acces the message on which the button is, you use ``btn.messsage``
 
 **Select menu**
 
