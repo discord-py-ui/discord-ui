@@ -6,6 +6,10 @@
 } */
 
 
+.py.property {
+    display: block;
+}
+
 .wy-nav-content {
     max-width: 100%;
 }
