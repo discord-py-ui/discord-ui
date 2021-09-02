@@ -27,17 +27,23 @@ jobs:
         uses: actions/setup-python@v2.2.2
         with:
           python-version: 3.9
-          
+      - name: Install Packages
+        run: |
+         python3 -m pip install build
+         python3 -m pip install twine
       - name: Build Artifact
         env:
           TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
           TWINE_USERNAME: __token__
         run: |
-         python3 -m pip install build
-         python3 -m pip install twine
          python3 -m build
-         python3 -m twine upload --repository testpypi dist/*
       
+      - name: Upload Artifact to PyPI
+        env:
+          TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
+          TWINE_USERNAME: __token__
+        run: |
+          python3 -m twine upload --repository testpypi dist/*
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v2.2.4
         with:
