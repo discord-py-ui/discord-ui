@@ -175,6 +175,14 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>4.2.1</summary>
+
+    ## **Fixed**
+    - `cannot import name 'InteractionResponseType' from 'discord.enums'`
+
+    </details>
+
+-   <details>
     <summary>4.2.0</summary>
 
     ## **Added**

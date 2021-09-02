@@ -1,4 +1,3 @@
-from discord.enums import InteractionResponseType
 from ..tools import MISSING, _or, _default, _none
 from ..errors import InvalidLength, WrongType
 from .errors import CallbackMissingContextCommandParameters, MissingOptionParameter, NoAsyncCallback, OptionalOptionParameter
