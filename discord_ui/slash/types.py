@@ -1,3 +1,4 @@
+from discord.enums import InteractionResponseType
 from ..tools import MISSING, _or, _default, _none
 from ..errors import InvalidLength, WrongType
 from .errors import CallbackMissingContextCommandParameters, MissingOptionParameter, NoAsyncCallback, OptionalOptionParameter
@@ -374,7 +375,7 @@ class SlashCommand():
 
 
     """
-    def __init__(self, callback, name=MISSING, description=MISSING, options=[], guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
+    def __init__(self, callback, name=MISSING, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
         """
         Creates a new base slash command
         
@@ -398,8 +399,9 @@ class SlashCommand():
         }
 
         # Check options before callback because callback makes an option check
-        self.options: typing.List[SlashOption] = options
-
+        if options is MISSING:
+            options = []
+        self.options = options
         if callback is not None:
             if not inspect.iscoroutinefunction(callback):
                 raise NoAsyncCallback()
@@ -412,10 +414,26 @@ class SlashCommand():
                     param = callback_params[op.name]
                     if not op.required and param.default is param.empty:
                         raise OptionalOptionParameter(param.name)
-        
+            if _none(options, empty_array=True):
+                _ops = []
+                has_self = False
+                for _i, _name in enumerate(callback_params):
+                    # ignore context parameter
+                    if _name == "self":
+                        has_self = True
+                        continue
+                    if _i == [0, 1][has_self]:
+                        continue
+                    _val = callback_params.get(_name)
+                    op_type = [_val.annotation, _name][_val.annotation == _val.empty]
+                    if OptionType.any_to_type(op_type) is None:
+                        raise InvalidArgument("Could not find a matching option type for parameter '" + str(op_type) + "'")
+                    _ops.append(SlashOption(op_type, _name, required=_val.default is not None))
+                self.options = _ops
+
         self.callback: function = callback
         self.name = _or(name, self.callback.__name__ if not _none(self.callback) else None)
-        self.description = _or(description, (inspect.getdoc(self.callback) if not _none(self.callback) else None), self.name)
+        self.description = _or(description, inspect.getdoc(callback).split("\n")[0] if not _none(callback) and inspect.getdoc(callback) is not None else None, self.name)
         if default_permission is MISSING:
             default_permission = True
         self.default_permission: bool = default_permission

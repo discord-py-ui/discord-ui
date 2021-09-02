@@ -24,13 +24,21 @@ Create a new discord client
 
 .. warning::
 
-    Note that the discord client has to be of type :class:`discord.ext.commands.Bot`, or else it won't work
+    Note that the discord client has to be of type :class:`discord.ext.commands.Bot`, or else it won't work properly
 
 Then you need to create a new :class:`~UI` instance, with which you can use message components and slash commands
 
 .. code-block::
 
     ui = UI(client)
+
+.. important::
+
+    If you initalize the UI instance, you can choose if you want to override some of discord.py's default functions or not.
+    In this tutorial, we will show both methods, one with the overriden methods and one with the not overriden methots.
+    The only difference will be that if you want to send components in a webhook, etc., you can use the ``.send`` method, 
+    because it is replaced with our own custom method. If you choose not to override dpy, you need to use ``ui.components.send`` 
+    or ``ui.components.send_webhook`` instead.
 
 
 Message-components
@@ -63,6 +71,24 @@ We need to import them at first. For that, we need to go back to the beginning, 
     from discord_ui import Components, Button, SelectMenu, SelectOption
 
 And to send them, we use
+
+
+**Default**
+
+.. code-block::
+
+    ...
+    await ui.components.send(message.channel, "Hello World", components=[
+        Button("my_custom_id", "press me", "green"),
+        Button("my_other_custom_id", "or press me!", emoji="😁", new_line=True),
+        SelectMenu("another_custom_id", options=[
+                SelectOption("choose me", 1),
+                SelectOption("or me", 2),
+                SelectOption("or me", 3)
+        ], placeholder="Select something")
+    ])
+
+**Overriden**
 
 .. code-block::
 
@@ -125,7 +151,7 @@ To receive a button press or a selection, we can listen to the ``button_press`` 
 
 
 To get the user who pressed the button, you use ``btn.author``.
-If you want to acces the message on which the button is, you use ``btn.messsage``
+If you want to acces the message on which the button is, you use ``btn.messsage``.
 
 **Select menu**
 
@@ -143,22 +169,12 @@ To get the user who selected a value, you use ``menu.author``.
 To get the value(s) selected by the user, you need to acces ``menu.selected_values``
 
 
-
-And to respond to the component interaction as you could already see up there, we can use
-
 .. code-block::
 
-    await message.respond("we gotcha!")
-
-or
-
-.. code-block::
-
-    async def on_component(component):
+    async def component_callback(component):
         await component.respond("yo")
 
 where the ``component`` parameter the pressed button or the selected menu
-
  
 
 Easier ways
@@ -167,6 +183,23 @@ Easier ways
 But there are some more ways to receive and respond to them
 
 You can send a message and directly wait for a button press and respond to it
+
+
+**Default**
+
+.. code-block::
+
+    @client.listen()
+    async def on_message(message):
+        if message.content == "!test":
+            btn = await (
+                await ui.components.send(message.channel, "hello", components=[
+                    Button("custom_id", "there")
+                ])
+            ).wait_for("button", client)
+            await btn.respond("you pressed a button")
+
+**Overriden**
 
 .. code-block::
 
@@ -181,6 +214,7 @@ You can send a message and directly wait for a button press and respond to it
             await btn.respond("you pressed a button")
 
 
+
 And we got listening components with a function that will always be executed if a component with a special custom_id was pressed
 
 .. code-block::
@@ -189,12 +223,32 @@ And we got listening components with a function that will always be executed if 
     async def listening_component(component):
         await component.respond("we got a component in the message " + str(component.message.id))
 
+
+Sending the components
+
+**Default**
+
+.. code-block::
+
     @client.listen()
     async def on_message(message):
         if message.content == "!test":
             await message.channel.send(message.channel, "listening", components=[
                     Button("listening", "hi there"),
-                    SelectMenu("listening", options=[SelectOption(label="This is a option", value="my_value", description="This is the description of the option")]
+                    SelectMenu("listening", options=[SelectOption(label="This is a option", value="my_value", description="This is the description of the option")])
+                ]
+            )
+
+**Overriden**
+
+.. code-block::
+
+    @client.listen()
+    async def on_message(message):
+        if message.content == "!test":
+            await message.channel.send(message.channel, "listening", components=[
+                    Button("listening", "hi there"),
+                    SelectMenu("listening", options=[SelectOption(label="This is a option", value="my_value", description="This is the description of the option")])
                 ]
             )
 
@@ -221,14 +275,14 @@ Basic command
 
 .. note::
 
-    If you want to test slash commands, use ``guild_ids=["guild id to test herer"]``, because if you use global commands, 
-    it will take some titme to create/update the slash command
+    If you want to test slash commands, use ``guild_ids=["guild id to test here"]``, because if you use global commands, 
+    it will take some titme to create/update the slash command (`discord api docs reference<https://discord.com/developers/docs/interactions/application-commands#making-a-global-command>`__)
 
 In this example, we will create a simple slash command
 
 .. code-block::
 
-    @ui.slash.command(name="test", description="this is a test command", guild_ids=["785567635802816595"])
+    @ui.slash.command(name="test", description="this is a test command", guild_ids=[785567635802816595])
     async def command(ctx):
         ...
 
@@ -471,7 +525,7 @@ To create a message command, which can be used when right-clicking a message, we
 
 .. code-block::
 
-    @slash.message_command(name="quote")
+    @ui.slash.message_command(name="quote")
     async def callback(ctx, message):
         ...
 
@@ -482,7 +536,7 @@ And for a user command, we use
 
 .. code-block::
 
-    @slash.user_command(name="avatar"):
+    @ui.slash.user_command(name="avatar"):
     async def callback(ctx, user):
         ...
 
@@ -510,7 +564,7 @@ If you want to register a slash command, you can leave out the name and descript
 
 .. code-block::
 
-    @slash.command(guild_ids=[785567635802816595])
+    @ui.slash.command(guild_ids=[785567635802816595])
     async def test(ctx):                  # The name of the slash command will be 'test', because the function's name is test
         """this is a test command"""      # the description of the command will be the docstring
         ...
@@ -520,16 +574,44 @@ Same goes for subcommands and context-commands
 .. code-block::
 
     # subcommand
-    @slash.subcommand(base_names=["hello"], guild_ids=[785567635802816595])
+    @ui.slash.subcommand(base_names=["hello"], guild_ids=[785567635802816595])
     async def world(ctx):
         # Note: If you don't pass description and don't use a docstring, the empty description will be replaced with the commands name
         ...
 
     # context command
-    @slash.message_command(guild_ids=[785567635802816595])
+    @ui.slash.message_command(guild_ids=[785567635802816595])
     async def quote(ctx, message):
         ...
 
+
+You can also use the callback's function parameters to specify the slashcommand options
+
+
+.. code-block::
+
+    @ui.slash.command()
+    async def a_command(ctx, some_int = 0): # slashcommand will take an optional option with the name "some_int" of type int
+        """this is a command
+        
+        It will only use the first line for the command description
+        """
+        # command with the name "a_command", description is "this is a command"
+        ...
+
+
+
+    @ui.slash.command()
+    async def other_command(ctx, user): # slashcommand will take a required option with the name "user" of type user
+        """to show a new feature"""
+        ...
+        # command with the name "other_command", description is "to show a new feature"
+
+    @ui.slash.command()
+    async def another_command(ctx, smth: "channel"): # slashcommand will take a required option with the name "smth" of type channel
+        """in this libary"""
+        ...
+        # command with the name "another_command", description is "in this libary"
 
 SlashOption types
 -----------------

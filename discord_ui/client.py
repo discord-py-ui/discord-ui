@@ -298,7 +298,7 @@ class Slash():
         
         
         #region gather commands
-        commands = self.commands
+        commands = self.commands.copy()
         for _base in self.subcommands:
             # get first base
             for _sub in self.subcommands[_base]:
@@ -339,6 +339,7 @@ class Slash():
                         # create base0 command with name option
                         commands[_base] = SlashCommand(None, _base, options=[sub.to_dict()], guild_ids=sub.guild_ids, default_permission=sub.default_permission, guild_permissions=sub.guild_permissions)
         #endregion
+
 
         async def guild_stuff(command, guild_ids):
             """Adds the command to the guilds"""
@@ -506,8 +507,6 @@ class Slash():
                 await delete_global_command(self._discord, global_command["id"])
             await create_guild_command(base.to_dict(), self._discord, target_guild, base.permissions.to_dict())
         elif api_command != base:
-            # for some reason, if you sync commands with cogs, it will duplicate the options of a subgroup command
-            # print("api_command", api_command, "\n", "base", base.to_dict())
             await edit_guild_command(api_command["id"], self._discord, target_guild, base.to_dict(), base.permissions.to_dict())
         elif api_permissions != base.permissions:
             await update_command_permissions(self._discord.user.id, self._discord.http.token, guild_id, api_command["id"], base.permissions.to_dict())
@@ -605,7 +604,7 @@ class Slash():
         if name is not None:
             command.name = name
         if description is not None:
-            command.description = _or(description, inspect.getdoc(callback) if callback is not None else None, name, old_name)
+            command.description = _or(description, inspect.getdoc(callback).split("\n")[0] if callback is not None and inspect.getdoc(callback) is not None else None, name, old_name)
         if options is not None:
             command.options = options
         if default_permission is not None:
@@ -683,6 +682,30 @@ class Slash():
         # context message command
         elif base.command_type == CommandType.Message:
             self.context_commands["message"][base.name] = base
+    def _remove_from_cache(self, base: Union[SlashCommand, SlashSubcommand]):
+        # slash command
+        if base.command_type is CommandType.Slash:
+            # basic slash command
+            if type(base) in [SlashCommand, CogCommand]:
+                del self.commands[base.name]
+            # subcommand or subgroup
+            else:
+                # subgroup
+                if len(base.base_names) > 1:
+                    # remove from internal cache
+                    del self.subcommands[base.base_names[0]][base.base_names[1]][base.name]
+                # subcommand
+                else:
+                    # remove from cache
+                    del self.subcommands[base.base_names[0]][base.name]
+        # context user command
+        elif base.command_type == CommandType.User:
+            # remove from cache
+            del self.context_commands["user"][base.name]
+        # context message command
+        elif base.command_type == CommandType.Message:
+            # remove from cache
+            del self.context_commands["message"][base.name]
 
     async def delete_global_commands(self):
         """**Deletes all global commands**"""
@@ -1048,7 +1071,7 @@ class Components():
 
         ...
         # Your bot declaration should be here
-        components = components(client)
+        components = Components(client)
         
     
     for listening to button presses, use

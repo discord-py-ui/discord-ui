@@ -47,6 +47,8 @@ window.onload = function() {
 
     // async, def, await 
     change_color("k", "#eb52ff")
+    // in keyword
+    change_color("ow", "#eb52ff")
     // function name
     change_color("nf", "#5c9aff")
     // Decorators
@@ -102,5 +104,14 @@ window.onload = function() {
     if (result.length > 0)
         result[0].style["color"] = "white";
 
-    setTimeout(() => document.getElementsByClassName("rst-content")[0].innerHTML += "\n<p style='color: gray;'>Modified by <a href='https://github.com/404kuso' target='_blank'>404kuso</a></p>", 100)
+    // remove the discord_ui. ... prefix
+    result = document.getElementsByClassName("reference internal")
+    for(let i = 0; i < result.length; i++) {
+        if (result[i].text != null && result[i].text.match("discord_ui\.[\w]*\.")) 
+            result[i].text = (result[i].text.split(".").at(-1))
+    }
+
+    // Add author
+    document.getElementsByClassName("rst-content")[0].innerHTML += "\n<p style='color: gray;'>Modified by <a href='https://github.com/404kuso' target='_blank'>404kuso</a></p>"
+
 }

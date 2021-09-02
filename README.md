@@ -175,6 +175,37 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>4.2.0</summary>
+
+    ## **Added**
+    - cog_remove sync
+    > when you remove a cog the slash commands will now get deleted if you set `delete_unused` to True and set `sync_on_cog` to True
+    - alternativ slash options
+    > you don't have to specify options in one of the slash decorators anymore. Instead, you can set them in your callback function
+    > Example
+    ```py
+    @ui.slash.command()
+    async def greet(ctx, user):                         # This will add an required option with the name "user" of type "user"
+        """Greets a user
+        
+        You can use multiline docstrings, because only the first line will be used for the description
+        """
+        ...
+    
+    @ui.slash.command()
+    async def tag(ctx, target: discord.User = None):    # This will add an optional option with the name "target" of type "user"
+                                                        # Note: you could also use target: "user" = None or anything else you would use in SlashOption for the type
+        ...
+
+    ```
+
+    ## **Fixed**
+    - sync_commands
+    > if you would sync the commands after the first sync, it threw an error
+
+    </details>
+
+-   <details>
     <summary>4.1.4</summary>
 
     ## **Fixed**

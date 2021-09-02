@@ -133,11 +133,6 @@ class Interaction():
         -------
         :return: Returns the sent message
         :type: :class:`~Message` | :class:`EphemeralMessage`
-
-            .. note::
-                
-                If the response is hidden, a EphemeralMessage will be returned, which is an empty class
-
         """
         if ninja_mode is True or all(y in [MISSING, False] for x, y in locals().items() if x not in ["self"]):
             try:
@@ -212,7 +207,7 @@ class Interaction():
         ----------
         content: :class:`str`, optional
             The raw message content
-        tts: `bool` 
+        tts: :class:`bool` 
             Whether the message should be send with text-to-speech
         embed: :class:`discord.Embed`
             Embed rich content
@@ -239,9 +234,6 @@ class Interaction():
         -------
         :return: Returns the sent message
         :type: :class:`~Message` | :class:`EphemeralMessage`
-
-            .. note::
-                If the response is hidden, a EphemeralMessage will be returned, which is an empty class
         """
         if self.responded is False:
             return await self.respond(content=content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components, hidden=hidden)
@@ -536,25 +528,25 @@ class Message(discord.Message):
 
         Parameters
         -----------
-        event_name: :class:`str`
-            The name of the event which will be awaited [``"select"`` | ``"button"``] 
-            
-            .. note::
+            event_name: :class:`str`
+                The name of the event which will be awaited [``"select"`` | ``"button"``] 
+                
+                .. note::
 
-                ``event_name`` must be ``select`` for a select menu selection and ``button`` for a button press
+                    ``event_name`` must be ``select`` for a select menu selection and ``button`` for a button press
 
-        client: :class:`discord.ext.commands.Bot`
-            The discord client
-        custom_id: :class:`str`, Optional
-            Filters the waiting for a custom_id
-        by: :class:`discord.User` | :class:`discord.Member` | :class:`int` | :class:`str`, Optional
-            The user or the user id by that has to create the component interaction
-        check: :class:`function`, Optional
-            A check that has to return True in order to break from the event and return the received component
-                The function takes the received component as the parameter
-        timeout: :class:`float`, Optional
-            After how many seconds the waiting should be canceled. 
-            Throws an :class:`asyncio.TimeoutError` Exception
+            client: :class:`discord.ext.commands.Bot`
+                The discord client
+            custom_id: :class:`str`, Optional
+                Filters the waiting for a custom_id
+            by: :class:`discord.User` | :class:`discord.Member` | :class:`int` | :class:`str`, Optional
+                The user or the user id by that has to create the component interaction
+            check: :class:`function`, Optional
+                A check that has to return True in order to break from the event and return the received component
+                    The function takes the received component as the parameter
+            timeout: :class:`float`, Optional
+                After how many seconds the waiting should be canceled. 
+                Throws an :class:`asyncio.TimeoutError` Exception
 
         Raises
         ------
@@ -562,8 +554,23 @@ class Message(discord.Message):
 
         Returns
         ----------
-        :returns: The component that was waited for
-        :type: :class:`~PressedButton` | :class:`~SelectedMenu`
+            :returns: The component that was waited for
+            :type: :class:`~PressedButton` | :class:`~SelectedMenu`
+
+        Example
+        ---------
+
+        .. code-block::
+
+            # send a message with comoponents
+            msg = await ctx.send("okayy", components=[Button("a_custom_id", ...)])
+            try:
+                # wait for the button
+                btn = await msg.wait_for("button", client, "a_custom_id", by=ctx.author, timeout=20)
+                # send response
+                btn.respond()
+            except asyncio.TimeoutError:
+                # no button press was received in 20 seconds timespan
         """
         if event_name.lower() in ["button", "select"]:
             def _check(com):
