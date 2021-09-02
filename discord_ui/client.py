@@ -44,7 +44,7 @@ class Slash():
             Whether the commands that are not registered by this slash extension should be deleted in the api; Default ``False``
 
         sync_on_cog: .class:`bool`, optional
-            Whether the slashcommands should be updated whenever a new cog is added; Default ``True``
+            Whether the slashcommands should be updated whenever a new cog is added or removed; Default ``False``
 
         wait_sync: :class:`float`, optional
             How many seconds will be waited until the commands are going to be synchronized; Default ``1``
@@ -1423,7 +1423,7 @@ class UI():
                     Whether the commands that are not registered by this slash ui should be deleted in the api; Default ``False``
 
                 ``sync_on_cog``: .class:`bool`, optional
-                    Whether the slashcommands should be updated whenever a new cog is added; Default ``True``
+                    Whether the slashcommands should be updated whenever a new cog is added or removed; Default ``True``
 
                 ``wait_sync``: :class:`float`, optional
                     How many seconds will be waited until the commands are going to be synchronized; Default ``1``
