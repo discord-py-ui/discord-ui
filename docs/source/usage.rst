@@ -276,7 +276,7 @@ Basic command
 .. note::
 
     If you want to test slash commands, use ``guild_ids=["guild id to test here"]``, because if you use global commands, 
-    it will take some titme to create/update the slash command (`discord api docs reference<https://discord.com/developers/docs/interactions/application-commands#making-a-global-command>`__)
+    it will take some titme to create/update the slash command (`discord api docs reference <https://discord.com/developers/docs/interactions/application-commands#making-a-global-command>`__)
 
 In this example, we will create a simple slash command
 
