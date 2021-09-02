@@ -19,6 +19,10 @@ def get_readme():
 setuptools.setup(
     name=get_name(),
     version=get_version(),
+    project_urls={
+        "Documentation": "https://discord-ui.rtfd.io/en/latest/",
+        "Issue tracker": "https://github.com/discord-py-ui/discord-ui/issues",
+    },
     author="404kuso, RedstoneZockt",
     author_email="bellou9022@gmail.com, redstoneprofihd@gmail.com",
     description="A disord.py extension for discord's ui/interaction features",
@@ -28,6 +32,18 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     python_requires='>=3.6',
     classifiers=[
-        "Programming Language :: Python :: 3"
+        "Programming Language :: Python :: 3",
+        'Intended Audience :: Developers',
+        'Natural Language :: English',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 3.6'
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Topic :: Internet',
+        'Topic :: Software Development :: Libraries',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: Utilities',
+        'Typing :: Typed'
     ]
 )
