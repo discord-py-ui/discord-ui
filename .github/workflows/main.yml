@@ -17,7 +17,6 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -31,18 +30,15 @@ jobs:
          python3 -m pip install build
          python3 -m pip install twine
       - name: Build Artifact
-        env:
-          TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
-          TWINE_USERNAME: __token__
         run: |
          python3 -m build
       
       - name: Upload Artifact to PyPI
         env:
-          TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
           TWINE_USERNAME: __token__
         run: |
-          python3 -m twine upload --repository testpypi dist/*
+          python3 -m twine upload dist/*
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v2.2.4
         with:
