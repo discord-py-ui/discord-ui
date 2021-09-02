@@ -29,9 +29,14 @@ jobs:
           python-version: 3.9
           
       - name: Build Artifact
+        env:
+          TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
+          TWINE_USERNAME: __token__
         run: |
          python3 -m pip install build
+         python3 -m pip install twine
          python3 -m build
+         python3 -m twine upload --repository testpypi dist/*
       
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v2.2.4
@@ -45,9 +50,9 @@ jobs:
         uses: actions/download-artifact@v2.0.10
         with:
           path: dist/
-      - name: pypi-publish
-        uses: pypa/gh-action-pypi-publish@v1.4.2
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_TEST_TOKEN }}
-          repository_url: https://test.pypi.org/project/discord-ui/
+#      - name: pypi-publish
+#        uses: pypa/gh-action-pypi-publish@v1.4.2
+#        with:
+#          user: __token__
+#          password: ${{ secrets.PYPI_TEST_TOKEN }}
+#          repository_url: https://test.pypi.org/project/discord-ui/
