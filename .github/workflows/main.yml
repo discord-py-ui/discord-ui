@@ -29,7 +29,9 @@ jobs:
           python-version: 3.9
           
       - name: Build Artifact
-        run: python3 -m build
+        run: |
+         python3 -m pip install build
+         python3 -m build
       
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v2.2.4
