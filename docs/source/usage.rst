@@ -273,7 +273,7 @@ To create a new slash command, we need to acces the ``slash`` attribute from the
 Basic command
 ~~~~~~~~~~~~~~
 
-.. note::
+.. warning::
 
     If you want to test slash commands, use ``guild_ids=[guild ids to test here]``, because if you use global commands, 
     it will take some titme to create/update the slash command (`discord api docs reference <https://discord.com/developers/docs/interactions/application-commands#making-a-global-command>`__)
