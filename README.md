@@ -25,7 +25,7 @@ for using discord's newest ui features like buttons, slash commands and context 
 
 ```cmd
 # windows
-py -m install discord-ui
+py -m pip install discord-ui
 
 # linux
 python3 -m pip install discord-ui
