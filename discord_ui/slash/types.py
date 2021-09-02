@@ -388,9 +388,9 @@ class SlashCommand():
         SlashCommand(callback=my_function, name="hello_world", description="This is a test command", 
             options=[
                 SlashOption(str, name="parameter", description="this is a parameter", choices=[{ "name": "choice 1", "value": 1 }])
-            ], guild_ids=["785567635802816595"], default_permission=False, 
+            ], guild_ids=[785567635802816595], default_permission=False, 
             guild_permissions={ 
-                "785567635802816595": SlashPermission(allowed={"539459006847254542": SlashPermission.USER}) 
+                785567635802816595: SlashPermission(allowed={"539459006847254542": SlashPermission.USER}) 
             })
         ```
         """

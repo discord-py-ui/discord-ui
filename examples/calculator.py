@@ -30,7 +30,7 @@ calculator = [
 
 
 # Create a slash command
-@ui.slash.command(name="calculator", description="opens a calculator, that will automatically close when no input was provided after 20 seconds", guild_ids=["785567635802816595"])
+@ui.slash.command(name="calculator", description="opens a calculator, that will automatically close when no input was provided after 20 seconds", guild_ids=[785567635802816595])
 async def test(ctx: SlashedCommand):
     # The current query for the calculator
     query = ""

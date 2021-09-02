@@ -816,9 +816,9 @@ class Slash():
             @slash.command(name="hello_world", description="This is a test command", 
             options=[
                 SlashOption(str, name="parameter", description="this is a parameter", choices=[{ "name": "choice 1", "value": "test" }])
-            ], guild_ids=["785567635802816595"], default_permission=False, 
+            ], guild_ids=[785567635802816595], default_permission=False, 
             guild_permissions={
-                    "785567635802816595": SlashPermission(allowed={"539459006847254542": SlashPermission.USER})
+                    785567635802816595: SlashPermission(allowed={"539459006847254542": SlashPermission.USER})
                 }
             )
             async def command(ctx, parameter = None):
@@ -902,7 +902,7 @@ class Slash():
 
             @slash.subcommand_group(base_names="hello", name="world", options=[
                 SlashOption(argument_type="user", name="user", description="the user to tell the holy words")
-            ], guild_ids=["785567635802816595"])
+            ], guild_ids=[785567635802816595])
             async def command(ctx, user):
                 ...
 
@@ -912,7 +912,7 @@ class Slash():
 
             @slash.subcommand_group(base_names=["hello", "beautiful"], name="world", options=[
                 SlashOption(argument_type="user", name="user", description="the user to tell the holy words")
-            ], guild_ids=["785567635802816595"])
+            ], guild_ids=[785567635802816595])
             async def command(ctx, user):
                 ...
 
@@ -985,8 +985,8 @@ class Slash():
         
         .. code-block::
 
-            @slash.user_command(name="call", guild_ids=["785567635802816595"], default_permission=False, guild_permissions={
-                "785567635802816595": SlashPermission(allowed={
+            @slash.user_command(name="call", guild_ids=[785567635802816595], default_permission=False, guild_permissions={
+                785567635802816595: SlashPermission(allowed={
                     "585567635802816595": SlashPermission.USER
                 })
             })
@@ -1031,8 +1031,8 @@ class Slash():
         
         .. code-block::
 
-            @slash.message_command(name="quote", guild_ids=["785567635802816595"], default_permission=False, guild_permissions={
-                "785567635802816595": SlashPermission(allowed={
+            @slash.message_command(name="quote", guild_ids=[785567635802816595], default_permission=False, guild_permissions={
+                785567635802816595: SlashPermission(allowed={
                     "585567635802816595": SlashPermission.USER
                 })
             })

@@ -22,7 +22,7 @@ client = commands.Bot(" ")
 ui = UI(client, slash_options={"wait_sync": 2, "delete_unused": True})
 
 # Create a slash command
-@ui.slash.command(name="role-picker", description="let's you pick roles", guild_ids=["785567635802816595"])
+@ui.slash.command(name="role-picker", description="let's you pick roles", guild_ids=[785567635802816595])
 async def command(ctx: SlashedCommand):
 
     # The role picker component

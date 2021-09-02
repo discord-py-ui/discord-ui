@@ -28,7 +28,7 @@ name="button", description="sends a button and a linkbutton", options=[
         SlashOption(str, "emoji", "a emoji appearing before the text")
     ], 
     # If you want to test the command, use guild_ids, because this is way faster than global commands
-    guild_ids=["785567635802816595"])
+    guild_ids=[785567635802816595])
 async def command(ctx, message_content="cool, right?", name="click me", link="https://github.com/discord-py-ui/discord-ui", emoji=None):
     # Check if the link is valid
     if not link.startswith("http://") and not link.startswith("https://"):

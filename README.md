@@ -65,7 +65,7 @@ from discord_ui import UI, SlashOption
 client = commands.Bot(" ")
 ui = UI(client)
 
-@ui.slash.command("hello_world", options=[SlashOption(bool, "cool", "whether this libary is cool", required=False)], guild_ids=["785567635802816595"])
+@ui.slash.command("hello_world", options=[SlashOption(bool, "cool", "whether this libary is cool", required=False)], guild_ids=[785567635802816595])
 async def command(ctx, cool=True):
     """This is a simple slash command"""
     # you can use docstrings for the slash command description too
@@ -83,7 +83,7 @@ from discurd_ui import UI
 client = commands.Bot(" ")
 ui = UI(client)
 
-@ui.slash.user_command("avatar", guild_ids=["785567635802816595"])
+@ui.slash.user_command("avatar", guild_ids=[785567635802816595])
 async def avatar(ctx, user: discord.Member):
     """Sends the avatar of a user"""
     await ctx.respond(embed=discord.Embed(description=user.display_name).set_image(url=user.avatar_url))

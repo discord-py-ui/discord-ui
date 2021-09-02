@@ -307,7 +307,7 @@ It acceps a list of :class:`~SlashOption`
 
     @ui.slash.command(name="test", description="this is a test command", options=[
             SlashOption(int, name="parameter1", description="this is a parameter")
-        ], guild_ids=["785567635802816595"])
+        ], guild_ids=[785567635802816595])
     async def command(ctx, parameter1="nothing"):
         await ctx.respond("I got `" + str(parameter1) + "` for `parameter1`")
 
@@ -344,17 +344,13 @@ If you want the parameter to be required, in the option, you have to set ``requi
 
     @ui.slash.command(name="test", description="this is a test command", options=[
             SlashOption(int, name="parameter1", description="this is a parameter", required=True)
-        ], guild_ids=["785567635802816595"])
+        ], guild_ids=[785567635802816595])
     async def command(ctx, parameter1):
         await ctx.respond("I got `" + str(parameter1) + "` for `parameter1`")
 
 .. image:: images/slash/test_param_options_required.gif
     :width: 550
 
-.. note::
-
-    the ``parameter`` argument of the callback function doesn't have a default value anymore, 
-    because if the command is used, it will always get a value passed
 
 Choices
 ~~~~~~~~~~
@@ -370,12 +366,27 @@ Too add them, where we add the options with the :class:`~SlashOption` class, we 
                 SlashOption(int, name="parameter1", description="this is a parameter", choices=[
                     {"name": "first choice", "value": 1}, {"name": "second choice", "value": 2}
                 ])
-            ], guild_ids=["785567635802816595"])
+            ], guild_ids=[785567635802816595])
     async def command(ctx, parameter1="nothing"):
         await ctx.respond("I got `" + str(parameter1) + "` for `parameter1`")
 
 Choices are a list of dict, where ``"name":`` is the displayed choice name and ``"value":`` is the real value, 
 which will be received when the choice is selected 
+
+You can also use the ``create_choice`` function to make it easier
+
+.. code-block::
+
+    from discord_ui import create_choice
+    ...
+
+    @ui.slash.command(name="test", description="this is a test command", options=[
+                SlashOption(int, name="parameter1", description="this is a parameter", choices=[
+                    create_choice("first choice", 1), create_choice("second choice", 2)
+                ])
+            ], guild_ids=[785567635802816595])
+    async def command(ctx, parameter1="nothing"):
+        await ctx.respond("I got `" + str(parameter1) + "` for `parameter1`")
 
 .. image:: images/slash/test_param_choices.gif
     :width: 550
@@ -402,7 +413,7 @@ If the default permission to ``False``, no one can use the command, if it's ``Tr
 
     @ui.slash.command(name="test", description="this is a test command", options=[
             SlashOption(int, name="parameter1", description="this is a parameter")
-        ], guild_ids=["785567635802816595"], default_permission=False)
+        ], guild_ids=[785567635802816595], default_permission=False)
     async def command(ctx, parameter1="nothing"):
         ...
 
@@ -420,8 +431,8 @@ You can add role ids or/and user ids
 
     @ui.slash.command(name="test", description="this is a test command", options=[
             SlashOption(int, name="parameter1", description="this is a parameter")
-        ], guild_ids=["785567635802816595"], guild_permissions={
-        "785567635802816595": SlashPermission(
+        ], guild_ids=[785567635802816595], guild_permissions={
+        785567635802816595: SlashPermission(
             allowed={ 
                 "539459006847254542": SlashPermission.USER,
                 "849035012476895232": SlashPermission.ROLE
@@ -444,6 +455,9 @@ Forbidden command
     :width: 1000
 
 
+You can later update the command permissions with the :meth:`~Slash.update_permissions` function. 
+
+
 guild ids
 ~~~~~~~~~~~
 
@@ -453,7 +467,7 @@ To set the guilds where the command is useable, you need to set the ``guild_id``
 
 .. code-block::
 
-    @ui.slash.command(name="test", description="this is a test command", guild_ids=["785567635802816595"])
+    @ui.slash.command(name="test", description="this is a test command", guild_ids=[785567635802816595])
     async def command(ctx, parameter1="nothing"):
         ...
 

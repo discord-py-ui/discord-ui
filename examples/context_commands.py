@@ -18,7 +18,7 @@ ui = UI(client)
 
 
 # Create the command
-@ui.slash.message_command("quote", ["785567635802816595"])
+@ui.slash.message_command("quote", [785567635802816595])
 # register the callback
 async def quote(ctx, message):
     # respond to the interaction so no error will show up
@@ -31,7 +31,7 @@ async def quote(ctx, message):
     await webhook.delete()
 
 # Create the command
-@ui.slash.user_command("avatar", ["785567635802816595"])
+@ui.slash.user_command("avatar", [785567635802816595])
 # register the callback
 async def avatar(ctx, user):
     # send a embed with the user's avatar

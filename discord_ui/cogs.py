@@ -352,9 +352,9 @@ def slash_cog(name=MISSING, description=MISSING, options=[], guild_ids=MISSING, 
 
             @slash_cog(name="hello_world", options=[
                 SlashOption(str, name="parameter", description="this is a parameter", choices=[{ "name": "choice 1", "value": "test" }])
-            ], guild_ids=["785567635802816595"], default_permission=False, 
+            ], guild_ids=[785567635802816595], default_permission=False, 
             guild_permissions={
-                    "785567635802816595": SlashPermission(allowed={"539459006847254542": SlashPermission.USER})
+                    785567635802816595: SlashPermission(allowed={"539459006847254542": SlashPermission.USER})
                 }
             )
             async def hello_world(self, ctx, parameter = None):
@@ -420,7 +420,7 @@ def subslash_cog(base_names, name=MISSING, description=MISSING, options=[], guil
 
             @subslash_cog(base_names="hello", name="world", options=[
                 SlashOption(argument_type="user", name="user", description="the user to tell the holy words")
-            ], guild_ids=["785567635802816595"])
+            ], guild_ids=[785567635802816595])
             async def command(ctx, user):
                 ...
 
@@ -433,7 +433,7 @@ def subslash_cog(base_names, name=MISSING, description=MISSING, options=[], guil
 
             @subslash_cog(base_names=["hello", "beautiful"], name="world", options=[
                 SlashOption(argument_type="user", name="user", description="the user to tell the holy words")
-            ], guild_ids=["785567635802816595"])
+            ], guild_ids=[785567635802816595])
             async def command(ctx, user):
                 ...
 
@@ -483,7 +483,7 @@ def context_cog(type: Literal["user", 2, "message", 3], name=MISSING, guild_ids=
                 ...
 
                 # message command
-                @context_cog(type="message", name="quote", guild_ids=["785567635802816595"])
+                @context_cog(type="message", name="quote", guild_ids=[785567635802816595])
                 async def quote(ctx, message):
                     ...
                 
