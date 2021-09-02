@@ -13,6 +13,8 @@
 </p>
 
 [![Downloads](https://pepy.tech/badge/discord-ui)](https://pepy.tech/project/discord-ui)
+![PyPI](https://img.shields.io/pypi/v/discord-ui)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/discord-ui)
 
 ## Introduction
 
