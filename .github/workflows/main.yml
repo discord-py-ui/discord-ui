@@ -23,15 +23,29 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-    
-      - name: pypi-publish
-  # You may pin to the exact commit or the version.
-  # uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
-      - uses: pypa/gh-action-pypi-publish@v1.4.2
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
         with:
-          # PyPI user
-          user: "__token__"
-          # Password for your PyPI user or an access token
+          python-version: 3.9
+          
+      - name: Build Artifact
+        run: python3 -m build
+      
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          # Artifact name
+          name: "discord-ui"
+          # A file, directory or wildcard pattern that describes what to upload
+          path: "dist/*"
+          
+      - name: Download Artifact
+        uses: actions/download-artifact@v2.0.10
+        with:
+          path: dist/
+      - name: pypi-publish
+        uses: pypa/gh-action-pypi-publish@v1.4.2
+        with:
+          user: __token__
           password: ${{ secrets.PYPI_TEST_TOKEN }}
-          # The repository URL to use
-          repository_url: "https://test.pypi.org/project/discord-ui/"
+          repository_url: https://test.pypi.org/project/discord-ui/
