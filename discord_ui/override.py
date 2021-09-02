@@ -32,7 +32,7 @@ def override_dpy2_client():
 
     if discord.__version__.startswith("2"):
         module.ext.commands.bot.Bot.__new__ = client_override
-
+    sys.modules["discord"] = module
 def override_dpy():
     """This method overrides dpy methods. You shouldn't need to use this method by your own, the lib overrides everything by default"""
     module = sys.modules["discord"]
