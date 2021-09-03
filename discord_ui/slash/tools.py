@@ -20,7 +20,7 @@ class ParseMethod:
         Fetches all the ids of the received data with an api call
     - ``CACHE``     [3]
         Uses the internal bot cache to get the data 
-    
+
     .. warning::
 
         The cache method uses the `.get_guild`, `.get_channel`... methods, which needs to have some intents enabled 
@@ -29,6 +29,7 @@ class ParseMethod:
     - ``AUTO``      [4]
         This will try all methods beginning (RESOLVE, FETCH, CACHE, RAW) and changes to the next method whenever an exception occurs
     """
+    
     RAW         =       Raw         =       0
     RESOLVE     =       Resolve     =       1
     FETCH       =       Fetch       =       2

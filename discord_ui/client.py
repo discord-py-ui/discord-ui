@@ -87,7 +87,8 @@ class Slash():
 
     """
     def __init__(self, client, parse_method = ParseMethod.AUTO, auto_sync=True, delete_unused = False, sync_on_cog=False, wait_sync = 1, auto_defer = False) -> None:
-        """Creates a new slash command thing
+        """
+        Creates a new slash command thing
         
         Example
         ```py
@@ -277,7 +278,8 @@ class Slash():
 
 
     async def sync_commands(self, delete_unused=None):
-        """Synchronizes the slash commands with the api
+        """
+        Synchronizes the slash commands with the api
         
         Parameters
         ----------
@@ -438,7 +440,8 @@ class Slash():
     
 
     async def create_command(self, command):
-        """Adds a command to the api. You shouldn't use this method unless you know what you're doing
+        """
+        Adds a command to the api. You shouldn't use this method unless you know what you're doing
         
         Parameters
         ----------
@@ -469,7 +472,8 @@ class Slash():
         else:
             await self.add_global_command(command)
     async def add_global_command(self, base):
-        """Adds a slash command to the global bot commands
+        """
+        Adds a slash command to the global bot commands
         
         Parameters
         ----------
@@ -484,7 +488,8 @@ class Slash():
             if api_command != base:
                 await edit_global_command(api_command["id"], self._discord, base.to_dict())
     async def add_guild_command(self, base, guild_id):
-        """Adds a slash command to a guild
+        """
+        Adds a slash command to a guild
         
         Parameters
         ----------
@@ -512,7 +517,8 @@ class Slash():
             await update_command_permissions(self._discord.user.id, self._discord.http.token, guild_id, api_command["id"], base.permissions.to_dict())
 
     async def update_permissions(self, name, typ: Literal["slash", 1, "user", 2, "message", 3] = 1, *, guild_id=MISSING, default_permission=MISSING,  permissions=MISSING, global_command=False):
-        """Updates the permissions for a command
+        """
+        Updates the permissions for a command
         
         Parameters
         ----------
@@ -556,7 +562,8 @@ class Slash():
             else:
                 await edit_guild_command(api_command["id"], self._discord, guild_id, api_command)
     async def edit_command(self, old_name, typ: Literal["slash", 1, "user", 2, "message", 3] = 1, guild_id=MISSING, *, name, description, options, guild_ids, default_permission, guild_permissions, callback=MISSING):
-        """Edits a command
+        """
+        Edits a command
         
         Parameters
         ----------
@@ -734,7 +741,8 @@ class Slash():
 
 
     def add_command(self, name, callback=None, description=MISSING, options=[], guild_ids=MISSING, default_permission=True, guild_permissions=MISSING, api=False) -> Union[None, Coroutine]:
-        """Adds a new slashcommand
+        """
+        Adds a new slashcommand
 
         name: :class:`str`
             1-32 characters long name
@@ -769,7 +777,8 @@ class Slash():
                 raise Exception("Slashcommands are not ready yet")
             return self.create_command(command) 
     def command(self, name=MISSING, description=MISSING, options=[], guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
-        """A decorator for a slash command
+        """
+        A decorator for a slash command
         
         command in discord:
             ``/name [options]``
@@ -825,7 +834,8 @@ class Slash():
                 ...
         """
         def wrapper(callback):
-            """The wrapper for the callback function. The function's parameters have to have the same name as the parameters specified in the slash command.
+            """
+            The wrapper for the callback function. The function's parameters have to have the same name as the parameters specified in the slash command.
 
             `ctx` is of type :class:`~SlashedCommand` and is used for responding to the interaction and more
 
@@ -847,7 +857,8 @@ class Slash():
             self.add_command(name, callback, description, options, guild_ids, default_permission, guild_permissions)
         return wrapper
     def subcommand(self, base_names, name=MISSING, description=MISSING, options=[], guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
-        """A decorator for a subcommand group
+        """
+        A decorator for a subcommand group
         
         command in discord
             ``/base_names... name [options]``
@@ -918,7 +929,8 @@ class Slash():
 
         """
         def wrapper(callback):
-            """The wrapper for the callback function. The function's parameters have to have the same name as the parameters specified in the slash command.
+            """
+            The wrapper for the callback function. The function's parameters have to have the same name as the parameters specified in the slash command.
 
             `ctx` is of type :class:`~SlashedCommand` and is used for responding to the interaction and more
 
@@ -951,7 +963,8 @@ class Slash():
 
         return wrapper
     def user_command(self, name=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions = MISSING):
-        """Decorator for user context commands in discord.
+        """
+        Decorator for user context commands in discord.
             ``Right-click username`` -> ``apps`` -> ``commands is displayed here``
 
 
@@ -997,7 +1010,8 @@ class Slash():
             self._add_to_cache(UserCommand(callback, name, guild_ids, default_permission, guild_permissions))
         return wraper
     def message_command(self, name=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
-        """Decorator for message context commands in discord.
+        """
+        Decorator for message context commands in discord.
             ``Right-click message`` -> ``apps`` -> ``commands is displayed here``
 
 
@@ -1044,7 +1058,8 @@ class Slash():
         return wraper
 
 class Components():
-    """A class for using and receiving message components in discord
+    """
+    A class for using and receiving message components in discord
     
     Parameters
     -----------
@@ -1104,7 +1119,8 @@ class Components():
 
     """
     def __init__(self, client: com.Bot, override_dpy=True, auto_defer=False):
-        """Creates a new compnent listener
+        """
+        Creates a new compnent listener
         
         Example
         ```py
@@ -1200,7 +1216,8 @@ class Components():
     async def send(self, channel, content=MISSING, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, 
             files=MISSING, delete_after=MISSING, nonce=MISSING, allowed_mentions=MISSING, reference=MISSING, 
             mention_author=MISSING, components=MISSING) -> Message:
-        """Sends a message to a textchannel
+        """
+        Sends a message to a textchannel
 
         Parameters
         ----------
@@ -1258,7 +1275,8 @@ class Components():
         
         return msg
     def send_webhook(self, webhook, content=MISSING, *, wait=False, username=MISSING, avatar_url=MISSING, tts=False, files=MISSING, embed=MISSING, embeds=MISSING, allowed_mentions=MISSING, components=MISSING) -> Union[WebhookMessage, None]:
-        """Sends a webhook message
+        """
+        Sends a webhook message
         
         Parameters
         ----------
@@ -1300,7 +1318,8 @@ class Components():
 
         return webhook._adapter.execute_webhook(payload=payload, wait=wait, files=files)
     def listening_component(self, custom_id, messages=MISSING, users=MISSING, component_type: Literal["button", "select"]=MISSING, check=lambda component: True):
-        """Decorator for ``add_listening_component``
+        """
+        Decorator for ``add_listening_component``
 
         Parameters
         ----------
@@ -1372,7 +1391,8 @@ class Components():
             self.listening_components[custom_id] = []
         self.listening_components[custom_id].append(ListeningComponent(callback, messages, users, check, custom_id))
     def remove_listening_components(self, custom_id):
-        """Removes all listening components for a custom_id
+        """
+        Removes all listening components for a custom_id
         
         Parameters
         ----------
@@ -1383,7 +1403,8 @@ class Components():
         if self.listening_components.get(custom_id) is not None:
             del self.listening_components[custom_id]
     def remove_listening_component(self, listening_component):
-        """Removes a listening component
+        """
+        Removes a listening component
         
         Parameters
         ----------
@@ -1399,7 +1420,8 @@ class Components():
         
 
 class UI():
-    """The main extension for the package to use slash commands and message components
+    """
+    The main extension for the package to use slash commands and message components
         
         Parameters
         ----------
@@ -1436,7 +1458,8 @@ class UI():
             ``[1]``: Whether the deferration should be hidden (True) or public (False)
     """
     def __init__(self, client, override_dpy=True, slash_options = {"parse_method": ParseMethod.AUTO, "auto_sync": True, "delete_unused": False, "sync_on_cog": True, "wait_sync": 1}, auto_defer = False) -> None:
-        """Creates a new ui object
+        """
+        Creates a new ui object
         
         Example
         ```py
@@ -1444,7 +1467,8 @@ class UI():
         ```
         """
         self.components = Components(client, override_dpy=override_dpy, auto_defer=auto_defer)
-        """For using message components
+        """
+        For using message components
         
         :type: :class:`~Components`
         """
@@ -1453,7 +1477,8 @@ class UI():
         if slash_options.get("auto_defer") is None:
             slash_options["auto_defer"] = auto_defer
         self.slash = Slash(client, **slash_options)
-        """For using slash commands
+        """
+        For using slash commands
         
         :type: :class:`~Slash`
         """

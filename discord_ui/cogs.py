@@ -17,7 +17,8 @@ except:
     from typing_extensions import Literal
 
 class WrongListener(errors.CheckFailure):
-    """Exception raised when a listening component received a component event that doesn't meet the check conditions
+    """
+    Exception raised when a listening component received a component event that doesn't meet the check conditions
 
     This inherits from :exc:`CheckFailure`
     """
@@ -25,7 +26,8 @@ class WrongListener(errors.CheckFailure):
         super().__init__(message or "The used component doesn't this listener's check conditions.")
 
 class BaseCallable():
-    """A base class for all cog objects
+    """
+    A base class for all cog objects
     
     IMPORTANT: Most of this code is taken out of the discord.ext.commands module
         Ref: https://github.com/Rapptz/discord.py/blob/a2a7b0f076c763f08c871d76f9477d1d0eed1973/discord/ext/commands/core.py#L205
@@ -125,7 +127,8 @@ class BaseCallable():
                     raise CommandOnCooldown(bucket, retry_after, self._buckets.type)  # type: ignore
 
     def is_on_cooldown(self, ctx) -> bool:
-        """Checks whether the command is currently on cooldown.
+        """
+        Checks whether the command is currently on cooldown.
 
         Parameters
         -----------
@@ -145,7 +148,8 @@ class BaseCallable():
         current = dt.replace(tzinfo=datetime.timezone.utc).timestamp()
         return bucket.get_tokens(current) == 0
     def reset_cooldown(self, ctx) -> None:
-        """Resets the cooldown on this command.
+        """
+        Resets the cooldown on this command.
 
         Parameters
         -----------
@@ -156,7 +160,8 @@ class BaseCallable():
             bucket = self._buckets.get_bucket(ctx.message)
             bucket.reset()
     def get_cooldown_retry_after(self, ctx) -> float:
-        """Retrieves the amount of seconds before this command can be tried again.
+        """
+        Retrieves the amount of seconds before this command can be tried again.
 
         .. versionadded:: 1.4
 
@@ -179,8 +184,9 @@ class BaseCallable():
 
         return 0.0
     def error(self, coro):
-        """A decorator that registers a coroutine as a local error handler.
-
+        """
+        A decorator that registers a coroutine as a local error handler.
+        
         A local error handler is an :func:`.on_command_error` event limited to
         a single command. However, the :func:`.on_command_error` is still
         invoked afterwards as the catch-all.
@@ -202,13 +208,15 @@ class BaseCallable():
         self.on_error = coro
         return coro
     def has_error_handler(self) -> bool:
-        """:class:`bool`: Checks whether the command has an error handler registered.
+        """
+        :class:`bool`: Checks whether the command has an error handler registered.
 
         .. versionadded:: 1.7
         """
         return hasattr(self, 'on_error')
     def before_invoke(self, coro):
-        """A decorator that registers a coroutine as a pre-invoke function.
+        """
+        A decorator that registers a coroutine as a pre-invoke function.
 
         This function is called directly before the command is
         called. This makes it a useful function to set up database
@@ -233,7 +241,8 @@ class BaseCallable():
         self._before_invoke = coro
         return coro
     def after_invoke(self, coro):
-        """A decorator that registers a coroutine as a post-invoke function.
+        """
+        A decorator that registers a coroutine as a post-invoke function.
 
         A post-invoke function is called directly after the command is
         called. This makes it a useful function to clean-up database
@@ -302,7 +311,8 @@ class ListeningComponent(BaseCallable):
         self.custom_id = custom_id
 
 def slash_cog(name=MISSING, description=MISSING, options=[], guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING):
-    """A decorator for cogs that will register a slashcommand
+    """
+    A decorator for cogs that will register a slashcommand
     
     command in discord
         ``/name [options]``
@@ -364,8 +374,9 @@ def slash_cog(name=MISSING, description=MISSING, options=[], guild_ids=MISSING, 
         return CogCommand(callback, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
     return wraper
 def subslash_cog(base_names, name=MISSING, description=MISSING, options=[], guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING):
-    """A decorator for cogs that will register a subcommand/subcommand-group
-        
+    """
+    A decorator for cogs that will register a subcommand/subcommand-group
+  
     command in discord
         ``/base_names... name [options]``
 
@@ -442,9 +453,9 @@ def subslash_cog(base_names, name=MISSING, description=MISSING, options=[], guil
         return CogSubCommandGroup(callback, base_names, name, description=description, options=options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
     return wraper
 def context_cog(type: Literal["user", 2, "message", 3], name=MISSING, guild_ids=MISSING, default_permission=MISSING, guild_permission=MISSING):
-    """Decorator for cogs that will register a context command in discord
+    """
+    Decorator for cogs that will register a context command in discord
             ``Right-click message or user`` -> ``apps`` -> ``commands is displayed here``
-
 
         Parameters
         ----------
@@ -501,7 +512,8 @@ def context_cog(type: Literal["user", 2, "message", 3], name=MISSING, guild_ids=
             raise InvalidArgument("Invalid context type! type has to be one of 'user', 1, 'message', 2!")
     return wraper
 def listening_component_cog(custom_id, messages=MISSING, users=MISSING, component_type: Literal['button', 'select'] = MISSING, check=lambda _ctx: True):
-    """Decorator for cogs that will register a listening component
+    """
+    Decorator for cogs that will register a listening component
 
     Parameters
     ----------

@@ -149,7 +149,8 @@ class SelectOption():
 
     @classmethod
     def _fromData(cls, data) -> "SelectOption":
-        """Initializes a new SelectOption from a dict
+        """
+        Initializes a new SelectOption from a dict
         
         Parameters
         ----------
@@ -194,7 +195,8 @@ class Component():
 
 
 class SelectMenu(Component):
-    """A select menu
+    """
+    Represents a ui-dropdown selectmenu
 
     Parameters
     ----------
@@ -307,7 +309,8 @@ class SelectMenu(Component):
         if len(x) == 1:
             return x[0]
     def set_default_option(self, position: int) -> 'SelectMenu':
-        """Selects the default selected option
+        """
+        Selects the default selected option
 
         Parameters
         ----------
@@ -371,7 +374,8 @@ class SelectMenu(Component):
 
     @property
     def hash(self) -> str:
-        """Hash for the selectmenu
+        """
+        Hash for the selectmenu
 
         :type: :class:`str`
         """
@@ -383,7 +387,8 @@ class SelectMenu(Component):
 
 # region Button
 class Button(Component):
-    """A discord-ui button
+    """
+    A ui-button
 
     Parameters
     ----------
@@ -483,7 +488,8 @@ class Button(Component):
     
     @property
     def emoji(self) -> str:
-        """The mention of the emoji before the text
+        """
+        The mention of the emoji before the text
         
             .. note::
                 For setting the emoji, you can use a str or discord.Emoji          
@@ -544,7 +550,8 @@ class Button(Component):
         return cls("empty", "empty")
     @classmethod
     def _fromData(cls, data, new_line=False) -> 'Button':
-        """Returns a new button initialized from api response data
+        """
+        Returns a new button initialized from api response data
 
         Returns
         -------
@@ -668,7 +675,8 @@ class LinkButton():
     
     @property
     def emoji(self) -> str:
-        """The mention of the emoji before the text
+        """
+        The mention of the emoji before the text
         
             .. note::
                 For setting the emoji, you can use a str or discord.Emoji          
@@ -754,7 +762,8 @@ class ButtonStyles:
 
 
 class ActionRow():
-    """Alternative to setting ``new_line`` in a full component list or putting the components in a list 
+    """
+    Alternative to setting ``new_line`` in a full component list or putting the components in a list 
     
     Only works for :class:`~Button` and :class:`~LinkButton`, because :class:`~SelectMenu` is always in a new line
     
@@ -764,7 +773,8 @@ class ActionRow():
             Whether all components should be disabled; default False   
     """
     def __init__(self, *items, disabled = False):
-        """Creates a new component list
+        """
+        Creates a new component list
 
         Examples
         ```py
@@ -783,7 +793,8 @@ class ActionRow():
             self.items[i].disabled = disable
         return self
     def filter(self, check = lambda x: ...):
-        """Filters all components
+        """
+        Filters all components
         
         Parameters
         ----------
