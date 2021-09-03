@@ -43,7 +43,7 @@ class Slash():
         delete_unused: :class:`bool`, optional
             Whether the commands that are not registered by this slash extension should be deleted in the api; Default ``False``
 
-        sync_on_cog: .class:`bool`, optional
+        sync_on_cog: :class:`bool`, optional
             Whether the slashcommands should be updated whenever a new cog is added or removed; Default ``False``
 
         wait_sync: :class:`float`, optional
@@ -86,7 +86,7 @@ class Slash():
         
 
     """
-    def __init__(self, client, parse_method = ParseMethod.AUTO, auto_sync=True, delete_unused = False, sync_on_cog=True, wait_sync = 1, auto_defer = False) -> None:
+    def __init__(self, client, parse_method = ParseMethod.AUTO, auto_sync=True, delete_unused = False, sync_on_cog=False, wait_sync = 1, auto_defer = False) -> None:
         """Creates a new slash command thing
         
         Example
@@ -137,11 +137,11 @@ class Slash():
         self._discord.remove_cog = remove_cog_override
         
         async def on_connect():
+            self.ready = True
             if self.auto_sync is False:
                 return
             await asyncio.sleep(_or(self.wait_sync, 1))
             await self.sync_commands(self.delete_unused)
-            self.ready = True
         self._discord.add_listener(on_connect)
 
     async def _on_response(self, msg):
@@ -1423,7 +1423,7 @@ class UI():
                     Whether the commands that are not registered by this slash ui should be deleted in the api; Default ``False``
 
                 ``sync_on_cog``: .class:`bool`, optional
-                    Whether the slashcommands should be updated whenever a new cog is added or removed; Default ``True``
+                    Whether the slashcommands should be updated whenever a new cog is added or removed; Default ``False``
 
                 ``wait_sync``: :class:`float`, optional
                     How many seconds will be waited until the commands are going to be synchronized; Default ``1``
