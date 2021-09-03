@@ -6,7 +6,7 @@
 */
 
 function change_color(class_name, color) {
-    result = document.getElementsByClassName(class_name);
+    let result = document.getElementsByClassName(class_name);
     if(result == null) {
         return;
     }
@@ -64,7 +64,7 @@ window.onload = function() {
     //#endregion
 
     // fix code
-    result = document.getElementsByTagName("code");
+    let result = document.getElementsByTagName("code");
     for (let i = 0; i < result.length; i++)
         result[i].style["font-weight"] = 100;
 
@@ -73,7 +73,7 @@ window.onload = function() {
 
 
     // functions
-    result = document.getElementsByClassName("sig sig-object py");
+    let result = document.getElementsByClassName("sig sig-object py");
     for (let i = 0; i < result.length; i++) {
         result[i].style["color"] = "black";
         result[i].style["background-color"] = "#F6F6F6";
@@ -83,7 +83,7 @@ window.onload = function() {
         result[i].style["font-size"] = "95%"
     }
 
-    result = document.getElementsByTagName("dt");
+    let result = document.getElementsByTagName("dt");
     for (let i = 0; i < result.length; i++)
     {
         result[i].style["background-color"] = "#fcfcfc";
@@ -92,23 +92,23 @@ window.onload = function() {
 
 
     // attribute einzeln in eine Zeile packen
-    result = document.getElementsByClassName("py property");
+    let result = document.getElementsByClassName("py property");
     for (let i = 0; i < result.length; i++)
         result[i].style["display"] = "block";
 
 
     // Makes page full size
-    result = document.getElementsByClassName("wy-nav-content")
+    let result = document.getElementsByClassName("wy-nav-content")
     if (result.length > 0)
         result[0].style["max-width"] = "100%";
 
     // displays the menu icon
-    result = document.getElementsByClassName("wy-nav-top")
+    let result = document.getElementsByClassName("wy-nav-top")
     if (result.length > 0)
         result[0].style["color"] = "white";
 
     // remove the discord_ui. ... prefix
-    result = document.getElementsByClassName("reference internal")
+    let result = document.getElementsByClassName("reference internal")
     for(let i = 0; i < result.length; i++) {
         if (result[i].text != null && result[i].text.match("discord_ui\.[\w]*\.")) 
             result[i].text = (result[i].text.split(".").at(-1))
