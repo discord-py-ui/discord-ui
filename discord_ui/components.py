@@ -763,8 +763,8 @@ class ButtonStyles:
 
 class ActionRow():
     """
-    Alternative to setting ``new_line`` in a full component list or putting the components in a list 
-    
+    Alternative to setting ``new_line`` in a full component list or putting the components in a list
+        
     Only works for :class:`~Button` and :class:`~LinkButton`, because :class:`~SelectMenu` is always in a new line
     
     Parameters

@@ -179,6 +179,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>4.2.2</summary>
 
     ## **Changed**
+
     - sync_commands
     > the `delete_unused` keyword is now optional, if you don't pass a parameter, `slash.delete_unused` will be used (from the `__init__` function)
 
@@ -188,6 +189,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>4.2.1</summary>
 
     ## **Fixed**
+    
     - `cannot import name 'InteractionResponseType' from 'discord.enums'`
 
     </details>
@@ -196,9 +198,10 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>4.2.0</summary>
 
     ## **Added**
-    - cog_remove sync
+
+    -  cog_remove sync
     > when you remove a cog the slash commands will now get deleted if you set `delete_unused` to True and set `sync_on_cog` to True
-    - alternativ slash options
+    -  alternativ slash options
     > you don't have to specify options in one of the slash decorators anymore. Instead, you can set them in your callback function
     > Example
     ```py
@@ -218,6 +221,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     ```
 
     ## **Fixed**
+
     - sync_commands
     > if you would sync the commands after the first sync, it threw an error
 
@@ -227,6 +231,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>4.1.4</summary>
 
     ## **Fixed**
+
     - slashcommands in forbidden guilds
     > when trying to get slash commands in a guild with no `appication.commands` permission, it won't throw an exepction anymore
 
@@ -236,6 +241,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>4.1.2</summary>
 
     ## **Fixed**
+
     - Subcommands editing
     > subcommand checks were wrong and this would result in errors like `In options.0.options.2: Option name 'name' is already used in these options`
 
@@ -245,6 +251,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>4.1.1</summary>
 
     ## **Fixed**
+
     - Interaction.author.voice
     > For some reason the voice property of the creator or the interaction would be set
 
@@ -257,10 +264,12 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>4.1.0</summary>
 
     ## **Added**
+
     - py 3.6 < support
     > You should be able to use this package with python 3.6 or newer
 
     ## **Fixed**
+
     - print
     > Forgot to remove print statements💀
 
@@ -270,6 +279,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>4.0.4</summary>
 
     ## **Fixed**
+
     - slashcommand
     > when a user was passed in an option, its guild was always None
     - context commands
@@ -281,6 +291,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>4.0.3</summary>
 
     ## **Fixed**
+
     - Message.wait_for
 
     </details>
@@ -289,6 +300,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>4.0.2</summary>
 
     ## **Fixed**
+
     - Issue with receiving context commands
 
     </details>
@@ -297,8 +309,8 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>4.0.1</summary>
     
     ## **Fixed**
-    - discord.ext import error
 
+    - discord.ext import error
 
     </details>
 
@@ -306,6 +318,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>4.0.0</summary>
 
     ## **Added**
+
     **You now have much more control over your slash commands!**
     - Permissions
     > You can update your permissions with the `Slash.update_permissions` function
@@ -321,10 +334,12 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     > You can now use cog decorators like `slash_cog`, `subslash_cog` and `listening_component_cog`
 
     ## **Fixed**
+
     - SlashCommand
     > Slash commands wouldn't be updated if only `default_permission` was changed
 
     ## **Changed**
+
     - wait_for
     > Message.wait_for now takes `by` and `check` as parameters and `event_name` and `client` switched place (`wait_for(client, "event_name")` is now `wait_for("event_name", client)`)
     - listening components
@@ -337,6 +352,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     > These events now take a sole parameter, the used component. If you want to acces to message, use `passed_component.message`
 
     ## **Removed**
+
     - ResponseMessage
     > Removed ResponseMessage
     </details>
@@ -345,6 +361,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>3.3.5</summary>
     
     ## **Fixed**
+
     - SelectMenu
     > SelectMenu issue when creating it from data
 
@@ -354,10 +371,12 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>3.3.4</summary>
 
     ## **Changed**
+
     - edit
     > `Message.edit` now takes a `embed` parameter
 
     ## **Fixed**
+
     - print
     > Forgot to remove some `print` statements 
 
@@ -367,6 +386,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>3.3.3</summary>
 
     ## **Added**
+
     - class representation
     > classes have now a `__repr__` function
     - UI(override_dpy)
@@ -380,6 +400,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     ```
 
     ## **Fixed**
+
     - dpy2
     > discord.py v2 now auto-decompresses socket data and passes a string instead of the uncompressed data.
     - override dpy message
@@ -391,6 +412,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>3.3.2</summary>
 
     ## **Added**
+
     - EphemeralResponseMessage
     > You can now edit a ephemeral message which was created from an interaction (ex. when a button in a hidden message was pressed)
 
@@ -400,6 +422,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>3.3.1</summary>
 
     ## **Added**
+
     - interaction
     > `Interaction.channel` and `Interaction.guild`
 
@@ -409,6 +432,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>3.3.0</summary>
 
     ## **Fixed**
+
     - interaction usage in dms
 
     </details>
@@ -416,10 +440,12 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 -   <details>
     <summary>3.2.9</summary>
     ## **Added**
+
     - ratelimit fix
     > The lib will now retry after the ratelimit reset and doesn't throw an HTTPException anymore
 
     ## **Fixed**
+
     - sync_commands
     > Got `KeyError` exception while syncing commands
 
@@ -429,6 +455,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>3.2.8</summary>
 
     ## **Fixed**
+
     - hidden responding
     > When a hidden response was about to be send without defering the interaction it would thrown an error
 
@@ -438,15 +465,17 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>3.2.7</summary>
 
     ## **Added**
+
     - warnings
-        - When a guild_permission with an invalid guild id is passed, it will throw an exception when syncing the commands
-        - When the value of a guild_permission is not of type `SlashPermission` it will throw an exception
-    - context-commands
+        -  When a guild_permission with an invalid guild id is passed, it will throw an exception when syncing the commands
+        -  When the value of a guild_permission is not of type `SlashPermission` it will throw an exception
+    -  context-commands
     > You can now have context commands with the same name as a normal slash command
     - slashcommand description
     > You can use docstrings `"""docstring"""` for setting the description of a slash commmand by setting the dosctring for the callback function
 
     ## **Changed**
+
     - auto_defer
     > auto_defer is now disabled by default
     - slash sync
@@ -455,6 +484,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     > `Interaction._deferred` is not `Interaction.deferred` and `Interaction.defer()` doesn't throw an exception anymore, it will just log the error with `logging.error()`
 
     ## **Fixed**
+
     - try
     > There was a try/catch in the `Interaction.respond` function that would allow the code to continue when an exception occured while responding with ninja_mode
     - context commands
@@ -469,14 +499,17 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>3.2.6</summary>
 
     ## **Added**
+
     - auto ninja_mode
     > If you use `.respond()`, the function will try to use ninja_mode automatically
 
     ## **Changed**
-    - project
+
+    -  project
     > Moved git-project to https://github.com/discord-py-ui/discord-ui
 
     ## **Fixed**
+
     - ninja_mode response
     > responding with ninja_mode would end up in an exception
 
@@ -489,6 +522,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>3.2.5</summary>
 
     ## **Fixed**
+
     - #89 (thanks for reporting)
 
     </details>
@@ -504,6 +538,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>3.2.2</summary>
 
     ## **Fixed**
+
     - #85: `AttributeError: module 'discord' has no attribute '_Components__version'`
 
     </details>
@@ -512,23 +547,26 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>3.2.0</summary>
 
     ## **Fixed**
+
     I'm really sorry for all the issues this libary got, if you still find issues, please report them in https://github.com/discord-py-ui/discord-ui/issues
 
     - SelectOpion
     > There was an issue with emojis not being set in SelectOptions
 
-    - LinkButton
+    -  LinkButton
     > There was an issue with setting the url not being set
 
     - SlashCommands
     > There was an issue with creating commands that don't already exist
 
     ## **Changed**
+
     - SelectedMenu
     > `.values` is not `.selected_values`
 
     ## **Added**
-    - Interaction
+
+    -  Interaction
     > Buttons and SelectMenus have a `.message` property for the message where their interaction was creted
     > ResponseMessages have a `.interaction` property for the received interaction
     
@@ -543,6 +581,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>3.1.0</summary>
 
     ## **Added**
+
     - discordpy 2 support
     > We added support for discord.py v2, so you can stay loyal to our libary and use it together with discord.py v2!
     
@@ -560,6 +599,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     > If only permissions were changed, just the permissions will be edited and not the whole command like before
 
     ## **Fixed**
+
     - slash commands
     > I finally fixed the damn slashcommand system, it should work now
 
@@ -572,6 +612,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>3.0.1</summary>
     
     ## **Fixed**
+
     - small project issues
 
     </details>
@@ -600,7 +641,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 
     - Webhook support
     > You are now able to use webhooks together with message components, to send a webhook message with the components, use the `Components.send_webhook` function.
-    The standart webhook function is also overriden with the new component function
+    > The standart webhook function is also overriden with the new component function
 
     - Float type
     > You can now use `float` as the argument type for a slash command option
@@ -633,7 +674,8 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 -   <details>
     <summary>2.0.0</summary>
     
-    ### **Added**
+    ## **Added**
+
     - Slashcomamnd support
         - `Slash` class for slash commands
         - `Slash.command`, `Slash.subcommand` and `Slash.subcommand_groups` are available for creating slash commands
@@ -643,26 +685,25 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
         - disable_action_row(row_numbers: `int` | `range`, disable: `bool`)
         > disables (enables) component row(s) in the message
         
-        - disable_components(disable: `bool`)
+        -  disable_components(disable: `bool`)
         > disables (enables) all componentss
     
-    - overrides
-        - `Messageable.send` returns Message instead of discord.Message and takes components parameter
-        - `override_client` function added
+    -  overrides
+        -  `Messageable.send` returns Message instead of discord.Message and takes components parameter
+        -  `override_client` function added
     
-    - `interaction.send`, creates followup messages which can be hidden
+    -  `interaction.send`, creates followup messages which can be hidden
     
-    - `Component.listening_component`
+    -  `Component.listening_component`
     > A listening component with a callback function that will always be executed whenever a component with the specified custom_id 
     was used
 
 
     ## **Changed**
-    - Message
+    -  Message
         
-        - All Message objects don't use the client object anymore
-        - Message.wait_for now needs the client as the first parameter
-
+        -  All Message objects don't use the client object anymore
+        -  Message.wait_for now needs the client as the first parameter
 
     ## **Fixed**
     - Interaction
@@ -674,7 +715,8 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 -   <details>
     <summary>1.2.2</summary>
 
-    ### **Fixed**
+    ## **Fixed**
+
     - Docs fixed
 
     </details>
@@ -682,7 +724,8 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 -   <details>
     <summary>1.2.1</summary>
 
-    ### **Fixed**
+    ## **Fixed**
+
     - Small code fixes
 
     </details>
@@ -690,17 +733,19 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 -   <details>
     <summary>1.2.0</summary>
 
-    ### **Added**
-    - Complete message component suppport
-    - Select menus
-    - [documentation](https://discord-ui.readthedocs.io/en/latest/)
+    ## **Added**
+
+    -  Complete message component suppport
+    -  Select menus
+    -  [documentation](https://discord-ui.readthedocs.io/en/latest/)
     
     </details>
 
 -   <details>
     <summary>1.1.2</summary>
 
-    ### **Fixed**
+    ## **Fixed**
+
     - Small code fixes
 
     </details>
@@ -708,7 +753,8 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 -   <details>
     <summary>1.1.1</summary>
 
-    ### **Added**
+    ## **Added**
+
     - Message.edit()
         > You can now edit messages with button support
 
@@ -718,19 +764,22 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 -   <details>
     <summary>1.1.0</summary>
 
-    ### **Changed**
+    ## **Changed**
+
     - Major changes to request code, now using the client's request
     - `ResponseMessage.acknowledge()` -> `ResponseMessage.defer()`
         > Changed the name of the function + changed `ResponseMessage.acknowledged` -> `ResponseMessage.deferred`
     - `ResponseMessage.defer()` => `await ResponseMessage.defer()`
         > `defer` (`acknowledge`) is now async and needs to be awaited
 
-    ### **Added**
+    ## **Added**
+    
     - hidden responses
         > You can now send responses only visible to the user
     
 
-    ### **Fixed**
+    ## **Fixed**
+    
     - `ResponseMessage.respond()`
         > Now doesn't show a failed interaction
  
@@ -740,18 +789,20 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 -   <details>
     <summary>1.0.5</summary>
     
-    ### **Fixed**
+    ## **Fixed**
+
     - `ResponseMessage.respond()`
         > responding now doesn't fail after sending the message, it will now defer the interaction by it self if not already deferred and then send the message
 
 -   <details>
     <summary>1.0.4</summary>
     
-    ### **Added**
+    ## **Added**
+
     - `ResponseMessage.acknowledged`
         > Whether the message was acknowledged with the `ResponseMessage.acknowledged()` function
 
-    ### **Changed**
+    ## **Changed**
 
     - `ResponseMessage.respond()` => `await ResponseMessage.respond()`
         > respond() function is now async and needs to be awaited
@@ -764,7 +815,8 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 -   <details>
     <summary>1.0.3</summary>
 
-    ### **Added**
+    ## **Added**
+
     - `Button.hash`
         > Buttons have now a custom hash property, generated by the discord api 
     
