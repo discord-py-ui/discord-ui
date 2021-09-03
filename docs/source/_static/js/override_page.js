@@ -7,7 +7,7 @@
 
 function change_color(class_name, color) {
     let result = document.getElementsByClassName(class_name);
-    if(result == null) {
+    if(result == undefined) {
         return;
     }
     for (var i = 0; i < result.length; i++) {
@@ -69,7 +69,7 @@ window.onload = function() {
         result[i].style["font-weight"] = 100;
 
     // mobile only
-    change_color("wy-nav-top", "#5865F2")
+    change_color("wy-nav-top", "#5865F2");
 
 
     // functions
