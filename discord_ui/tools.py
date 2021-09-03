@@ -20,7 +20,7 @@ MISSING = _MISSING()
 def _none(*args, empty_array=False):
     return all(x in [None, MISSING] + [[], [[]]][empty_array is True] for x in args)
 def _or(*args, default=None):
-    for i in range(len(args)):
+    for i, _ in enumerate(args):
         if not _none(args[i]):
             return args[i]
     return default

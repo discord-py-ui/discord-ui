@@ -1,17 +1,16 @@
-from discord.ext.commands.cooldowns import C
-from .receive import Interaction
-from .components import Button, Component
-from .cogs import ListeningComponent
-from .tools import MISSING
+# from .receive import Interaction
+# from .components import Button, Component
+# from .cogs import ListeningComponent
+# from .tools import MISSING
 
-from typing import List
-from inspect import getmembers
+# from typing import List
+# from inspect import getmembers
 
 # .send(..., component_list=ComponentList(client))
 
 
-class _ListeningComp():
-    pass
+# class _ListeningComp():
+#     pass
 
 # class ListeningButton(ListeningComponent, Button):
 #     def __init__(self, callback, custom_id, label="\u200b", color="blurple", emoji=MISSING, new_line=False, disabled=False) -> None:

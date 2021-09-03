@@ -1,6 +1,6 @@
 # Example by 404kuso
 # https://github.com/discord-py-ui/discord-ui/tree/main/examples/generate_linkbutton.py
-# 
+#
 #       This example will use a slash subcommand group and will generate a 
 #       linkbutton with a name, link and emoji which the user can specify
 # Note:
@@ -21,9 +21,9 @@ name="button", description="sends a button and a linkbutton", options=[
         # The user can specify the message content
         SlashOption(str, "message content", "the content of the message"),
         # The name of the linkbutton
-        SlashOption(str, "name", "the name of the button"), 
+        SlashOption(str, "name", "the name of the button"),
         # The link of the linkbutton
-        SlashOption(str, "link", "the link for the button"), 
+        SlashOption(str, "link", "the link for the button"),
         # The eomji of the linkbutton
         SlashOption(str, "emoji", "a emoji appearing before the text")
     ], 

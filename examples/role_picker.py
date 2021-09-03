@@ -6,7 +6,7 @@
 #
 # Note: For this example to work, the bot has to have the MANAGE_ROLES permission and the bot role
 #       has to be higher than the roles.
-#       Also, if you want to test this, replace '785567635802816595' in guild_ids=[] with a guild id of 
+#       Also, if you want to test this, replace '785567635802816595' in guild_ids=[] with a guild id of
 #       your choice, because guild slash commands are way faster than globals
 # 
 #       Replace '867715564155568158', '867715628504186911', '867715582903582743' and '867715674386071602'

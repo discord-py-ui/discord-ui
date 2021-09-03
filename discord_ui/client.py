@@ -23,7 +23,7 @@ import contextlib
 from typing import Coroutine, Dict, List, Tuple, Union
 try:
     from typing import Literal
-except:
+except ImportError:
     from typing_extensions import Literal
 
 logging = setup_logger(__name__)
@@ -289,7 +289,7 @@ class Slash():
         Raises
         ------
             :raises: :class:`InvalidArgument` : A slash command has an invalid guild_id
-            :raises: :class:`InvalidArgument` : A slash command has an invalid id specified in the guild_permissions 
+            :raises: :class:`InvalidArgument` : A slash command has an invalid id specified in the guild_permissions
         
         """
         delete_unused = delete_unused or self.delete_unused
@@ -740,7 +740,7 @@ class Slash():
         logging.info("nuked all commands")
 
 
-    def add_command(self, name, callback=None, description=MISSING, options=[], guild_ids=MISSING, default_permission=True, guild_permissions=MISSING, api=False) -> Union[None, Coroutine]:
+    def add_command(self, name, callback=None, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING, api=False) -> Union[None, Coroutine]:
         """
         Adds a new slashcommand
 
@@ -776,7 +776,7 @@ class Slash():
             if self.ready is False:
                 raise Exception("Slashcommands are not ready yet")
             return self.create_command(command) 
-    def command(self, name=MISSING, description=MISSING, options=[], guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
+    def command(self, name=MISSING, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
         """
         A decorator for a slash command
         

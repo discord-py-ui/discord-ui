@@ -47,12 +47,12 @@ class SlashOption():
         self._json = {}
         self.argument_type = argument_type
         self.name = name
-        self.description = description or self.name
+        self.description = _or(description, self.name)
         if required is True:
-            self.required = required or []
-        if options is not MISSING:
-            self.options = options or []
-        if choices is not MISSING:
+            self.required = _default([], required)
+        if not _none(options):
+            self.options = _default([], options)
+        if not _none(choices):
             self._json["choices"] = choices
     def __repr__(self) -> str:
         return f"<discord_ui.SlashOption({str(self.to_dict())})>"
@@ -121,7 +121,7 @@ class SlashOption():
         
         .. note::
     
-            Choices are formated like this: ``[{"name": "name of the choice", "value": "the real value"}, ...]`` 
+            Choices are formated like this: ``[{"name": "name of the choice", "value": "the real value"}, ...]``
     
         :type: List[:class:`dict`]
         """
@@ -256,7 +256,7 @@ class SlashPermission():
         
         Example
         ```py
-        SlashPermission(allowed=[                
+        SlashPermission(allowed=[
                 await bot.fetch_user(bot.owner_id)
             ], forbidden={
                 539459006847255232: SlashPermission.User,
@@ -347,10 +347,7 @@ class BaseCommand():
             "type": CommandType.SLASH
         }
 
-        # Check options before callback because callback makes an option check
-        if options is MISSING:
-            options = []
-        self.options = options
+        self.options = _default([], options)
         if callback is not None:
             if not inspect.iscoroutinefunction(callback):
                 raise NoAsyncCallback()
@@ -410,7 +407,7 @@ class BaseCommand():
             )
         elif isinstance(o, SlashCommand):
             return (
-                o._json('type') == self._json["type"] 
+                o._json('type') == self._json["type"]
                 and o.name == self.name
                 and o.description == self.description
                 and o.options == self.options
@@ -536,12 +533,12 @@ class SlashCommand(BaseCommand):
         async def my_function(command, parameter=None):
             pass
 
-        SlashCommand(callback=my_function, name="hello_world", description="This is a test command", 
+        SlashCommand(callback=my_function, name="hello_world", description="This is a test command",
             options=[
                 SlashOption(str, name="parameter", description="this is a parameter", choices=[{ "name": "choice 1", "value": 1 }])
-            ], guild_ids=[785567635802816595], default_permission=False, 
-            guild_permissions={ 
-                785567635802816595: SlashPermission(allowed={"539459006847254542": SlashPermission.USER}) 
+            ], guild_ids=[785567635802816595], default_permission=False,
+            guild_permissions={
+                785567635802816595: SlashPermission(allowed={"539459006847254542": SlashPermission.USER})
             })
         ```
         """

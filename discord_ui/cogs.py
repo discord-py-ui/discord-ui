@@ -9,11 +9,10 @@ from discord.ext.commands.cooldowns import BucketType, CooldownMapping
 
 import asyncio
 import datetime
-import inspect
-from typing import Optional, Union
+from typing import Optional
 try:
     from typing import Literal
-except:
+except ImportError:
     from typing_extensions import Literal
 
 class WrongListener(errors.CheckFailure):

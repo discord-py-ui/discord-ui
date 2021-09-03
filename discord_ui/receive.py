@@ -13,7 +13,7 @@ from discord.state import ConnectionState
 from typing import List, Union, Dict
 try:
     from typing import Literal
-except:
+except ImportError:
     from typing_extensions import Literal
 
 logging = setup_logger("discord-ui")
@@ -104,7 +104,7 @@ class Interaction():
         ----------
         content: :class:`str`, optional
             The raw message content
-        tts: :class:`bool` 
+        tts: :class:`bool`
             Whether the message should be send with text-to-speech
         embed: :class:`discord.Embed`
             Embed rich content
@@ -466,7 +466,7 @@ class Message(discord.Message):
         Raises
         ------
             :raises: :class:`discord_ui.errors.OutOfValidRange` : The specified range was out of the possible range of the component rows 
-            :raises: :class:`discord_ui.errors.OutOfValidRange` : The specified row was out of the possible range of the component rows 
+            :raises: :class:`discord_ui.errors.OutOfValidRange` : The specified row was out of the possible range of the component rows
         
         """
         comps = []
@@ -529,7 +529,7 @@ class Message(discord.Message):
         Parameters
         -----------
             event_name: :class:`str`
-                The name of the event which will be awaited [``"select"`` | ``"button"``] 
+                The name of the event which will be awaited [``"select"`` | ``"button"``]
                 
                 .. note::
 
