@@ -10,7 +10,7 @@ function change_color(class_name, color) {
     for (var i = 0; i < result.length; i++) {
         result[i].style.color = color
         result[i].style["font-weight"] = 100
-    };
+    }
 }
 
 window.onload = function() {

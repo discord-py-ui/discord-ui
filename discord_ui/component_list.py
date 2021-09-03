@@ -10,8 +10,8 @@ from inspect import getmembers
 # .send(..., component_list=ComponentList(client))
 
 
-# class _ListeningComp():
-#     pass
+class _ListeningComp():
+    pass
 
 # class ListeningButton(ListeningComponent, Button):
 #     def __init__(self, callback, custom_id, label="\u200b", color="blurple", emoji=MISSING, new_line=False, disabled=False) -> None:
