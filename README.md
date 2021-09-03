@@ -174,15 +174,12 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 
 # Changelog
 
-
 -   <details>
     <summary>4.2.2</summary>
 
-    ## **Fixed**
-    - Version
-    > There was an issue with the package version
+    ## **Changed**
     - sync_commands
-    > The libary wouldn't sync the slash commands if `auto_sync` was set False
+    > the `delete_unused` keyword is now optional, if you don't pass a parameter, `slash.delete_unused` will be used (from the `__init__` function)
 
     </details>
 

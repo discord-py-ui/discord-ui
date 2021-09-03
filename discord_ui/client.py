@@ -276,13 +276,13 @@ class Slash():
         return self._get_commands_from_cog(self._discord.get_cog(name), CogSubCommandGroup)
 
 
-    async def sync_commands(self, delete_unused=False):
+    async def sync_commands(self, delete_unused=None):
         """Synchronizes the slash commands with the api
         
         Parameters
         ----------
             delete_unused: :class:`bool`, optional
-                Whether the unused command should be deleted from the api; default ``False``
+                Whether the unused command should be deleted from the api; default ``None``
         
         Raises
         ------
@@ -290,12 +290,12 @@ class Slash():
             :raises: :class:`InvalidArgument` : A slash command has an invalid id specified in the guild_permissions 
         
         """
+        delete_unused = delete_unused or self.delete_unused
         added_commands = {
             "globals": {},
             "guilds": {}
         }
         own_guild_ids = [x.id for x in self._discord.guilds]
-        
         
         #region gather commands
         commands = self.commands.copy()
