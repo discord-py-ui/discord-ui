@@ -12,10 +12,10 @@
     </p>
 </p>
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/550953d11c8242b9b7944642a2e292c7)](https://app.codacy.com/gh/discord-py-ui/discord-ui?utm_source=github.com&utm_medium=referral&utm_content=discord-py-ui/discord-ui&utm_campaign=Badge_Grade_Settings)
 [![Downloads](https://pepy.tech/badge/discord-ui)](https://pepy.tech/project/discord-ui)
 ![PyPI](https://img.shields.io/pypi/v/discord-ui)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/discord-ui)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/550953d11c8242b9b7944642a2e292c7)](https://app.codacy.com/gh/discord-py-ui/discord-ui?utm_source=github.com&utm_medium=referral&utm_content=discord-py-ui/discord-ui&utm_campaign=Badge_Grade_Settings)
 
 ## Introduction
 
