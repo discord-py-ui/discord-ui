@@ -126,14 +126,14 @@ def components_to_dict(*components) -> List[dict]:
     """
     wrappers: List[List[Any]] = []
     component_list = []
-    if len(components) == 1 and type(components[0]) is list:
+    if len(components) == 1 and isinstance(components[0], list):
         components = components[0]
 
     if len(components) > 1:
         curWrapper = []
         i = 0
         for component in components:
-            if hasattr(component, "items") or type(component) is list:
+            if hasattr(component, "items") or isinstance(component, list):
                 if i > 0 and len(curWrapper) > 0:
                     wrappers.append(curWrapper)
                 curWrapper = []
@@ -159,7 +159,7 @@ def components_to_dict(*components) -> List[dict]:
         wrappers = [components]
 
     for wrap in wrappers:
-        if type(wrap) is list and not all(hasattr(x, "to_dict") for x in wrap):
+        if isinstance(wrap, list) and not all(hasattr(x, "to_dict") for x in wrap):
             raise Exception("Components with types [" + ', '.join([str(type(x)) for x in wrap]) + "] are missing to_dict() method")
         component_list.append({"type": 1, "components": [x.to_dict() for x in wrap] if type(wrap) is list else [wrap.to_dict()]})
     return component_list

@@ -378,7 +378,7 @@ class Message(discord.Message):
         :type: List[:class:`~Button` | :class:`~LinkButton`]
         """
         if hasattr(self, "components") and self.components is not None:
-            return [x for x in self.components if type(x) in [Button, LinkButton]]
+            return [x for x in self.components if isinstance(x, (Button, LinkButton))]
         return []
     @property
     def select_menus(self) -> List[SelectMenu]:
@@ -387,7 +387,7 @@ class Message(discord.Message):
         :type: List[:class:`~SelectMenu`]
         """
         if hasattr(self, "components") and self.components is not None:
-            return [x for x in self.components if type(x) is SelectMenu]
+            return [x for x in self.components if isinstance(x, SelectMenu)]
         return []
     # endregion
 
@@ -470,7 +470,7 @@ class Message(discord.Message):
         
         """
         comps = []
-        if type(row) is range:
+        if isinstance(row, range):
             for i, _ in enumerate(self.action_rows):
                 if i >= len(self.action_rows) - 1 or i < 0:
                     raise OutOfValidRange("row[" + str(i) + "]", 0, len(self.action_rows) - 1)

@@ -18,7 +18,7 @@ class OutOfValidRange(Exception):
 class WrongType(TypeError):
     """This exception is thrown whenever a value is of the wrong type"""
     def __init__(self, name, me, valid_type, *args: object) -> None:
-        super().__init__("'" + name + "' must be of type " + (str(valid_type) if type(valid_type) is not list else ' or '.join(valid_type)) + ", not " + str(type(me)))
+        super().__init__("'" + name + "' must be of type " + (str(valid_type) if not isinstance(valid_type, list) else ' or '.join(valid_type)) + ", not " + str(type(me)))
 class InvalidEvent(Exception):
     """This exception is thrown whenever a invalid eventname was passed"""
     def __init__(self, name, events, *args: object) -> None:

@@ -101,7 +101,7 @@ class Slash():
         self.parse_method: int = parse_method
         self.delete_unused: bool = delete_unused
         self.wait_sync: float = wait_sync
-        self.auto_defer: Tuple[bool, bool] = (auto_defer, False) if type(auto_defer) is bool else auto_defer
+        self.auto_defer: Tuple[bool, bool] = (auto_defer, False) if isinstance(auto_defer, bool) else auto_defer
         self.auto_sync = auto_sync
 
         self._discord: com.Bot = client
@@ -146,7 +146,7 @@ class Slash():
 
     async def _on_response(self, msg):
         if discord.__version__.startswith("2"):
-            if type(msg) is bytes:
+            if isinstance(msg, bytes):
                 self._buffer.extend(msg)
 
                 if len(msg) < 4 or msg[-4:] != b'\x00\x00\xff\xff':
@@ -154,7 +154,7 @@ class Slash():
                 msg = self._zlib.decompress(self._buffer)
                 msg = msg.decode('utf-8')
                 self._buffer = bytearray()
-        if type(msg) is str:
+        if isinstance(msg, str):
             msg = json.loads(msg)
 
         if msg["t"] != "INTERACTION_CREATE":
@@ -233,7 +233,7 @@ class Slash():
             fixed_options = op.get("options", [])
             
             x = x_base.get(data["data"]["options"][0]["name"])
-            if type(x) is dict:
+            if isinstance(x, dict):
                 x = x.get(data["data"]["options"][0]["options"][0]["name"])
 
             options = await handle_options(data, fixed_options, self.parse_method, self._discord)
@@ -256,7 +256,7 @@ class Slash():
         return [x[1] for x in inspect.getmembers(cog, lambda x: isinstance(x, BaseCallable) and x.__type__ == 1)]
         
     def _get_commands_from_cog(self, cog, cls):
-        commands = {x.name: x for x in self._get_cog_commands(cog) if type(x) is cls}
+        commands = {x.name: x for x in self._get_cog_commands(cog) if isinstance(x, cls)}
         for x in commands:
             commands[x].cog = cog
         if cls is CogSubCommandGroup:
@@ -305,7 +305,7 @@ class Slash():
                 # get second base/command
                 sub = self.subcommands[_base][_sub]
                 # when command has subcommand groups
-                if type(sub) is dict:
+                if isinstance(sub, dict):
                     for _group in self.subcommands[_base][_sub]:
                         # the subcommand group
                         group = self.subcommands[_base][_sub][_group]
@@ -533,7 +533,7 @@ class Slash():
         """
         if guild_id is not MISSING:
             guild_id = int(guild_id)
-        if type(typ) is str:
+        if isinstance(typ, str):
             if typ.lower() == "slash":
                 typ = CommandType.SLASH
             elif typ.lower() == "user":
@@ -658,7 +658,7 @@ class Slash():
     def _add_to_cache(self, base: Union[SlashCommand, SlashSubcommand]):
         if base.command_type is CommandType.Slash:
             # basic slash command
-            if type(base) in [SlashCommand, CogCommand]:
+            if isinstance(base, (SlashCommand, CogCommand)):
                 self.commands[base.name] = base
             # subcommand or subgroup
             else:
@@ -686,7 +686,7 @@ class Slash():
         # slash command
         if base.command_type is CommandType.Slash:
             # basic slash command
-            if type(base) in [SlashCommand, CogCommand]:
+            if isinstance(base, (SlashCommand, CogCommand)):
                 del self.commands[base.name]
             # subcommand or subgroup
             else:
@@ -1117,7 +1117,7 @@ class Components():
         self._buffer = bytearray()
         self._zlib = zlib.decompressobj()
 
-        self.auto_defer: Tuple[bool, bool] = (auto_defer, False) if type(auto_defer) is bool else auto_defer
+        self.auto_defer: Tuple[bool, bool] = (auto_defer, False) if isinstance(auto_defer, bool) else auto_defer
         self.listening_components: Dict[str, List[ListeningComponent]] = {}
         """A list of components that are listening for interaction"""
         self._discord: com.Bot = client
@@ -1148,7 +1148,7 @@ class Components():
     
     async def _on_response(self, msg):
         if discord.__version__.startswith("2"):
-            if type(msg) is bytes:
+            if isinstance(msg, bytes):
                 self._buffer.extend(msg)
 
                 if len(msg) < 4 or msg[-4:] != b'\x00\x00\xff\xff':
@@ -1156,7 +1156,7 @@ class Components():
                 msg = self._zlib.decompress(self._buffer)
                 msg = msg.decode('utf-8')
                 self._buffer = bytearray()
-            if type(msg) is str:
+            if isinstance(msg, str):
                 msg = json.loads(msg)
         
         if msg["t"] != "INTERACTION_CREATE":
@@ -1237,10 +1237,10 @@ class Components():
         :type: :class:`~Message`
         """
 
-        if type(channel) not in [discord.TextChannel, int, str]:
+        if not isinstance(channel, (discord.TextChannel, int, str)):
             raise WrongType("channel", channel, "discord.TextChannel")
 
-        channel_id = channel.id if type(channel) is discord.TextChannel else channel
+        channel_id = channel.id if isinstance(channel, discord.TextChannel) else channel
         payload = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference, mention_author=mention_author, components=components)
 
         route = BetterRoute("POST", f"/channels/{channel_id}/messages")

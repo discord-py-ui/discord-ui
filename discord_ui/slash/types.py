@@ -35,7 +35,7 @@ class SlashOption():
             options: List[:class:`~SlashOption`]
                 This parameter is only for subcommands to work, you shouldn't need to use that, unless you know what you're doing 
         """
-    def __init__(self, argument_type, name, description=MISSING, required=False, choices=[], options=[]) -> None:
+    def __init__(self, argument_type, name, description=None, required=False, choices=None, options=None) -> None:
         """
         Creates a new option for a slash command
 
@@ -47,11 +47,11 @@ class SlashOption():
         self._json = {}
         self.argument_type = argument_type
         self.name = name
-        self.description = _or(description, self.name)
+        self.description = description or self.name
         if required is True:
-            self.required = required
+            self.required = required or []
         if options is not MISSING:
-            self.options = options
+            self.options = options or []
         if choices is not MISSING:
             self._json["choices"] = choices
     def __repr__(self) -> str:
@@ -111,7 +111,7 @@ class SlashOption():
         return self._json.get("required", False)
     @required.setter
     def required(self, value):
-        if type(value) is not bool:
+        if not isinstance(value, bool):
             raise WrongType("required", value, "bool") 
         self._json["required"] = value
 
@@ -139,14 +139,14 @@ class SlashOption():
         return [SlashOption._from_data(x) for x in self._json.get("options", [])]
     @options.setter
     def options(self, options):
-        if type(options) is not list:
+        if not isinstance(options, list):
             raise WrongType("options", options, "list")
-        if all(type(x) in [SlashOption, dict] for x in options):
+        if all(isinstance(x, (SlashOption, dict)) for x in options):
             self._json["options"] = [(x.to_dict() if type(x) is SlashOption else x) for x in options]
         else:
             i = 0
             for x in options:
-                if type(x) is not SlashOption and type(x) is not dict:
+                if not isinstance(x, SlashOption) and not isinstance(x, dict):
                     raise WrongType("options[" + str(i) + "]", x, ["dict", "SlashOption"])
                 i += 1
 
@@ -174,7 +174,7 @@ class OptionType:
     @classmethod
     def any_to_type(cls, whatever):
         """Converts something to a option type if possible"""
-        if type(whatever) is int and whatever in range(1, 11):
+        if isinstance(whatever, int) and whatever in range(1, 11):
             return whatever
         if inspect.isclass(whatever):
             if whatever is str:
@@ -191,7 +191,7 @@ class OptionType:
                 return cls.ROLE
             if whatever is float:
                 return cls.FLOAT
-        if type(whatever) is str:
+        if isinstance(whatever, str):
             whatever = whatever.lower()
             if whatever in ["str", "string"]:
                 return cls.STRING
@@ -219,7 +219,7 @@ class CommandType:
 
     @staticmethod
     def from_string(typ):
-        if type(typ) == str:
+        if isinstance(typ, str):
             if typ.lower() == "slash":
                 return CommandType.SLASH
             elif typ.lower() == "user":
@@ -268,7 +268,7 @@ class SlashPermission():
         
         self._json = []
         if allowed is not MISSING:
-            if type(allowed) is dict:
+            if isinstance(allowed, dict):
                 for _id, _type in allowed.items():
                     self._json.append(
                         {
@@ -277,15 +277,15 @@ class SlashPermission():
                             "permission": True
                         }
                     )
-            elif type(allowed) is list:
+            elif isinstance(allowed, list):
                 for t in allowed:
                     self._json.append({
                         "id": t.id,
-                        "type": SlashPermission.USER if type(t) in [discord.User, discord.Member] else SlashPermission.ROLE,
+                        "type": SlashPermission.USER if isinstance(t, (discord.User, discord.Member)) else SlashPermission.ROLE,
                         "permission": True
                     })
         if forbidden is not MISSING:
-            if type(forbidden) is dict:
+            if isinstance(forbidden, dict):
                 for _id, _type in forbidden.items():
                     self._json.append(
                         {
@@ -294,7 +294,7 @@ class SlashPermission():
                             "permission": False
                         }
                     )
-            elif type(forbidden) is list:
+            elif isinstance(forbidden, list):
                 for t in forbidden:
                     self._json.append({
                         "id": t.id,
@@ -341,7 +341,159 @@ class SlashPermission():
         return [x for x in self._json if x["permission"] == False]
 
 
-class SlashCommand():
+class BaseCommand():
+    def __init__(self, callback, name=MISSING, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
+        self._json = {
+            "type": CommandType.SLASH
+        }
+
+        # Check options before callback because callback makes an option check
+        if options is MISSING:
+            options = []
+        self.options = options
+        if callback is not None:
+            if not inspect.iscoroutinefunction(callback):
+                raise NoAsyncCallback()
+
+            callback_params = inspect.signature(callback).parameters
+            if options is not MISSING:
+                for op in options:
+                    if callback_params.get(op.name) is None:
+                        raise MissingOptionParameter(op.name)
+                    param = callback_params[op.name]
+                    if not op.required and param.default is param.empty:
+                        raise OptionalOptionParameter(param.name)
+            if _none(options, empty_array=True):
+                _ops = []
+                has_self = False
+                for _i, _name in enumerate(callback_params):
+                    # ignore context parameter
+                    if _name == "self":
+                        has_self = True
+                        continue
+                    if _i == [0, 1][has_self]:
+                        continue
+                    _val = callback_params.get(_name)
+                    op_type = [_val.annotation, _name][_val.annotation == _val.empty]
+                    if OptionType.any_to_type(op_type) is None:
+                        raise InvalidArgument("Could not find a matching option type for parameter '" + str(op_type) + "'")
+                    _ops.append(SlashOption(op_type, _name, required=_val.default is not None))
+                self.options = _ops
+
+        self.callback: function = callback
+        self.name = _or(name, self.callback.__name__ if not _none(self.callback) else None)
+        self.description = _or(description, inspect.getdoc(callback).split("\n")[0] if not _none(callback) and inspect.getdoc(callback) is not None else None, self.name)
+        if default_permission is MISSING:
+            default_permission = True
+        self.default_permission: bool = default_permission
+        if not _none(guild_permissions):
+            for _id, perm in list(guild_permissions.items()):
+                if not isinstance(_id, (str, int, discord.User, discord.Member, discord.Role)):
+                    raise WrongType("guild_permissions key " + str(_id), _id, ["str", "int", "discord.User", "discord.Member", "discord.Role"])
+                if not isinstance(perm, SlashPermission):
+                    raise WrongType("guild_permission[" + ("'" if isinstance(_id, str) else "") + str(_id) + ("'" if isinstance(_id, str) else "") + "]", perm, "SlashPermission")
+        
+        self.guild_permissions: typing.Dict[(typing.Union[str, int], SlashPermission)] = _default(MISSING, guild_permissions)
+        self.permissions: SlashPermission = SlashPermission()
+        self.guild_ids: typing.List[int] = _default(MISSING, [int(x) for x in _or(guild_ids, [])])
+
+    def __str__(self) -> str:
+        return str(self.to_dict())
+    def __eq__(self, o: object) -> bool:
+        if isinstance(o, dict):
+            return (
+                o.get('type') == self._json["type"] 
+                and o.get('name') == self.name
+                and o.get('description') == self.description
+                and o.get('options', []) == self.options
+                and o.get("default_permission", False) == self.default_permission
+            )
+        elif isinstance(o, SlashCommand):
+            return (
+                o._json('type') == self._json["type"] 
+                and o.name == self.name
+                and o.description == self.description
+                and o.options == self.options
+                and o.default_permission == self.default_permission
+            )
+        else:
+            return False
+    def __ne__(self, o: object) -> bool:
+        return not self.__eq__(o)
+
+
+    # region command
+    @property
+    def command_type(self) -> int:
+        return self._json["type"]
+
+    @property
+    def name(self) -> str:
+        """The name of the slash command
+        
+        :type: :class:`str`
+        """
+        return self._json["name"]
+    @name.setter
+    def name(self, value):
+        if _none(value):
+            raise InvalidArgument("You have to specify a name")
+        if not isinstance(value, str):
+            raise WrongType("name", value, "str")
+        if len(value) > 32 or len(value) < 1:
+            raise InvalidLength("name", 1, 32)
+        self._json["name"] = format_name(value)
+    @property
+    def description(self) -> str:
+        """The description of the command
+        
+        :type: :class:`str`
+        """
+        return self._json['description']
+    @description.setter
+    def description(self, value):
+        if not isinstance(value, str):
+            raise WrongType("description", value, "str")
+        if len(value) > 100 or len(value) < 1:
+            raise InvalidLength("description", 1, 100)
+        self._json["description"] = value
+    @property
+    def options(self) -> typing.List['SlashOption']:
+        """The parameters for the command
+        
+        :type: List[:class:`~SlashOption`]
+        """
+        return [SlashOption._from_data(x) for x in self._json.get("options", [])]
+    @options.setter
+    def options(self, options):
+        if not isinstance(options, list):
+            raise WrongType("options", options, "list")
+        if all(isinstance(x, (SlashOption, dict)) for x in options):
+            self._json["options"] = [(x.to_dict() if isinstance(x, SlashOption) else x) for x in options]
+        else:
+            i = 0
+            for x in options:
+                if not isinstance(x, (SlashOption, dict)):
+                    raise WrongType("options[" + str(i) + "]", x, ["dict", "SlashOption"])
+                i += 1
+    # endregion
+    # region permissions
+    @property
+    def default_permission(self) -> bool:
+        """Whether this command can be used by default or not
+        
+        :type: :class:`bool`
+        """
+        return self._json.get("default_permission", False)
+    @default_permission.setter
+    def default_permission(self, value):
+        self._json["default_permission"] = value
+    # endregion
+
+    def to_dict(self):
+        return self._json
+
+class SlashCommand(BaseCommand):
     """A basic slash command
         
         Parameters
@@ -393,174 +545,26 @@ class SlashCommand():
             })
         ```
         """
-        self._json = {
-            "type": CommandType.SLASH
-        }
+        BaseCommand.__init__(self, callback, name, description, options, guild_ids, default_permission, guild_permissions)
 
-        # Check options before callback because callback makes an option check
-        if options is MISSING:
-            options = []
-        self.options = options
-        if callback is not None:
-            if not inspect.iscoroutinefunction(callback):
-                raise NoAsyncCallback()
-
-            callback_params = inspect.signature(callback).parameters
-            if options is not MISSING:
-                for op in options:
-                    if callback_params.get(op.name) is None:
-                        raise MissingOptionParameter(op.name)
-                    param = callback_params[op.name]
-                    if not op.required and param.default is param.empty:
-                        raise OptionalOptionParameter(param.name)
-            if _none(options, empty_array=True):
-                _ops = []
-                has_self = False
-                for _i, _name in enumerate(callback_params):
-                    # ignore context parameter
-                    if _name == "self":
-                        has_self = True
-                        continue
-                    if _i == [0, 1][has_self]:
-                        continue
-                    _val = callback_params.get(_name)
-                    op_type = [_val.annotation, _name][_val.annotation == _val.empty]
-                    if OptionType.any_to_type(op_type) is None:
-                        raise InvalidArgument("Could not find a matching option type for parameter '" + str(op_type) + "'")
-                    _ops.append(SlashOption(op_type, _name, required=_val.default is not None))
-                self.options = _ops
-
-        self.callback: function = callback
-        self.name = _or(name, self.callback.__name__ if not _none(self.callback) else None)
-        self.description = _or(description, inspect.getdoc(callback).split("\n")[0] if not _none(callback) and inspect.getdoc(callback) is not None else None, self.name)
-        if default_permission is MISSING:
-            default_permission = True
-        self.default_permission: bool = default_permission
-        if not _none(guild_permissions):
-            for _id, perm in list(guild_permissions.items()):
-                if type(_id) not in [str, int, discord.User, discord.Member, discord.Role]:
-                    raise WrongType("guild_permissions key " + str(_id), _id, ["str", "int", "discord.User", "discord.Member", "discord.Role"])
-                if type(perm) is not SlashPermission:
-                    raise WrongType("guild_permission[" + ("'" if type(_id) is str else "") + str(_id) + ("'" if type(_id) is str else "") + "]", perm, "SlashPermission")
-        
-        self.guild_permissions: typing.Dict[(typing.Union[str, int], SlashPermission)] = _default(MISSING, guild_permissions)
-        self.permissions: SlashPermission = SlashPermission()
-        self.guild_ids: typing.List[int] = _default(MISSING, [int(x) for x in _or(guild_ids, [])])
-
-    def __str__(self) -> str:
-        return str(self.to_dict())
-    def __eq__(self, o: object) -> bool:
-        if type(o) is dict:
-            return (
-                o.get('type') == self._json["type"] 
-                and o.get('name') == self.name
-                and o.get('description') == self.description
-                and o.get('options', []) == self.options
-                and o.get("default_permission", False) == self.default_permission
-            )
-        elif isinstance(o, SlashCommand):
-            return (
-                o._json('type') == self._json["type"] 
-                and o.name == self.name
-                and o.description == self.description
-                and o.options == self.options
-                and o.default_permission == self.default_permission
-            )
-        else:
-            return False
-    def __ne__(self, o: object) -> bool:
-        return not self.__eq__(o)
-
-
-    # region command
-    @property
-    def command_type(self) -> int:
-        return self._json["type"]
-
-    @property
-    def name(self) -> str:
-        """The name of the slash command
-        
-        :type: :class:`str`
-        """
-        return self._json["name"]
-    @name.setter
-    def name(self, value):
-        if _none(value):
-            raise InvalidArgument("You have to specify a name")
-        if type(value) is not str:
-            raise WrongType("name", value, "str")
-        if len(value) > 32 or len(value) < 1:
-            raise InvalidLength("name", 1, 32)
-        self._json["name"] = format_name(value)
-    @property
-    def description(self) -> str:
-        """The description of the command
-        
-        :type: :class:`str`
-        """
-        return self._json['description']
-    @description.setter
-    def description(self, value):
-        if type(value) is not str:
-            raise WrongType("description", value, "str")
-        if len(value) > 100 or len(value) < 1:
-            raise InvalidLength("description", 1, 100)
-        self._json["description"] = value
-    @property
-    def options(self) -> typing.List['SlashOption']:
-        """The parameters for the command
-        
-        :type: List[:class:`~SlashOption`]
-        """
-        return [SlashOption._from_data(x) for x in self._json.get("options", [])]
-    @options.setter
-    def options(self, options):
-        if type(options) is not list:
-            raise WrongType("options", options, "list")
-        if all(type(x) in [SlashOption, dict] for x in options):
-            self._json["options"] = [(x.to_dict() if type(x) is SlashOption else x) for x in options]
-        else:
-            i = 0
-            for x in options:
-                if type(x) is not SlashOption and type(x) is not dict:
-                    raise WrongType("options[" + str(i) + "]", x, ["dict", "SlashOption"])
-                i += 1
-    # endregion
-    # region permissions
-    @property
-    def default_permission(self) -> bool:
-        """Whether this command can be used by default or not
-        
-        :type: :class:`bool`
-        """
-        return self._json.get("default_permission", False)
-    @default_permission.setter
-    def default_permission(self, value):
-        self._json["default_permission"] = value
-    # endregion
-
-    def to_dict(self):
-        return self._json
-class SlashSubcommand(SlashCommand):
+class SlashSubcommand(BaseCommand):
     def __init__(self, callback, base_names, name, description=MISSING, options=[], guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
-        if type(base_names) is str:
+        if isinstance(base_names, str):
             base_names = [base_names]
         if len(base_names) > 2:
             raise InvalidArgument("subcommand groups are currently limited to 2 bases")
         if any([len(x) > 32 or len(x) < 1 for x in base_names]):
             raise InvalidLength("base_names", 1, 32)
-        SlashCommand.__init__(self, callback, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
+        BaseCommand.__init__(self, callback, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
         self.base_names = [format_name(x) for x in base_names]
-        
+    
     def to_option(self) -> SlashOption:
         return SlashOption(OptionType.SUB_COMMAND, self.name, self.description, options=self.options or MISSING)
     def to_dict(self):
         return self.to_option().to_dict()
 
 
-
-class ContextCommand(SlashCommand):
+class ContextCommand(BaseCommand):
     def __init__(self, callback, name=MISSING, guild_ids=MISSING, default_permission = True, guild_permissions = MISSING) -> None:
         if callback is not None:
             callback_params = inspect.signature(callback).parameters

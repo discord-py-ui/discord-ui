@@ -63,7 +63,7 @@ class SelectOption():
     def label(self, value: str):
         if value is None:
             value = ""
-        elif value is not None and type(value) is not str:
+        elif value is not None and not isinstance(value, str):
             raise WrongType("label", value, "str")
         elif value is not None and len(value) > 100 and value > 0:
             raise InvalidLength("label", value, 100, 0)
@@ -93,7 +93,7 @@ class SelectOption():
         return self._json.get("description")
     @description.setter
     def description(self, value):
-        if value is not MISSING and type(value) is not str:
+        if value is not MISSING and not isinstance(value, str):
             raise WrongType("description", "str")
         if value is not MISSING and len(value) > 50:
             raise InvalidLength("description", 50, 0)
@@ -127,18 +127,18 @@ class SelectOption():
     @emoji.setter
     def emoji(self, val: Union[Emoji, str, dict]):
         """The emoji appearing before the label"""
-        if type(val) is str:
+        if isinstance(val, str):
             self._json["emoji"] = {
                 "id": None,
                 "name": val
             }
-        elif type(val) is Emoji:
+        elif isinstance(val, Emoji):
             self._json["emoji"] = {
                 "id": val.id,
                 "name": val.name,
                 "animated": val.animated
             }
-        elif type(val) is dict:
+        elif isinstance(val, dict):
             self._json["emoji"] = val
         else:
             raise WrongType("emoji", val, ["str", "discord.Emoji", "dict"])
@@ -188,7 +188,7 @@ class Component():
     def custom_id(self, value: str):
         if len(value) > 100 or len(value) < 1:
             raise InvalidLength("custom_id", 0, 100)
-        if type(value) is not str:
+        if not isinstance(value, str):
             raise WrongType("custom_id", value, "str")
         self._json["custom_id"] = value
 
@@ -284,12 +284,12 @@ class SelectMenu(Component):
         return [SelectOption._fromData(x) for x in self._json["options"]]
     @options.setter
     def options(self, value: List[SelectOption]):
-        if type(value) is list:
+        if isinstance(value, list):
             if len(value) > 25 or len(value) == 0:
                 raise OutOfValidRange("options", 1, 25)
-            if all(type(x) is SelectOption for x in value):
+            if all(isinstance(x, SelectOption) for x in value):
                 self._json["options"] = [x.to_dict() for x in value]
-            elif all(type(x) is dict for x in value):
+            elif all(isinstance(x, dict) for x in value):
                 self._json["options"] = value
             else:
                 raise WrongType("options", value, ["List[SelectOption]", "List[dict]"])
@@ -314,7 +314,7 @@ class SelectMenu(Component):
         position: :class:`int`
             The position of the option that should be default
         """
-        if type(position) is not int:
+        if not isinstance(position, int):
             raise WrongType("position", position, "int")
         if position < 0 or position >= len(self.options):
             raise OutOfValidRange("default option position", 0, str(len(self.options) - 1))
@@ -458,7 +458,7 @@ class Button(Component):
     def label(self, val: str):
         if val is None:
             val = ""
-        elif val is not None and type(val) is not str:
+        elif val is not None and not isinstance(val, str):
             raise WrongType("label", val, "str")
         elif val is not None and len(val) > 80:
             raise InvalidLength("label", _max=80)
@@ -497,18 +497,18 @@ class Button(Component):
         return f'<{"a" if "animated" in self._json["emoji"] else ""}:{self._json["emoji"]["name"]}:{self._json["emoji"]["id"]}>'
     @emoji.setter
     def emoji(self, val: Union[Emoji, str, dict]):
-        if type(val) is str:
+        if isinstance(val, str):
             self._json["emoji"] = {
                 "id": None,
                 "name": val
             }
-        elif type(val) is Emoji:
+        elif isinstance(val, Emoji):
             self._json["emoji"] = {
                 "id": val.id,
                 "name": val.name,
                 "animated": val.animated
             }
-        elif type(val) is dict:
+        elif isinstance(val, dict):
             self._json["emoji"] = val
         else:
             raise WrongType("emoji", val, ["str", "discord.Emoji", "dict"])
@@ -524,7 +524,7 @@ class Button(Component):
         return self._json["disabled"] if "disabled" in self._json else False
     @disabled.setter
     def disabled(self, val):
-        if type(val) is not bool:
+        if not isinstance(val, bool):
             raise WrongType("disabled", val, "bool")
         self._json["disabled"] = bool(val)
     
@@ -632,7 +632,7 @@ class LinkButton():
         return self._json["url"]
     @url.setter
     def url(self, val: str):
-        if type(val) is not str:
+        if not isinstance(val, str):
             raise WrongType("url", val, "str")
         self._json["url"] = str(val)
 
@@ -648,7 +648,7 @@ class LinkButton():
     def label(self, val: str):
         if val is None:
             val = ""
-        elif val is not None and type(val) is not str:
+        elif val is not None and not isinstance(val, str):
             raise WrongType("label", val, "str")
         elif val is not None and len(val) > 80:
             raise InvalidLength("label", _max=80)
@@ -682,18 +682,18 @@ class LinkButton():
         return f'<{"a" if "animated" in self._json["emoji"] else ""}:{self._json["emoji"]["name"]}:{self._json["emoji"]["id"]}>'
     @emoji.setter
     def emoji(self, val: Union[Emoji, str, dict]):
-        if type(val) is str:
+        if isinstance(val, str):
             self._json["emoji"] = {
                 "id": None,
                 "name": val
             }
-        elif type(val) is Emoji:
+        elif isinstance(val, Emoji):
             self._json["emoji"] = {
                 "id": val.id,
                 "name": val.name,
                 "animated": val.animated
             }
-        elif type(val) is dict:
+        elif isinstance(val, dict):
             self._json["emoji"] = val
         else:
             raise WrongType("emoji", val, ["str", "discord.Emoji", "dict"])
@@ -709,7 +709,7 @@ class LinkButton():
         return self._json["disabled"] if "disabled" in self._json else False
     @disabled.setter
     def disabled(self, val):
-        if type(val) is not bool:
+        if not isinstance(val, bool):
             raise WrongType("disabled", val, "bool")
         self._json["disabled"] = bool(val)
     # endregion
@@ -739,7 +739,7 @@ class ButtonStyles:
 
     @classmethod
     def getColor(cls, s):
-        if type(s) is int:
+        if isinstance(s, int):
             return s
         s = s.lower()
         if s in ("blurple", "primary"):
@@ -773,7 +773,7 @@ class ActionRow():
         ActionRow([Button(...), Button(...)])
         ```
         """
-        self.items = items[0] if all(type(i) is list for i in items) else items
+        self.items = items[0] if all(isinstance(i, list) for i in items) else items
         """The componetns in the action row"""
         self.component_type = 1
         self.disable(disabled)

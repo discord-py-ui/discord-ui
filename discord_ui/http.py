@@ -66,7 +66,7 @@ def jsonifyMessage(content=MISSING, tts=False, embed: discord.Embed=MISSING, emb
                 payload["embeds"] = []
             else:
                 embeds.append(embed)
-        if type(embeds) is not list:
+        if not isinstance(embeds):
             raise WrongType("embeds", embeds, 'list[discord.Embed]')
         payload["embeds"] = [em.to_dict() for em in embeds]
 
@@ -74,23 +74,23 @@ def jsonifyMessage(content=MISSING, tts=False, embed: discord.Embed=MISSING, emb
         if attachments is None:
             payload["attachments"] = []
         else:
-            if not all(type(x) is discord.Attachment for x in attachments):
+            if not all(isinstance(x, discord.Attachment) for x in attachments):
                 raise WrongType("attachments", attachments, "List[discord.attachment]")
             payload["attachments"] = [x.to_dict() for x in attachments]
 
     if reference is not MISSING:
-        if type(reference) not in [discord.MessageReference, discord.Message] and not issubclass(type(reference), discord.Message):
+        if not isinstance(reference, (discord.MessageReference, discord.Message)):
             raise WrongType("reference", reference, ['discord.MessageReference', 'discord.Message'])
-        if type(reference) is discord.MessageReference:
+        if isinstance(reference, discord.MessageReference):
             payload["message_reference"] = reference.to_dict()
-        elif type(reference) is discord.Message:
+        elif isinstance(reference, discord.Message):
             payload["message_reference"] = discord.MessageReference.from_message(reference).to_dict()
 
     if allowed_mentions is not MISSING:
         if allowed_mentions is None:
             payload["allowed_mentions"] = discord.AllowedMentions()
         else: 
-            if type(allowed_mentions) is not discord.AllowedMentions:
+            if not isinstance(allowed_mentions, discord.AllowedMentions):
                 raise WrongType("allowed_mentions", allowed_mentions, "discord.AllowedMentions")
         payload["allowed_mentions"] = allowed_mentions.to_dict()
     if mention_author is not MISSING:
