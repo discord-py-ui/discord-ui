@@ -6,56 +6,59 @@
 */
 
 function change_color(class_name, color) {
-    result = document.getElementsByClassName(class_name)
+    result = document.getElementsByClassName(class_name);
+    if(result == null) {
+        return;
+    }
     for (var i = 0; i < result.length; i++) {
-        result[i].style.color = color
-        result[i].style["font-weight"] = 100
-    };
+        result[i].style.color = color;
+        result[i].style["font-weight"] = 100;
+    }
 }
 
 window.onload = function() {
     //#region colors
-    let string_green = "#afff7d"
-    let self_red = "#ff525d"
-    let int_orange = "#ffed85"
+    let string_green = "#afff7d";
+    let self_red = "#ff525d";
+    let int_orange = "#ffed85";
 
     // numbers
-    change_color("mi", int_orange)
+    change_color("mi", int_orange);
     // '' string
-    change_color("s1", string_green)
+    change_color("s1", string_green);
     // "" string
-    change_color("s2", string_green)
+    change_color("s2", string_green);
     // """""" docstring
-    change_color("sd", string_green)
+    change_color("sd", string_green);
     // bools
-    change_color("kc", self_red)
+    change_color("kc", self_red);
 
     // import statements
-    change_color("kn", "#d962fc")
+    change_color("kn", "#d962fc");
     // import package
-    change_color("nn", "orange")
+    change_color("nn", "orange");
     // comments
-    change_color("c1", "grey")
+    change_color("c1", "grey");
 
     
     // class name
-    change_color("nc", "orange")
+    change_color("nc", "orange");
     // __init__
-    change_color("fm", "#5865F2")
+    change_color("fm", "#5865F2");
     // self
-    change_color("bp", self_red)
+    change_color("bp", self_red);
 
     // async, def, await 
-    change_color("k", "#eb52ff")
+    change_color("k", "#eb52ff");
     // in keyword
-    change_color("ow", "#eb52ff")
+    change_color("ow", "#eb52ff");
     // function name
-    change_color("nf", "#5c9aff")
+    change_color("nf", "#5c9aff");
     // Decorators
-    change_color("nd", "#FE0")
+    change_color("nd", "#FE0");
 
     // built-in function calls
-    change_color("nb", "#ecfc5b")
+    change_color("nb", "#ecfc5b");
     // +, -, *, /, =
     // change_color("o", "#69f5f2")
     //#endregion
@@ -63,14 +66,14 @@ window.onload = function() {
     // fix code
     result = document.getElementsByTagName("code");
     for (let i = 0; i < result.length; i++)
-        result[i].style["font-weight"] = 100
+        result[i].style["font-weight"] = 100;
 
     // mobile only
     change_color("wy-nav-top", "#5865F2")
 
 
     // functions
-    result = document.getElementsByClassName("sig sig-object py")
+    result = document.getElementsByClassName("sig sig-object py");
     for (let i = 0; i < result.length; i++) {
         result[i].style["color"] = "black";
         result[i].style["background-color"] = "#F6F6F6";
@@ -80,7 +83,7 @@ window.onload = function() {
         result[i].style["font-size"] = "95%"
     }
 
-    result = document.getElementsByTagName("dt")
+    result = document.getElementsByTagName("dt");
     for (let i = 0; i < result.length; i++)
     {
         result[i].style["background-color"] = "#fcfcfc";
@@ -89,7 +92,7 @@ window.onload = function() {
 
 
     // attribute einzeln in eine Zeile packen
-    result = document.getElementsByClassName("py property")
+    result = document.getElementsByClassName("py property");
     for (let i = 0; i < result.length; i++)
         result[i].style["display"] = "block";
 
