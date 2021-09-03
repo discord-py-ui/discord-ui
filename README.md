@@ -776,4 +776,4 @@ You can contact us on discord
 
 - `RedstoneZockt#2510`
 - `! ♥UwU kuso-kun UwU 💕#6969`
-- [a shitty support server](https://discord.gg/bDJCGD994p)
+- [discord support server](https://discord.gg/bDJCGD994p)
