@@ -301,50 +301,7 @@ class Slash():
         }
         own_guild_ids = [x.id for x in self._discord.guilds]
         
-        #region gather commands
-        commands = self.commands.copy()
-        for _base in self.subcommands:
-            # get first base
-            for _sub in self.subcommands[_base]:
-                # get second base/command
-                sub = self.subcommands[_base][_sub]
-                # when command has subcommand groups
-                if isinstance(sub, dict):
-                    for _group in self.subcommands[_base][_sub]:
-                        # the subcommand group
-                        group = self.subcommands[_base][_sub][_group]
-                        # if there's already a base command
-                        if commands.get(_base) is not None:
-                            # Check if base already has an option with the subs name
-                            index = get_index(commands[_base].options, _sub, lambda x: getattr(x, "name"))
-                            # if first base_name already exists
-                            if index > -1:
-                                # add to sub options
-                                base_ops = commands[_base].options
-                                base_ops[index].options += [group.to_option()]
-                                commands[_base].options = base_ops
-                            # if not exists
-                            else:
-                                # create sub option + group option
-                                commands[_base].options += [SlashOption(OptionType.SUB_COMMAND_GROUP, _sub, options=[group.to_option()])]
-                        # if no base command
-                        else:
-                            # create base0 command together with base1 option and groupcommand option
-                            commands[_base] = SlashCommand(None, _base, MISSING, [
-                                    SlashOption(OptionType.SUB_COMMAND_GROUP, _sub, options=[group.to_option()])
-                                ],
-                                guild_ids=group.guild_ids, default_permission=group.default_permission, guild_permissions=group.guild_permissions)
-                # if is basic subcommand
-                else:
-                    # If base exists
-                    if commands.get(_base) is not None:
-                        commands[_base].options += [sub.to_option()]
-                    else:
-                        # create base0 command with name option
-                        commands[_base] = SlashCommand(None, _base, options=[sub.to_dict()], guild_ids=sub.guild_ids, default_permission=sub.default_permission, guild_permissions=sub.guild_permissions)
-        #endregion
-
-
+        commands = self.gather_commands()
         async def guild_stuff(command, guild_ids):
             """Adds the command to the guilds"""
             for x in guild_ids:
@@ -440,6 +397,48 @@ class Slash():
         logging.debug("getting guild commands in " + str(guild_id))
         return await get_guild_commands(self._discord, guild_id)
     
+    def gather_commands(self):
+        commands = self.commands.copy()
+        for _base in self.subcommands:
+            # get first base
+            for _sub in self.subcommands[_base]:
+                # get second base/command
+                sub = self.subcommands[_base][_sub]
+                # when command has subcommand groups
+                if isinstance(sub, dict):
+                    for _group in self.subcommands[_base][_sub]:
+                        # the subcommand group
+                        group = self.subcommands[_base][_sub][_group]
+                        # if there's already a base command
+                        if commands.get(_base) is not None:
+                            # Check if base already has an option with the subs name
+                            index = get_index(commands[_base].options, _sub, lambda x: getattr(x, "name"))
+                            # if first base_name already exists
+                            if index > -1:
+                                # add to sub options
+                                base_ops = commands[_base].options
+                                base_ops[index].options += [group.to_option()]
+                                commands[_base].options = base_ops
+                            # if not exists
+                            else:
+                                # create sub option + group option
+                                commands[_base].options += [SlashOption(OptionType.SUB_COMMAND_GROUP, _sub, options=[group.to_option()])]
+                        # if no base command
+                        else:
+                            # create base0 command together with base1 option and groupcommand option
+                            commands[_base] = SlashCommand(None, _base, MISSING, [
+                                    SlashOption(OptionType.SUB_COMMAND_GROUP, _sub, options=[group.to_option()])
+                                ],
+                                guild_ids=group.guild_ids, default_permission=group.default_permission, guild_permissions=group.guild_permissions)
+                # if is basic subcommand
+                else:
+                    # If base exists
+                    if commands.get(_base) is not None:
+                        commands[_base].options += [sub.to_option()]
+                    else:
+                        # create base0 command with name option
+                        commands[_base] = SlashCommand(None, _base, options=[sub.to_dict()], guild_ids=sub.guild_ids, default_permission=sub.default_permission, guild_permissions=sub.guild_permissions)
+        return commands
 
     async def create_command(self, command):
         """
@@ -645,7 +644,7 @@ class Slash():
         else:
             await self.create_command(command)
         self._set_command(old_name, command)
-            
+
     def _get_command(self, name, typ: Literal["slash", 1, "user", 2, "message", 3]) -> SlashCommand:
         typ = CommandType.from_string(typ)
         if typ == CommandType.SLASH:
@@ -742,12 +741,12 @@ class Slash():
         logging.info("nuked all commands")
 
 
-    def add_command(self, name, callback=None, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING, api=False) -> Union[None, Coroutine]:
+    def add_command(self, name=MISSING, callback=None, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING, api=False) -> Union[None, Coroutine]:
         """
         Adds a new slashcommand
 
         name: :class:`str`
-            1-32 characters long name
+            1-32 characters long name; default MISSING
 
             .. note::
 
@@ -858,6 +857,9 @@ class Slash():
             """
             self.add_command(name, callback, description, options, guild_ids, default_permission, guild_permissions)
         return wrapper
+    def add_subcommand(self, base_names, name=MISSING, callback=None, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
+        command = SlashSubcommand(callback, base_names, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
+        self._add_to_cache(command)
     def subcommand(self, base_names, name=MISSING, description=MISSING, options=[], guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
         """
         A decorator for a subcommand group
