@@ -877,5 +877,5 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 You can contact us on discord
 
 - `RedstoneZockt#2510`
-- `! ♥UwU kuso-kun UwU 💕#6969`
+- `! DaKuso#6969`
 - [discord](https://discord.gg/bDJCGD994p)
