@@ -51,6 +51,7 @@ def override_dpy():
                 files = [kwargs.pop("file")]
             elif kwargs.get("files") is not None:
                 files = kwargs.pop("files")
+            
             payload = jsonifyMessage(content=content, **kwargs)
             r = await send_files(route, files=files, payload=payload, http=self._state.http)
         
