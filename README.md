@@ -176,13 +176,37 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>4.2.7<summary>
+
+    ## **Added**
+    
+    - `on_component`
+    > There is now an event with the name `component` that will be dispatched whenever a component was received
+    > If you use `Message.wait_for`, there is now a new event choice with the name `component` (`message.wait_for("component", client)`)
+
+
+    ## **Fixed**
+    
+    - #94
+    > DM issue with deleting messages
+
+    ## **Changed**
+
+    - `edit`
+    > Edit now takes "content" as not positional (`.edit("the content")` works now)
+    - component lenght
+    > You are now able to set component values with the right max lenght
+
+    </details>
+
+-   <details>
     <summary>4.2.6</summary>
 
     ## **Fixed**
 
     - emebds
     > there was an issue with sending embeds
-    
+
     </details>
 
 -   <details>

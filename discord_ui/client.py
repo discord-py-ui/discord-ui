@@ -1,3 +1,4 @@
+from discord.channel import TextChannel
 from .cogs import BaseCallable, CogCommand, CogMessageCommand, CogSubCommandGroup, ListeningComponent
 from .components import Component, ComponentType
 from .slash.errors import NoAsyncCallback
@@ -5,9 +6,9 @@ from .errors import MissingListenedComponentParameters, WrongType
 from .slash.tools import ParseMethod, cache_data, format_name, handle_options, handle_thing
 from .slash.http import create_global_command, create_guild_command, delete_global_command, delete_guild_command, delete_guild_commands, edit_global_command, edit_guild_command, get_command, get_command_permissions, get_global_commands, get_guild_commands, delete_global_commands, get_id, update_command_permissions
 from .slash.types import AdditionalType, CommandType, ContextCommand, MessageCommand, OptionType, SlashCommand, SlashOption, SlashSubcommand, UserCommand
-from .tools import MISSING, _or, get_index, setup_logger
+from .tools import MISSING, _none, _or, get_index, setup_logger
 from .http import jsonifyMessage, BetterRoute, send_files
-from .receive import Interaction, Message, PressedButton, SelectedMenu, SlashedContext, WebhookMessage, SlashedCommand, SlashedSubCommand, getMessage
+from .receive import ComponentContext, Interaction, Message, PressedButton, SelectedMenu, SlashedContext, WebhookMessage, SlashedCommand, SlashedSubCommand, getMessage
 from .override import override_dpy as override_it
 
 import discord
@@ -171,6 +172,7 @@ class Slash():
         if self.auto_defer[0] is True:
             await interaction.defer(self.auto_defer[1])
         self._discord.dispatch("interaction_received", interaction)
+
 
         #region basic commands
         if data["data"]["type"] == CommandType.SLASH and not (data["data"].get("options") and data["data"]["options"][0]["type"] in [OptionType.SUB_COMMAND, OptionType.SUB_COMMAND_GROUP]):
@@ -1190,6 +1192,8 @@ class Components():
             await interaction.defer(self.auto_defer[1])
         self._discord.dispatch("interaction_received", interaction)
 
+        self._discord.dispatch("component", ComponentContext(self._discord._connection, data, user, msg))
+
         # Handle auto_defer
         if int(data["data"]["component_type"]) == 2:
             for x in msg.buttons:
@@ -1254,10 +1258,20 @@ class Components():
         :type: :class:`~Message`
         """
 
-        if not isinstance(channel, (discord.TextChannel, int, str)):
-            raise WrongType("channel", channel, "discord.TextChannel")
+        if not isinstance(channel, (discord.TextChannel, int, str, discord.User)):
+            raise WrongType("channel", channel, ["discord.TextChannel", "discord.User"])
 
-        channel_id = channel.id if isinstance(channel, discord.TextChannel) else channel
+        channel_id = None
+        if isinstance(channel, discord.User):
+            if channel.dm_channel is None:
+                channel = await channel.create_dm()
+                channel_id = channel.id
+            else:
+                channel_id = channel.dm_channel
+        elif isinstance(channel, discord.TextChannel):
+            channel_id = channel.id
+        else: 
+            channel_id = channel
         payload = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, reference=reference, mention_author=mention_author, components=components)
 
         route = BetterRoute("POST", f"/channels/{channel_id}/messages")
@@ -1268,9 +1282,9 @@ class Components():
         else:
             r = await send_files(route, files=_or(files, [file]), payload=payload, http=self._discord.http)
 
-        msg = Message(state=self._discord._get_state(), channel=channel, data=r)
-            
-        if delete_after is not None:
+        msg = Message(state=self._discord._connection, channel=channel, data=r)
+        
+        if not _none(delete_after):
             await msg.delete(delay=delete_after)
         
         return msg

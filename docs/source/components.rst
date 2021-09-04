@@ -23,7 +23,27 @@ Components
 Events
 ================
 
-We got 2 events to listen for your client
+We got 3 events to listen for your client
+
+``component``
+~~~~~~~~~~~~~~
+
+This event will be dispatched whenever a component was invoked
+
+A sole parameter will be passed
+
+*  :class:`~ComponentContext`: The used component
+
+.. code-block::
+
+    @client.listen()
+    async on_compoent(component: ComponentContext):
+        ...
+
+.. code-block::
+
+    await client.wait_for('component', check=lambda com: ...)
+
 
 ``button_press``
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -36,8 +56,8 @@ A sole parameter will be passed:
 
 .. code-block::
 
-    @client.listen('on_button_press')
-    def on_button(btn: PressedButton):
+    @client.listen()
+    def on_button_press(btn: PressedButton):
         ...
 
 .. code-block::
@@ -56,8 +76,8 @@ A sole paremeter will be passed
 
 .. code-block::
 
-    @client.listen('on_menu_select')
-    def on_button(menu: SelectedMenu):
+    @client.listen()
+    def on_menu_select(menu: SelectedMenu):
         ...
 
 .. code-block::

@@ -3,7 +3,7 @@ from .slash.errors import AlreadyDeferred, EphemeralDeletion
 from .slash.types import ContextCommand, SlashCommand, SlashPermission, SlashSubcommand
 from .tools import MISSING, setup_logger, _none
 from .http import BetterRoute, jsonifyMessage, send_files
-from .components import ActionRow, Button, LinkButton, SelectMenu, SelectOption, make_component
+from .components import ActionRow, Button, Component, LinkButton, SelectMenu, SelectOption, make_component
 
 import discord
 from discord.ext.commands import Bot
@@ -167,7 +167,7 @@ class Interaction():
 
 
         r = None
-        if delete_after is not MISSING and hide_message is True:
+        if not _none(delete_after) and hide_message is True:
             raise EphemeralDeletion()
 
         if hide_message:
@@ -199,7 +199,7 @@ class Interaction():
         if not hide_message:
             responseMSG = await self._state.http.request(BetterRoute("GET", f"/webhooks/{self.application_id}/{self.token}/messages/@original"))
             msg = await getMessage(self._state, data=responseMSG, response=False)
-            if delete_after is not MISSING:
+            if not _none(delete_after):
                 await msg.delete(delete_after)
             return msg
 
@@ -262,6 +262,12 @@ class Interaction():
     def _handle_auto_defer(self, auto_defer):
         self.deferred = auto_defer[0]
         self._deferred_hidden = auto_defer[1]
+
+class ComponentContext(Interaction, Component):
+    """A received component"""
+    def __init__(self, state, data, user, message) -> None:
+        Interaction.__init__(self, state, data, user=user, message=message)
+        Component.__init__(self, data["data"]["component_type"])
 
 class SelectedMenu(Interaction, SelectMenu):
     """A :class:`~SelectMenu` object in which an item was selected"""
@@ -349,7 +355,7 @@ async def getMessage(state: ConnectionState, data, response = True):
     :class:`~Message` | :class:`~EphemeralMessage`
         The sent message
     """
-    channel = state.get_channel(int(data["channel_id"]))
+    channel = state.get_channel(int(data["channel_id"])) or state._get_private_channel_by_user(data["message"]["author"]["id"])
     if response:
         if data.get("message") is not None and data.get("message", data)["flags"] == 64:
             return EphemeralResponseMessage(state=state, channel=channel, data=data.get("message", data))
@@ -423,7 +429,7 @@ class Message(discord.Message):
         super()._update(data)
         self._update_components(data)
 
-    async def edit(self, *, content=MISSING, embed=MISSING, embeds=MISSING, attachments=MISSING, suppress=MISSING, 
+    async def edit(self, content=MISSING, *, embed=MISSING, embeds=MISSING, attachments=MISSING, suppress=MISSING, 
         delete_after=MISSING, allowed_mentions=MISSING, components=MISSING):
         """Edits the message and updates its properties
 
@@ -454,7 +460,7 @@ class Message(discord.Message):
         data = await self._state.http.edit_message(self.channel.id, self.id, **payload)
         self._update(data)
 
-        if delete_after is not MISSING:
+        if not _none(delete_after):
             await self.delete(delay=delete_after)
 
     async def disable_action_row(self, row, disable = True):
@@ -528,17 +534,17 @@ class Message(discord.Message):
             rows.append(c_row) 
         return rows
 
-    async def wait_for(self, event_name: Literal["select", "button"], client, custom_id=MISSING, by=MISSING, check=lambda component: True, timeout=None) -> Union[PressedButton, SelectedMenu]:
+    async def wait_for(self, event_name: Literal["select", "button", "component"], client, custom_id=MISSING, by=MISSING, check=lambda component: True, timeout=None) -> Union[PressedButton, SelectedMenu]:
         """Waits for a message component to be invoked in this message
 
         Parameters
         -----------
             event_name: :class:`str`
-                The name of the event which will be awaited [``"select"`` | ``"button"``]
+                The name of the event which will be awaited [``"select"`` | ``"button"`` | ``"component"``]
                 
                 .. note::
 
-                    ``event_name`` must be ``select`` for a select menu selection and ``button`` for a button press
+                    ``event_name`` must be ``select`` for a select menu selection, ``button`` for a button press and ``component`` for any component
 
             client: :class:`discord.ext.commands.Bot`
                 The discord client
@@ -577,7 +583,7 @@ class Message(discord.Message):
             except asyncio.TimeoutError:
                 # no button press was received in 20 seconds timespan
         """
-        if event_name.lower() in ["button", "select"]:
+        if event_name.lower() in ["button", "select", "component"]:
             def _check(com):
                 if com.message.id == self.id:
                     statements = []
@@ -591,23 +597,15 @@ class Message(discord.Message):
                 return False
             if not isinstance(client, Bot):
                 raise WrongType("client", client, "discord.ext.commands.Bot")
-            return (await client.wait_for('button_press' if event_name.lower() == "button" else "menu_select", check=_check, timeout=timeout))
+            return (await client.wait_for('button_press' if event_name.lower() == "button" else ("menu_select" if event_name.lower() == "menu" else "component"), check=_check, timeout=timeout))
         
-        raise InvalidEvent(event_name, ["button", "select"])
-
-class ResponseMessage(Message):
-    r"""A message Object which extends the `Message` Object optimized for an interaction component"""
-    def __init__(self, *, state, channel, data, user, interaction_component = None):
-        Message.__init__(self, state=state, channel=channel, data=data["message"])
-        self.interaction = Interaction(state, data, user, self)
-        self.interaction_component = interaction_component
-
+        raise InvalidEvent(event_name, ["button", "select", "component"])
 
 class WebhookMessage(Message, discord.WebhookMessage):
     def __init__(self, *, state, channel, data):
         Message.__init__(self, state=state, channel=channel, data=data)
         discord.WebhookMessage.__init__(self, state=state, channel=channel, data=data)
-    async def edit(self, **fields):
+    async def edit(self, *args, **fields):
         """Edits the message
 
         content: :class:`str`, Optional
@@ -621,7 +619,7 @@ class WebhookMessage(Message, discord.WebhookMessage):
         allowed_mentions: :class`discord.AllowedMentions`
             Controls the mentions being processed in this message. See `discord.abc.Messageable.send` for more information.
         """
-        return await self._state._webhook._adapter.edit_webhook_message(message_id=self.id, payload=jsonifyMessage(**fields))
+        return await self._state._webhook._adapter.edit_webhook_message(message_id=self.id, payload=jsonifyMessage(*args, **fields))
     
 
 class EphemeralComponent(Interaction):
@@ -651,9 +649,9 @@ class EphemeralMessage(Message):
         Message.__init__(self, state=state, channel=channel, data=data)
         self._application_id = application_id
         self._interaction_token = token
-    async def edit(self, **fields):
+    async def edit(self, *args, **fields):
         r = BetterRoute("PATCH", f"/webhooks/{self._application_id}/{self._interaction_token}/messages/{self.id}")
-        self._update(await self._state.http.request(r, json=jsonifyMessage(**fields)))        
+        self._update(await self._state.http.request(r, json=jsonifyMessage(*args, **fields)))        
     async def delete(self):
         """Override for delete function that will throw an exception"""
         raise EphemeralDeletion()
@@ -668,7 +666,7 @@ class EphemeralResponseMessage(Message):
     def __init__(self, *, state, channel, data):
         Message.__init__(self, state=state, channel=channel, data=data)
 
-    async def edit(self, token, **fields):
+    async def edit(self, token, *args, **fields):
         """Edits the message
         
         Parameters
@@ -689,7 +687,7 @@ class EphemeralResponseMessage(Message):
         
         """
         route = BetterRoute("PATCH", f"/webhooks/{self.interaction.application_id}/{token}/messages/{self.id}")
-        self._update(await self._state.http.request(route, json=jsonifyMessage(**fields)))
+        self._update(await self._state.http.request(route, json=jsonifyMessage(*args, **fields)))
     async def delete(self):
         """Override for delete function that will throw an exception"""
         raise EphemeralDeletion()

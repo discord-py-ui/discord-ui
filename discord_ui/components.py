@@ -81,6 +81,9 @@ class SelectOption():
     def value(self, value):
         if inspect.isclass(value):
             raise WrongType("value", value, ["int", "str", "bool", "float"])
+        if isinstance(value, str):
+            if len(value) > 100 or len(value) < 1:
+                raise InvalidLength("value", _min=1, _max=100)
         self._json["value"] = value
 
     @property
@@ -95,8 +98,8 @@ class SelectOption():
     def description(self, value):
         if value is not MISSING and not isinstance(value, str):
             raise WrongType("description", "str")
-        if value is not MISSING and len(value) > 50:
-            raise InvalidLength("description", 50, 0)
+        if value is not MISSING and len(value) > 100:
+            raise InvalidLength("description", 100, 0)
         self._json["description"] = value
     
     @property
@@ -288,7 +291,7 @@ class SelectMenu(Component):
     def options(self, value: List[SelectOption]):
         if isinstance(value, list):
             if len(value) > 25 or len(value) == 0:
-                raise OutOfValidRange("options", 1, 25)
+                raise OutOfValidRange("length of options", 1, 25)
             if all(isinstance(x, SelectOption) for x in value):
                 self._json["options"] = [x.to_dict() for x in value]
             elif all(isinstance(x, dict) for x in value):
@@ -465,8 +468,8 @@ class Button(Component):
             val = ""
         elif val is not None and not isinstance(val, str):
             raise WrongType("label", val, "str")
-        elif val is not None and len(val) > 80:
-            raise InvalidLength("label", _max=80)
+        elif val is not None and len(val) > 100:
+            raise InvalidLength("label", _max=100)
         elif val is not None and len(val) < 1:
             raise InvalidLength("label", _min=0)
 

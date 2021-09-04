@@ -41,8 +41,10 @@ def override_dpy():
     async def send(self: discord.TextChannel, content=None, **kwargs) -> Message:
         channel_id = self.id if not isinstance(self, commands.Context) else self.channel.id
 
+        channel = None
         if isinstance(self, (discord.Member, discord.User)) and self.dm_channel is None:
-                channel_id = (await self.create_dm()).id
+                channel = await self.create_dm()
+                channel_id = channel.id
         
         route = BetterRoute("POST", f"/channels/{channel_id}/messages")
         
@@ -58,7 +60,9 @@ def override_dpy():
             payload = jsonifyMessage(content=content, **kwargs)
             r = await send_files(route, files=files, payload=payload, http=self._state.http)
         
-        msg = Message(state=self._state, channel=self if not isinstance(self, commands.Context) else self.channel, data=r)
+        if channel is None:
+            channel = self if not isinstance(self, commands.Context) else self.channel
+        msg = Message(state=self._state, channel=channel, data=r)
         if kwargs.get("delete_after") is not None:
             await msg.delete(delay=kwargs.get("delete_after"))
     
