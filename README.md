@@ -179,14 +179,14 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>4.2.7<summary>
 
     ## **Added**
-    
+
     - `on_component`
     > There is now an event with the name `component` that will be dispatched whenever a component was received
     > If you use `Message.wait_for`, there is now a new event choice with the name `component` (`message.wait_for("component", client)`)
 
 
     ## **Fixed**
-    
+
     - #94
     > DM issue with deleting messages
 
@@ -878,4 +878,4 @@ You can contact us on discord
 
 - `RedstoneZockt#2510`
 - `! ♥UwU kuso-kun UwU 💕#6969`
-- [discord support server](https://discord.gg/bDJCGD994p)
+- [discord](https://discord.gg/bDJCGD994p)
