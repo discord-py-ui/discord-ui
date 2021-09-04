@@ -180,6 +180,8 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     ## **Fixed**
 
     - #94 (again 💀)
+    - received subcommands
+    > The base_names and the name will be now set to the right value
 
     </details>
 
