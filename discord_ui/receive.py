@@ -56,21 +56,24 @@ class Interaction():
 
     @property
     def guild(self) -> discord.Guild:
-        """The guild where the interaction was created
+        """
+        The guild where the interaction was created
         
         :type: :class:`discord.Guild`
         """
         return self._state._get_guild(self.guild_id)
     @property
     def channel(self) -> Union[discord.TextChannel, discord.DMChannel]:
-        """The channel where the interaction was created
+        """
+        The channel where the interaction was created
         
         :type: :class:`discord.TextChannel` | :class:`discord.DMChannel`
         """
         return self._state.get_channel(self.channel_id)
 
     async def defer(self, hidden=False):
-        """This will acknowledge the interaction. This will show the (*Bot* is thinking...) Dialog
+        """
+        This will acknowledge the interaction. This will show the (*Bot* is thinking...) Dialog
 
         .. note::
             
@@ -98,7 +101,8 @@ class Interaction():
     async def respond(self, content=MISSING, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, files=MISSING, nonce=MISSING,
     allowed_mentions=MISSING, mention_author=MISSING, components=MISSING, delete_after=MISSING, hidden=False,
     ninja_mode=False) -> Union['Message', 'EphemeralMessage']:
-        """Responds to the interaction
+        """
+        Responds to the interaction
         
         Parameters
         ----------
@@ -201,7 +205,8 @@ class Interaction():
 
     async def send(self, content=None, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, files=MISSING, nonce=MISSING,
     allowed_mentions=MISSING, mention_author=MISSING, components=MISSING, hidden=False) -> Union['Message', 'EphemeralMessage']:
-        """Sends a message to the interaction using a webhook
+        """
+        Sends a message to the interaction using a webhook
         
         Parameters
         ----------
