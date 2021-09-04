@@ -176,6 +176,14 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    
+    ## **Fixed**
+
+    - #94 (again 💀)
+
+    </details>
+
+-   <details>
     <summary>4.2.7<summary>
 
     ## **Added**

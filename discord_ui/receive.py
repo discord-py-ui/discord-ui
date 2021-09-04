@@ -1,6 +1,6 @@
 from .errors import InvalidEvent, OutOfValidRange, WrongType
 from .slash.errors import AlreadyDeferred, EphemeralDeletion
-from .slash.types import ContextCommand, SlashCommand, SlashPermission, SlashSubcommand
+from .slash.types import ContextCommand, OptionType, SlashCommand, SlashPermission, SlashSubcommand
 from .tools import MISSING, setup_logger, _none
 from .http import BetterRoute, jsonifyMessage, send_files
 from .components import ActionRow, Button, Component, LinkButton, SelectMenu, SelectOption, make_component
@@ -317,7 +317,18 @@ class SlashedSubCommand(SlashedCommand, SlashSubcommand):
     """A Sub-:class:`~SlashCommand` command that was used"""
     def __init__(self, client, command, data, user, args = None, guild_ids = None, guild_permissions=None) -> None:
         SlashedCommand.__init__(self, client, command, data, user, args, guild_ids=guild_ids, guild_permissions=guild_permissions)
-        SlashSubcommand.__init__(self, None, "EMPTY", "EMPTY")
+        print(data)
+        SlashSubcommand.__init__(self, None, ["EMPTY"], "EMPTY")
+        self.base_names[0] = data["data"]["name"]
+        _sub = data["data"]["options"][0]
+        if _sub["type"] == OptionType.SUB_COMMAND_GROUP:
+            print("group")
+            self.base_names.append(_sub["name"])
+            self.name = _sub["options"][0]["name"]
+        else:
+            print("sub")
+            self.name = _sub["name"]
+            
 
 class SlashedContext(Interaction, ContextCommand):
     def __init__(self, client, command: ContextCommand, data, user, param, guild_ids = None, guild_permissions = None) -> None:

@@ -6,7 +6,7 @@ from .errors import MissingListenedComponentParameters, WrongType
 from .slash.tools import ParseMethod, cache_data, format_name, handle_options, handle_thing
 from .slash.http import create_global_command, create_guild_command, delete_global_command, delete_guild_command, delete_guild_commands, edit_global_command, edit_guild_command, get_command, get_command_permissions, get_global_commands, get_guild_commands, delete_global_commands, get_id, update_command_permissions
 from .slash.types import AdditionalType, CommandType, ContextCommand, MessageCommand, OptionType, SlashCommand, SlashOption, SlashSubcommand, UserCommand
-from .tools import MISSING, _none, _or, get_index, setup_logger
+from .tools import MISSING, _none, _or, get_index, setup_logger, get
 from .http import jsonifyMessage, BetterRoute, send_files
 from .receive import ComponentContext, Interaction, Message, PressedButton, SelectedMenu, SlashedContext, WebhookMessage, SlashedCommand, SlashedSubCommand, getMessage
 from .override import override_dpy as override_it
@@ -124,7 +124,7 @@ class Slash():
                 self._add_to_cache(com)
             old_add(*args, **kwargs)
             if self.ready is True and sync_on_cog is True:
-                self._discord.loop.create_task(self.sync_commands(self.delete_unused))
+                self._discord.loop.run_until_complete(self.sync_commands(self.delete_unused))
         self._discord.add_cog = add_cog_override
 
         old_remove = self._discord.remove_cog
@@ -135,7 +135,7 @@ class Slash():
                 self._remove_from_cache(com)
             old_remove(*args, **kwargs)
             if self.ready is True and sync_on_cog is True:
-                self._discord.loop.create_task(self.sync_commands(self.delete_unused))
+                self._discord.loop.run_until_complete(self.sync_commands(self.delete_unused))
         self._discord.remove_cog = remove_cog_override
         
         async def on_connect():
@@ -397,7 +397,7 @@ class Slash():
         logging.debug("getting guild commands in " + str(guild_id))
         return await get_guild_commands(self._discord, guild_id)
     
-    def gather_commands(self):
+    def gather_commands(self) -> Dict[str, SlashCommand]:
         commands = self.commands.copy()
         for _base in self.subcommands:
             # get first base
@@ -644,7 +644,7 @@ class Slash():
         else:
             await self.create_command(command)
         self._set_command(old_name, command)
-
+   
     def _get_command(self, name, typ: Literal["slash", 1, "user", 2, "message", 3]) -> SlashCommand:
         typ = CommandType.from_string(typ)
         if typ == CommandType.SLASH:
