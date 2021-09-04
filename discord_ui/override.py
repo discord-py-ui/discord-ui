@@ -39,8 +39,13 @@ def override_dpy():
 
     #region message override
     async def send(self: discord.TextChannel, content=None, **kwargs) -> Message:
-
         channel_id = self.id if not isinstance(self, commands.Context) else self.channel.id
+
+        if isinstance(self, discord.Member):
+            if self.dm_channel == None:
+                dm_chnl = await self.create_dm()
+                channel_id = dm_chnl.id
+        
         route = BetterRoute("POST", f"/channels/{channel_id}/messages")
         
         r = None
