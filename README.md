@@ -72,7 +72,7 @@ async def command(ctx, cool=True):
     # you can use docstrings for the slash command description too
     await ctx.respond("You said this libary is " + str(cool))
 
-await client.run("your_token")
+client.run("your_token")
 ```
 
 Example for creating a user-context command

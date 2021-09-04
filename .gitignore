@@ -131,3 +131,5 @@ dmypy.json
 # visual studio
 .vscode/
 .vs/
+
+internal/
