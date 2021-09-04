@@ -177,6 +177,14 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 
 -   <details>
     
+    ## **Added**
+
+    - edit_subcomand
+
+    ## **Fixed**
+
+    - print statements
+
     ## **Fixed**
 
     - #94 (again 💀)

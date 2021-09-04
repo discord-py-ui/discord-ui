@@ -317,16 +317,13 @@ class SlashedSubCommand(SlashedCommand, SlashSubcommand):
     """A Sub-:class:`~SlashCommand` command that was used"""
     def __init__(self, client, command, data, user, args = None, guild_ids = None, guild_permissions=None) -> None:
         SlashedCommand.__init__(self, client, command, data, user, args, guild_ids=guild_ids, guild_permissions=guild_permissions)
-        print(data)
         SlashSubcommand.__init__(self, None, ["EMPTY"], "EMPTY")
         self.base_names[0] = data["data"]["name"]
         _sub = data["data"]["options"][0]
         if _sub["type"] == OptionType.SUB_COMMAND_GROUP:
-            print("group")
             self.base_names.append(_sub["name"])
             self.name = _sub["options"][0]["name"]
         else:
-            print("sub")
             self.name = _sub["name"]
             
 

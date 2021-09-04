@@ -644,7 +644,94 @@ class Slash():
         else:
             await self.create_command(command)
         self._set_command(old_name, command)
-   
+    async def edit_subcommand(self, base_names, old_name, guild_id=MISSING, *, name, description, options, guild_ids, default_permission, guild_permissions, callback=MISSING):
+        """
+        Edits a subcommand
+        
+        Parameters
+        ----------
+            base_names: List[:class:`str`] | :class:`str`
+                The base_names of the command
+            old_name: :class:`str`
+                The original name of the command
+            guild_id: :class:`[type]`, optional
+                The guild id of the command where the changes should be applied; default ``MISSING``
+            name: :class:`str`, optional
+                The new name of the command
+            description: :class:`str`, optional
+                The new description of the command
+            options: List[:class:`~SlashOption`], optional
+                The new options for the command
+            guild_ids: List[:class:`int` | :class:`str`], optional
+                The list of new guild_ids where the command is available
+            default_permission: :class:`bool`, optional
+                The new default permissions for the command
+            guild_permissions: :class:`dict`, optional
+                The new guild permissions for the command
+            callback: :class:`function`, optional, optional
+                The new command callback; default ``MISSING``
+        
+        Raises
+        ------
+            :raises: :class:`NotFound` : When a command in the internal cache doesn't exsist
+            :raises: :class:`NotFound` : When a command in the api doesn't exist
+        
+        """
+        if isinstance(base_names, str):
+            base_names = [base_names]
+        base = self.gather_commands()[base_names[0]]
+        origin_base = base
+        if len(base_names) > 1 and isinstance(base, dict):
+            base = get(base.options, base_names[1], lambda x: x.getattr("name"))
+        op: SlashOption = get(base, old_name, lambda x: x.getattr("name"))
+        sub = SlashSubcommand.from_data(op.to_dict())
+
+        if guild_id is not MISSING:
+            api_command = await self._get_guild_api_command(old_name, CommandType.SLASH, guild_id)
+        else:
+            api_command = await self._get_global_api_command(old_name, CommandType.Slash)
+        
+        if name is not None:
+            sub.name = name
+        if description is not None:
+            sub.description = description
+        if options is not None:
+            sub.options = options
+        if guild_ids is not None:
+            sub.guild_ids = guild_ids
+        if default_permission is not None:
+            sub.default_permission = default_permission
+        if guild_permissions is not None:
+            sub.guild_permissions = guild_permissions
+        if callback is not MISSING:
+            sub.callback = callback
+
+        base.guild_ids = sub.guild_ids
+        base.guild_permissions = sub.guild_permissions
+        base.default_permission = default_permission
+
+        # When command only should be edited in one guild
+        if guild_id is not MISSING and guild_ids is MISSING or sub.guild_ids == guild_ids:
+            await edit_guild_command(api_command["id"], self._discord, guild_id, base.to_dict(), sub.guild_permissions.get(guild_id))
+        # When guild_ids were changed
+        elif guild_ids is not MISSING and guild_ids != origin_base.guild_ids:
+            for x in guild_ids:
+                await self.add_guild_command(base, x)
+        # When guild command is changed to global command
+        elif guild_id is not MISSING and guild_ids is MISSING and base.guild_ids is not MISSING:
+            for x in base.guild_ids:
+                com = await self._get_guild_api_command(base.name, base.command_type, x)
+                await delete_guild_command(self._discord, com["id"], x)
+            await self.add_global_command(base)
+        # When global command is changed to guild command
+        elif origin_base.guild_ids is MISSING and base.guild_ids is not MISSING:
+            com = await self._get_global_api_command(origin_base.name, origin_base.command_type)
+            await delete_global_command(self._discord, com["id"])
+            await self.create_command(base)
+        else:
+            await self.create_command(base)
+        self._set_command(old_name, sub)
+
     def _get_command(self, name, typ: Literal["slash", 1, "user", 2, "message", 3]) -> SlashCommand:
         typ = CommandType.from_string(typ)
         if typ == CommandType.SLASH:
