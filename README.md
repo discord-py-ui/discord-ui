@@ -176,6 +176,20 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>4.2.5</summary>
+
+    ## **Fixed**
+
+    - listening_components
+    > There was an issue with listening components that they needed two parameters but only one was passed
+    > Another issue was `TypeError: __init__() missing 1 required positional argument: 'custom_id'`?
+
+    - emebds
+    > there was an issue with sending embeds
+
+    </details>
+
+-   <details>
     <summary>4.2.2</summary>
 
     ## **Changed**

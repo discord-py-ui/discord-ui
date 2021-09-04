@@ -1384,12 +1384,12 @@ class Components():
         """
         if not inspect.iscoroutinefunction(callback):
             raise NoAsyncCallback()
-        if len(inspect.signature(callback).parameters) < 2:
+        if len(inspect.signature(callback).parameters) < 1:
             raise MissingListenedComponentParameters()
         
         if self.listening_components.get(custom_id) is None:
             self.listening_components[custom_id] = []
-        self.listening_components[custom_id].append(ListeningComponent(callback, messages, users, check, custom_id))
+        self.listening_components[custom_id].append(ListeningComponent(callback, messages, users, component_type, check, custom_id))
     def remove_listening_components(self, custom_id):
         """
         Removes all listening components for a custom_id
