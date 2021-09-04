@@ -66,7 +66,7 @@ def jsonifyMessage(content=MISSING, tts=False, embed: discord.Embed=MISSING, emb
                 payload["embeds"] = []
             else:
                 embeds.append(embed)
-        if not all(isinstance(x) for x in embeds):
+        if not all(isinstance(x, discord.Embed) for x in embeds):
             raise WrongType("embeds", embeds, 'list[discord.Embed]')
         payload["embeds"] = [em.to_dict() for em in embeds]
 

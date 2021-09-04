@@ -176,6 +176,16 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>4.2.6</summary>
+
+    ## **Fixed**
+
+    - emebds
+    > there was an issue with sending embeds
+    
+    </details>
+
+-   <details>
     <summary>4.2.5</summary>
 
     ## **Fixed**
