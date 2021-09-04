@@ -124,7 +124,7 @@ class Slash():
                 self._add_to_cache(com)
             old_add(*args, **kwargs)
             if self.ready is True and sync_on_cog is True:
-                self._discord.loop.run_until_complete(self.sync_commands(self.delete_unused))
+                self._discord.loop.create_task(self.sync_commands(self.delete_unused))
         self._discord.add_cog = add_cog_override
 
         old_remove = self._discord.remove_cog
@@ -135,7 +135,7 @@ class Slash():
                 self._remove_from_cache(com)
             old_remove(*args, **kwargs)
             if self.ready is True and sync_on_cog is True:
-                self._discord.loop.run_until_complete(self.sync_commands(self.delete_unused))
+                self._discord.loop.create_task(self.sync_commands(self.delete_unused))
         self._discord.remove_cog = remove_cog_override
         
         async def on_connect():
