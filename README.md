@@ -173,7 +173,15 @@ bot.run("your token")
 
 You can find more (and better) examples [here](https://github.com/discord-py-ui/discord-ui/tree/main/examples)
 
+
 # Changelog
+
+-   <details>
+
+    ## **Fixed**
+    - cog context commands typo with `guild_permission` keyword
+
+    </details>
 
 -   <details>
     
