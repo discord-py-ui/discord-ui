@@ -205,7 +205,10 @@ class Slash():
 
                 self._discord.dispatch("context_command", context, member)
                 if x.callback is not None:
-                    await x.callback(context, member)
+                    if hasattr(x, "invoke"):
+                        await x.invoke(context, member)
+                    else:
+                        await x.callback(context, member)
                 return
         elif data["data"]["type"] == CommandType.MESSAGE:
             x = self.context_commands["message"].get(data["data"]["name"])
@@ -217,7 +220,10 @@ class Slash():
                 
                 self._discord.dispatch("context_command", context, message)
                 if x.callback is not None:
-                    await x.callback(context, message)
+                    if hasattr(x, "invoke"):
+                        await x.invoke(context, message)
+                    else:
+                        await x.callback(context, message)
                 return
         #endregion
 
