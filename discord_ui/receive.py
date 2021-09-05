@@ -332,6 +332,7 @@ class SlashedContext(Interaction, ContextCommand):
         Interaction.__init__(self, client._connection, data, user)
         ContextCommand.__init__(self, data["data"]["type"], None, "EMPTY", guild_ids=guild_ids, guild_permissions=guild_permissions)
         self._json = command.to_dict()
+        guild_permissions = guild_permissions or {}
         self.bot: Bot = client
         self.guild_ids: List[int] = guild_ids
         """The guild_ids where the command is available"""

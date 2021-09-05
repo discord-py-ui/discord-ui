@@ -181,6 +181,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 
     ## **Fixed**
     - small SelectOption issues
+    - context commands
 
     </details>
 
