@@ -40,7 +40,7 @@ class SelectOption():
         if emoji is not MISSING:
             self.emoji = emoji
     def __repr__(self) -> str:
-        return f"<discord_ui.SelectOption({self.custom_id}:{self.content})>"
+        return f"<discord_ui.SelectOption(label={self.label}, value={self.value})>"
 
     @property
     def content(self) -> str:
@@ -258,7 +258,7 @@ class SelectMenu(Component):
     def __str__(self) -> str:
         return self.custom_id
     def __repr__(self) -> str:
-        return f"<discord_ui.SelectMenu({self.custom_id}:{self.options})>"
+        return f"<discord_ui.SelectMenu(custom_id={self.custom_id}, options={self.options})>"
     
     @classmethod
     def _fromData(cls, data) -> 'SelectMenu':

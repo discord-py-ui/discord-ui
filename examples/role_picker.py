@@ -27,10 +27,10 @@ async def command(ctx: SlashedCommand):
 
     # The role picker component
     role_picker = SelectMenu("role_picker", options=[
-            SelectOption("javascript", "867715564155568158", "I'm a javascript programmer"),
-            SelectOption("java", "867715628504186911", "I'm a java programmer"),
-            SelectOption("python", "867715582903582743", "I'm a python programmer"),
-            SelectOption("ruby", "867715674386071602", "I'm a ruby programmer")
+            SelectOption("867715564155568158", "javascript", "I'm a javascript programmer"),
+            SelectOption("867715628504186911", "java", "I'm a java programmer"),
+            SelectOption("867715582903582743", "python", "I'm a python programmer"),
+            SelectOption("867715674386071602", "ruby", "I'm a ruby programmer")
         ], placeholder="Select your programming language", max_values=4)
     
     # Send the select menu, only visble to the user

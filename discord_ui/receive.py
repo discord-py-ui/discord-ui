@@ -591,21 +591,26 @@ class Message(discord.Message):
             except asyncio.TimeoutError:
                 # no button press was received in 20 seconds timespan
         """
-        if event_name.lower() in ["button", "select", "component"]:
-            def _check(com):
-                if com.message.id == self.id:
-                    statements = []
-                    if not _none(custom_id):
-                        statements.append(com.custom_id == custom_id)
-                    if not _none(by):
-                        statements.append(com.member.id == (by.id if hasattr(by, "id") else int(by)))
-                    if not _none(check):
-                        statements.append(check(com))
-                    return all(statements)
-                return False
-            if not isinstance(client, Bot):
-                raise WrongType("client", client, "discord.ext.commands.Bot")
-            return (await client.wait_for('button_press' if event_name.lower() == "button" else ("menu_select" if event_name.lower() == "menu" else "component"), check=_check, timeout=timeout))
+        def _check(com):
+            if com.message.id == self.id:
+                statements = []
+                if not _none(custom_id):
+                    statements.append(com.custom_id == custom_id)
+                if not _none(by):
+                    statements.append(com.member.id == (by.id if hasattr(by, "id") else int(by)))
+                if not _none(check):
+                    statements.append(check(com))
+                return all(statements)
+            return False
+        if not isinstance(client, Bot):
+            raise WrongType("client", client, "discord.ext.commands.Bot")
+        
+        if event_name.lower() == "button":
+            return await client.wait_for('button_press', check=_check, timeout=timeout)
+        if event_name.lower() == "select":
+            return await client.wait_for("menu_select", check=_check, timeout=timeout)
+        if event_name.lower() == "component":
+            return await client.wait_for("component", check=_check, timeout=timeout)
         
         raise InvalidEvent(event_name, ["button", "select", "component"])
 
