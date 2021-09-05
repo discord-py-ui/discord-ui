@@ -451,7 +451,7 @@ def subslash_cog(base_names, name=MISSING, description=MISSING, options=[], guil
     def wraper(callback):
         return CogSubCommandGroup(callback, base_names, name, description=description, options=options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
     return wraper
-def context_cog(type: Literal["user", 2, "message", 3], name=MISSING, guild_ids=MISSING, default_permission=MISSING, guild_permission=MISSING):
+def context_cog(type: Literal["user", 2, "message", 3], name=MISSING, guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING):
     """
     Decorator for cogs that will register a context command in discord
             ``Right-click message or user`` -> ``apps`` -> ``commands is displayed here``
@@ -504,9 +504,9 @@ def context_cog(type: Literal["user", 2, "message", 3], name=MISSING, guild_ids=
         """
     def wraper(callback):
         if type in ["user", 2]:
-            return CogMessageCommand(callback, name, guild_ids=guild_ids, default_permission=default_permission, guild_permission=guild_permission)
+            return CogMessageCommand(callback, name, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
         elif type in ["message", 3]:
-            return CogUserCommand(callback, name, guild_ids=guild_ids, default_permission=default_permission, guild_permission=guild_permission)
+            return CogUserCommand(callback, name, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
         else:
             raise InvalidArgument("Invalid context type! type has to be one of 'user', 1, 'message', 2!")
     return wraper
