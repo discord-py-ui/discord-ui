@@ -330,9 +330,9 @@ class SlashedSubCommand(SlashedCommand, SlashSubcommand):
 class SlashedContext(Interaction, ContextCommand):
     def __init__(self, client, command: ContextCommand, data, user, param, guild_ids = None, guild_permissions = None) -> None:
         Interaction.__init__(self, client._connection, data, user)
-        ContextCommand.__init__(self, None, "EMPTY", guild_ids=guild_ids, guild_permissions=guild_permissions)
-        self.bot: Bot = client
+        ContextCommand.__init__(self, data["data"]["type"], None, "EMPTY", guild_ids=guild_ids, guild_permissions=guild_permissions)
         self._json = command.to_dict()
+        self.bot: Bot = client
         self.guild_ids: List[int] = guild_ids
         """The guild_ids where the command is available"""
         self.param: Union[Message, discord.Member, discord.User] = param
@@ -380,7 +380,7 @@ class Message(discord.Message):
         self._payload = data
 
         self._state: ConnectionState = None
-        super().__init__(state=state, channel=channel, data=data)
+        discord.Message.__init__(self, state=state, channel=channel, data=data)
         self.components: List[Union[Button, LinkButton, SelectMenu]] = []
         """The components in the message
         

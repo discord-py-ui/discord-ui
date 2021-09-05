@@ -584,8 +584,8 @@ class ContextCommand(BaseCommand):
         
 class UserCommand(ContextCommand):
     def __init__(self, callback, name=MISSING, guild_ids = MISSING, default_permission = True, guild_permissions = MISSING) -> None:
-        super().__init__(CommandType.USER, callback, name, guild_ids, default_permission, guild_permissions)
+        ContextCommand.__init__(self, CommandType.USER, callback, name, guild_ids, default_permission, guild_permissions)
 
 class MessageCommand(ContextCommand):
     def __init__(self, callback, name=MISSING, guild_ids = MISSING, default_permission = True, guild_permissions = MISSING) -> None:
-        super().__init__(CommandType.MESSAGE, callback, name, guild_ids, default_permission, guild_permissions)
+        ContextCommand.__init__(self, CommandType.MESSAGE, callback, name, guild_ids, default_permission, guild_permissions)

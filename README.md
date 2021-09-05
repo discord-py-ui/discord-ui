@@ -177,6 +177,14 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>4.1.13</summary>
+
+    ## **Fixed**
+    - `TypeError: 'EMPTY' is not a callable object` in context commands
+
+    </details>
+
+-   <details>
     <summary>4.2.12</summary>
 
     ## **Fixed**
