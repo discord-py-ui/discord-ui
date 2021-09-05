@@ -542,7 +542,7 @@ class Message(discord.Message):
             rows.append(c_row) 
         return rows
 
-    async def wait_for(self, event_name: Literal["select", "button", "component"], client, custom_id=MISSING, by=MISSING, check=lambda component: True, timeout=None) -> Union[PressedButton, SelectedMenu]:
+    async def wait_for(self, event_name: Literal["select", "button", "component"], client, custom_id=MISSING, by=MISSING, check=lambda component: True, timeout=None) -> Union[PressedButton, SelectedMenu, ComponentContext]:
         """Waits for a message component to be invoked in this message
 
         Parameters
