@@ -343,6 +343,9 @@ class SlashPermission():
 
 class BaseCommand():
     def __init__(self, command_type, callback, name=MISSING, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
+        self.__aliases__ = None
+        self.__sync__ = getattr(callback, "__sync__", True)
+        self.is_alias = False
         self._json = {
             "type": command_type
         }
@@ -495,6 +498,11 @@ class BaseCommand():
     def default_permission(self, value):
         self._json["default_permission"] = value
     # endregion
+
+    def _patch(self, command):
+        self.__aliases__ = command.__aliases__
+        self.is_alias = command.is_alias
+        self.guild_permissions = command.guild_permissions
 
     def to_dict(self):
         return self._json

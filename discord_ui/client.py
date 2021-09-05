@@ -188,6 +188,7 @@ class Slash():
                 if data["data"].get("options") is not None:
                     options = await handle_options(data, data["data"]["options"], self.parse_method, self._discord)
                 context = SlashedCommand(self._discord, command=x, data=data, user=user, args=options, guild_ids=x.guild_ids, guild_permissions=x.guild_permissions)
+                context._patch(x)
                 # Handle autodefer
                 context._handle_auto_defer(self.auto_defer)
                 self._discord.dispatch("slash_command", context)
@@ -203,6 +204,7 @@ class Slash():
                 context = SlashedContext(self._discord, command=x, data=data, user=user, param=member, guild_ids=x.guild_ids, guild_permissions=x.guild_permissions)
                 # Handle autodefer
                 context._handle_auto_defer(self.auto_defer)
+                context._patch(x)
 
                 self._discord.dispatch("context_command", context, member)
                 if x.callback is not None:
@@ -216,6 +218,7 @@ class Slash():
             if x is not None:
                 message = await handle_thing(data["data"]["target_id"], 44, data, self.parse_method, self._discord)
                 context = SlashedContext(self._discord, command=x, data=data, user=user, param=message, guild_ids=x.guild_ids)
+                context._patch(x)
                 # Handle autodefer
                 context._handle_auto_defer(self.auto_defer)
                 
@@ -250,6 +253,7 @@ class Slash():
 
             if x:
                 context = SlashedSubCommand(self._discord, x, data, user, options, x.guild_ids, x.guild_permissions)
+                context._patch(x)
                 # Handle auto_defer
                 context._handle_auto_defer(self.auto_defer)
 
@@ -332,6 +336,9 @@ class Slash():
             added_commands["globals"][command.name] = command
 
         async def add_command(command):
+            # If command is set to no sync
+            if command.__sync__ == False:
+                return
             # guild only command
             if command.guild_ids is not MISSING:
                 logging.debug("adding '" + str(command.name) + "' as guild_command")
@@ -447,7 +454,7 @@ class Slash():
                         commands[_base] = SlashCommand(None, _base, options=[sub.to_dict()], guild_ids=sub.guild_ids, default_permission=sub.default_permission, guild_permissions=sub.guild_permissions)
         return commands
 
-    async def create_command(self, command):
+    async def create_command(self, command) -> SlashCommand:
         """
         Adds a command to the api. You shouldn't use this method unless you know what you're doing
         
@@ -479,6 +486,7 @@ class Slash():
                 await self.add_guild_command(command, x)
         else:
             await self.add_global_command(command)
+        return command
     async def add_global_command(self, base):
         """
         Adds a slash command to the global bot commands
@@ -836,8 +844,26 @@ class Slash():
 
 
 
-
-    
+    def command_alias(self, aliases):
+        """Decorator for slashcommand aliases
+        
+        Usage:
+        
+        .. code-block::
+        
+            @ui.slash.command_alias(["other_name"])
+            @ui.slash.command(name="my_name", ...)
+        
+        """
+        def wraper(command):
+            command.__aliases__ = aliases
+            original_command = command
+            command.is_alias = True
+            for alias in aliases:
+                command.name = alias
+                self._add_to_cache(command)
+            return original_command
+        return wraper
     def add_command(self, name=MISSING, callback=None, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING, api=False) -> Union[None, Coroutine]:
         """
         Adds a new slashcommand
@@ -874,6 +900,7 @@ class Slash():
             if self.ready is False:
                 raise Exception("Slashcommands are not ready yet")
             return self.create_command(command) 
+        return command
     def command(self, name=MISSING, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
         """
         A decorator for a slash command
@@ -952,7 +979,7 @@ class Slash():
 
             Note: Replace `default_value` with a value you want to be used if the parameter is not specified in discord, if you don't want a default value, just set it to `None`
             """
-            self.add_command(name, callback, description, options, guild_ids, default_permission, guild_permissions)
+            return self.add_command(name, callback, description, options, guild_ids, default_permission, guild_permissions)
         return wrapper
     def add_subcommand(self, base_names, name=MISSING, callback=None, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
         command = SlashSubcommand(callback, base_names, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)

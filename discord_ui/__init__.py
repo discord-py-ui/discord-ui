@@ -38,6 +38,7 @@ from .slash.tools import ParseMethod
 from .tools import components_to_dict
 from .slash.tools import create_choice
 from .receive import Interaction, InteractionType, Message, WebhookMessage, PressedButton, SelectedMenu, ComponentContext, SlashedCommand, SlashedSubCommand, EphemeralMessage, EphemeralResponseMessage
+from .slash import ext
 
 from .override import override_dpy, override_dpy2_client
 override_dpy2_client()
