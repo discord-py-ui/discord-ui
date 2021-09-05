@@ -17,6 +17,7 @@ class _MISSING:
 
 MISSING = _MISSING()
 
+
 def _none(*args, empty_array=False):
     return all(x in [None, MISSING] + [[], [[]]][empty_array is True] for x in args)
 def _or(*args, default=None):

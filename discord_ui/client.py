@@ -21,6 +21,7 @@ import json
 import inspect
 import asyncio
 import contextlib
+from functools import wraps
 from typing import Coroutine, Dict, List, Tuple, Union
 try:
     from typing import Literal
@@ -834,6 +835,9 @@ class Slash():
         logging.info("nuked all commands")
 
 
+
+
+    
     def add_command(self, name=MISSING, callback=None, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING, api=False) -> Union[None, Coroutine]:
         """
         Adds a new slashcommand

@@ -598,7 +598,7 @@ class Message(discord.Message):
                 if not _none(custom_id):
                     statements.append(com.custom_id == custom_id)
                 if not _none(by):
-                    statements.append(com.member.id == (by.id if hasattr(by, "id") else int(by)))
+                    statements.append(com.author.id == (by.id if hasattr(by, "id") else int(by)))
                 if not _none(check):
                     statements.append(check(com))
                 return all(statements)
