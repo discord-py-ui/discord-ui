@@ -371,10 +371,16 @@ class BaseCommand():
                     if _i == [0, 1][has_self]:
                         continue
                     _val = callback_params.get(_name)
-                    op_type = [_val.annotation, _name][_val.annotation == _val.empty]
+                    op_type = None
+                    if _val.annotation != _val.empty:
+                        op_type = _val.annotation
+                    elif _val.default != inspect._empty:
+                        op_type = type(_val.default)
+                    else: 
+                        op_type = _name
                     if OptionType.any_to_type(op_type) is None:
                         raise InvalidArgument("Could not find a matching option type for parameter '" + str(op_type) + "'")
-                    _ops.append(SlashOption(op_type, _name, required=_val.default is not None))
+                    _ops.append(SlashOption(op_type, _name, required=_val.default == inspect._empty))
                 self.options = _ops
 
         self.callback: function = callback
