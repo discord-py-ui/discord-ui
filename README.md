@@ -177,6 +177,14 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>4.2.12</summary>
+
+    ## **Fixed**
+    - context commands
+
+    </details>
+
+-   <details>
     <summary>4.2.11</summary>
 
     ## **Fixed**

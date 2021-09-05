@@ -342,9 +342,9 @@ class SlashPermission():
 
 
 class BaseCommand():
-    def __init__(self, callback, name=MISSING, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
+    def __init__(self, command_type, callback, name=MISSING, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
         self._json = {
-            "type": CommandType.SLASH
+            "type": command_type
         }
 
         self.options = _default([], options)
@@ -360,7 +360,7 @@ class BaseCommand():
                     param = callback_params[op.name]
                     if not op.required and param.default is param.empty:
                         raise OptionalOptionParameter(param.name)
-            if _none(options, empty_array=True):
+            if _none(options, empty_array=True) and self.command_type == CommandType.SLASH:
                 _ops = []
                 has_self = False
                 for _i, _name in enumerate(callback_params):
@@ -542,7 +542,7 @@ class SlashCommand(BaseCommand):
             })
         ```
         """
-        BaseCommand.__init__(self, callback, name, description, options, guild_ids, default_permission, guild_permissions)
+        BaseCommand.__init__(self, CommandType.SLASH, callback, name, description, options, guild_ids, default_permission, guild_permissions)
 
 class SlashSubcommand(BaseCommand):
     def __init__(self, callback, base_names, name, description=MISSING, options=[], guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
@@ -552,7 +552,7 @@ class SlashSubcommand(BaseCommand):
             raise InvalidArgument("subcommand groups are currently limited to 2 bases")
         if any([len(x) > 32 or len(x) < 1 for x in base_names]):
             raise InvalidLength("base_names", 1, 32)
-        BaseCommand.__init__(self, callback, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
+        BaseCommand.__init__(self, CommandType.SLASH, callback, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
         self.base_names = [format_name(x) for x in base_names]
     
     def to_option(self) -> SlashOption:
@@ -562,12 +562,12 @@ class SlashSubcommand(BaseCommand):
 
 
 class ContextCommand(BaseCommand):
-    def __init__(self, callback, name=MISSING, guild_ids=MISSING, default_permission = True, guild_permissions = MISSING) -> None:
+    def __init__(self, context_type, callback, name=MISSING, guild_ids=MISSING, default_permission = True, guild_permissions = MISSING) -> None:
         if callback is not None:
             callback_params = inspect.signature(callback).parameters
             if len(callback_params) < 2:
                 raise CallbackMissingContextCommandParameters()
-        super().__init__(callback, name=name, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
+        BaseCommand.__init__(self, context_type, callback, name=name, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
 
     @property
     def description(self) -> str:
@@ -584,10 +584,8 @@ class ContextCommand(BaseCommand):
         
 class UserCommand(ContextCommand):
     def __init__(self, callback, name=MISSING, guild_ids = MISSING, default_permission = True, guild_permissions = MISSING) -> None:
-        super().__init__(callback, name, guild_ids, default_permission, guild_permissions)
-        self._json["type"] = CommandType.USER
+        super().__init__(CommandType.USER, callback, name, guild_ids, default_permission, guild_permissions)
 
 class MessageCommand(ContextCommand):
     def __init__(self, callback, name=MISSING, guild_ids = MISSING, default_permission = True, guild_permissions = MISSING) -> None:
-        super().__init__(callback, name, guild_ids, default_permission, guild_permissions)
-        self._json["type"] = CommandType.MESSAGE
+        super().__init__(CommandType.MESSAGE, callback, name, guild_ids, default_permission, guild_permissions)
