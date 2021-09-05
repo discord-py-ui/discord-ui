@@ -183,6 +183,9 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     - small SelectOption issues
     - context commands
 
+    ## **Changed**
+    - allow context commands to have names with spaces
+
     </details>
 
 -   <details>

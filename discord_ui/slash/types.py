@@ -439,7 +439,10 @@ class BaseCommand():
             raise WrongType("name", value, "str")
         if len(value) > 32 or len(value) < 1:
             raise InvalidLength("name", 1, 32)
-        self._json["name"] = format_name(value)
+        if self.command_type == CommandType.SLASH:
+            self._json["name"] = format_name(value)
+        else:
+            self._json["name"] = value
     @property
     def description(self) -> str:
         """The description of the command
