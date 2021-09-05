@@ -177,6 +177,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>4.2.10</summary>
 
     ## **Fixed**
     - cog context commands typo with `guild_permission` keyword
