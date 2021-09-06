@@ -1,4 +1,3 @@
-from discord.enums import ButtonStyle
 from .tools import MISSING
 from .errors import InvalidLength, OutOfValidRange, WrongType
 
@@ -7,6 +6,7 @@ from discord.errors import InvalidArgument
 
 import inspect
 from typing import Any, List, Union
+
 
 class SelectOption():
     """
@@ -128,7 +128,9 @@ class SelectOption():
     @emoji.setter
     def emoji(self, val: Union[Emoji, str, dict]):
         """The emoji appearing before the label"""
-        if isinstance(val, str):
+        if val is None:
+            self._emoji = None
+        elif isinstance(val, str):
             self._emoji = {
                 "id": None,
                 "name": val
@@ -182,7 +184,6 @@ class Component():
     def __init__(self, component_type) -> None:
         self._custom_id = None
         self._component_type = component_type
-        self._hash = None
     @property
     def component_type(self) -> int:
         """
@@ -206,14 +207,6 @@ class Component():
         if not isinstance(value, str):
             raise WrongType("custom_id", value, "str")
         self._custom_id = value
-    @property
-    def hash(self):
-        """
-        The calculated hash from the discord api for the button
-
-        :type: :class:`str`
-        """
-        return self._hash
 
 class SelectMenu(Component):
     """
@@ -303,10 +296,7 @@ class SelectMenu(Component):
     
     @staticmethod
     def _fromData(data) -> 'SelectMenu':
-        x = SelectMenu(data["custom_id"], data["options"], data.get("min_values"), data.get("max_values"), data.get("placeholder"), disabled=data.get("disabled", False))
-        if data.get("hash") is not None:
-            x._hash = data["hash"]
-
+        return SelectMenu(data["custom_id"], data["options"], data.get("min_values"), data.get("max_values"), data.get("placeholder"), disabled=data.get("disabled", False))
     # region props
     @property
     def options(self) -> List[SelectOption]:
@@ -355,16 +345,6 @@ class SelectMenu(Component):
             raise OutOfValidRange("default option position", 0, str(len(self.options) - 1))
         self._options[position]["default"] = True
         return self
-    
-   
-    @property
-    def hash(self) -> str:
-        """
-        Hash for the selectmenu
-
-        :type: :class:`str`
-        """
-        return self._hash
     # endregion
 
     def to_dict(self) -> dict:
@@ -400,8 +380,8 @@ class BaseButton(Component):
     def __str__(self) -> str:
         return self.content
     def to_dict(self):
-        payload = {"style": self._style, "disabled": self.disabled, "emoji": self._emoji}
-        if self._style == ButtonStyle.link:
+        payload = {"type": self._component_type, "style": self._style, "disabled": self.disabled, "emoji": self._emoji}
+        if self._style == ButtonStyles.url:
             payload["url"] = self._url
         else:
             payload["custom_id"] = self._custom_id
@@ -409,6 +389,7 @@ class BaseButton(Component):
             payload["emoji"] = self._emoji
         if self._label is not None:
             payload["label"] = self._label
+        return payload
 
     @property
     def content(self) -> str:
@@ -468,12 +449,13 @@ class BaseButton(Component):
             return None
         if "id" not in self._emoji:
             return self._emoji["name"]
-        return f'<{"a" if "animated" in self._emoji else ""}:{self._emoji["name"]}:{self._json_emoji["id"]}>'
+        return f'<{"a" if "animated" in self._emoji else ""}:{self._emoji["name"]}:{self._emoji["id"]}>'
     @emoji.setter
     def emoji(self, val: Union[Emoji, str, dict]):
-        if isinstance(val, str):
+        if val is None:
+            self._emoji = None
+        elif isinstance(val, str):
             self._emoji = {
-                "id": None,
                 "name": val
             }
         elif isinstance(val, Emoji):
@@ -488,7 +470,7 @@ class BaseButton(Component):
             raise WrongType("emoji", val, ["str", "discord.Emoji", "dict"])
     
 
-class Button(Component):
+class Button(BaseButton):
     """
     A ui-button
 
@@ -541,10 +523,7 @@ class Button(Component):
         Button
             The initialized button
         """
-        b = Button(data["custom_id"], data.get("label"), data["style"], data.get("emoji"), new_line, data.get("disabled", False))
-        if data.get("hash"):
-            b._hash = data["hash"]
-        return b
+        return Button(data["custom_id"], data.get("label"), data["style"], data.get("emoji"), new_line, data.get("disabled", False))
 
 class LinkButton(BaseButton):
     """
@@ -579,9 +558,7 @@ class LinkButton(BaseButton):
     def __repr__(self) -> str:
         return f"<discord_ui.LinkButton({self.custom_id}:{self.content})>"
     def copy(self) -> 'LinkButton':
-        x = LinkButton(self.url, self.label, self.emoji, self.new_line, self.disabled)
-        x._hash = self._hash
-        return x
+        return LinkButton(self.url, self.label, self.emoji, self.new_line, self.disabled)
 
     @property
     def custom_id(self):
@@ -604,10 +581,7 @@ class LinkButton(BaseButton):
 
     @classmethod
     def _fromData(cls, data, new_line=False) -> 'LinkButton':
-        b = LinkButton(data["url"], data.get("label"), data.get("emoji"), new_line, data.get("disabled", False))
-        if data.get("hash") is not None:
-            b._hash = data["hash"]
-        return b
+        return LinkButton(data["url"], data.get("label"), data.get("emoji"), new_line, data.get("disabled", False))
 
 
 class ButtonStyles:

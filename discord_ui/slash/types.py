@@ -346,10 +346,11 @@ class SlashPermission():
 
 
 class BaseCommand():
-    __slots__ = ('__aliases__', '__sync__', '__original_name__')
+    __slots__ = ('__aliases__', '__sync__', '__original_name__', '__auto_defer__')
     def __init__(self, command_type, callback, name=None, description=None, options=None, guild_ids=None, default_permission=None, guild_permissions=None) -> None:
         self.__aliases__ = getattr(callback, "__aliases__", None)
         self.__sync__ = getattr(callback, "__sync__", True)
+        self.__auto_defer__ = getattr(callback, "__auto_defer__", None)
         self._json = {"type": getattr(command_type, "value", command_type)}
 
         self.options = _default([], options)

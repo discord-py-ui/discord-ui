@@ -183,6 +183,30 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     - `Message.wait_for`
     > by keyword doesn't work properly
 
+    ## **Removed**
+    - Hash
+    > Removed the hash property from Buttons and SelectMenus due to the removal of it from the api
+    
+    ## **Added**
+    - `discord_ui.ext`
+    > A module with usefull tools and decorators to use
+    - `slash.alias`
+    > You can use aliases for commands now
+    - BaseCommand
+    > BaseCommand (the superclass for all applicationcommands) has now some extra properties:
+        - is_chat_input
+        > Whether this command is a slash command
+        - is_message_context
+        > Whether this command is a message context command
+        - is_user_context
+        > Whether this command is a user context command
+    - SlashedCommand
+    > Added properties:
+        - is_alias
+        > Whether the invoked command is an alias or not
+        - aliases
+        > All the available aliases for the command
+
 
     </details>
 

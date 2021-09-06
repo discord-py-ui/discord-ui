@@ -272,18 +272,18 @@ class SelectedMenu(Interaction, SelectMenu):
     """A :class:`~SelectMenu` object in which an item was selected"""
     def __init__(self, data, user, s, msg, client) -> None:
         Interaction.__init__(self, client._connection, data, user, msg)
-        SelectMenu.__init__(self, "EMPTY", [SelectOption("EMPTY", "EMPTY")], 0, 0)
+        SelectMenu.__init__(self, s.custom_id, s.options, s.min_values, s.max_values, s.placeholder, next([i for i, o in s.options if o.default is True], None), s.disabled)
         
-        self._json = s.to_dict()
         self.bot: Bot = client
-        #region selected_values
-        self.selected_values: List[SelectOption] = []
-        """The list of values which were selected"""
+        self.selected_options: List[SelectOption] = []
+        """The list of the selected options"""
+        self.selected_values: List[str] = []
+        """The list of raw values which were selected"""
         for val in data["data"]["values"]:
             for x in self.options:
                 if x.value == val:
-                    self.selected_values.append(x)
-        #endregion
+                    self.selected_options.append(x)
+                    self.selected_values.append(x.value)
         self.author: discord.Member = user
         """The user who selected the value"""
 
@@ -291,7 +291,8 @@ class PressedButton(Interaction, Button):
     """A :class:`~Button` object that was pressed"""
     def __init__(self, data, user, b, message, client) -> None:
         Interaction.__init__(self, client._connection, data, user, message)
-        Button.__init__(self, )
+        Button.__init__(self, b.custom_id, b.label, b.color, b.emoji, b.new_line, b.disabled)
+
         self._json = b.to_dict()
         self.bot: Bot = client
         self.author: discord.Member = user
