@@ -1,6 +1,6 @@
 from .errors import InvalidEvent, OutOfValidRange, WrongType
 from .slash.errors import AlreadyDeferred, EphemeralDeletion
-from .slash.types import ContextCommand, OptionType, SlashCommand, SlashPermission, SlashSubcommand
+from .slash.types import ContextCommand, OptionType, SlashCommand, SlashOption, SlashPermission, SlashSubcommand
 from .tools import MISSING, setup_logger, _none
 from .http import BetterRoute, jsonifyMessage, send_files
 from .components import ActionRow, Button, Component, LinkButton, SelectMenu, SelectOption, make_component
@@ -25,7 +25,7 @@ class InteractionType:
     MESSAGE_COMPONENT           =     Component     =           3
 
 class Interaction():
-    def __init__(self, state, data, user=MISSING, message=None) -> None:
+    def __init__(self, state, data, user=None, message=None) -> None:
         self._state: ConnectionState = state
 
         self.deferred: bool = False
@@ -33,9 +33,8 @@ class Interaction():
         self._deferred_hidden: bool = False
         self._original_payload: dict = data
 
-        if user is not MISSING:
-            self.author: Union[discord.Member, discord.User] = user
-            """The user who created the interaction"""
+        self.author: Union[discord.Member, discord.User] = user
+        """The user who created the interaction"""
         self.application_id: int = data["application_id"]
         """The ID of the bot application"""
         self.token: str = data["token"]
@@ -292,7 +291,7 @@ class PressedButton(Interaction, Button):
     """A :class:`~Button` object that was pressed"""
     def __init__(self, data, user, b, message, client) -> None:
         Interaction.__init__(self, client._connection, data, user, message)
-        Button.__init__(self, "empty", "empty")
+        Button.__init__(self, )
         self._json = b.to_dict()
         self.bot: Bot = client
         self.author: discord.Member = user
@@ -300,46 +299,40 @@ class PressedButton(Interaction, Button):
 
 class SlashedCommand(Interaction, SlashCommand):
     """A :class:`~SlashCommand` object that was used"""
-    def __init__(self, client, command: SlashCommand, data, user, args = None, guild_ids = None, guild_permissions = None) -> None:
+    def __init__(self, client, command: SlashCommand, data, user, args = None) -> None:
         Interaction.__init__(self, client._connection, data, user)
-        SlashCommand.__init__(self, None, "EMPTY", guild_ids=guild_ids, guild_permissions=guild_permissions)
+        SlashCommand.__init__(self, command.callback, command.name, command.description, command.options, guild_ids=command.guild_ids, guild_permissions=command.guild_permissions)
+        for x in self.__slots__:
+            setattr(self, x, getattr(command, x))
+
         self.bot: Bot = client
         self._json = command.to_dict()
         self.author: discord.Member = user
         """The user who used the command"""
-        self.guild_ids = guild_ids
-        """The ids of the guilds where the command is available"""
         self.args: Dict[str, Union[str, int, bool, discord.Member, discord.TextChannel, discord.Role, float]] = args
         """The options that were received"""
-        self.permissions: SlashPermission = guild_permissions.get(self.guild_id)
-        """The permissions for the guild"""
+        self.permissions: SlashPermission = command.guild_permissions.get(self.guild_id) if command.guild_permissions is not None else None
+        """The permissions for this guild"""
 class SlashedSubCommand(SlashedCommand, SlashSubcommand):
     """A Sub-:class:`~SlashCommand` command that was used"""
-    def __init__(self, client, command, data, user, args = None, guild_ids = None, guild_permissions=None) -> None:
-        SlashedCommand.__init__(self, client, command, data, user, args, guild_ids=guild_ids, guild_permissions=guild_permissions)
-        SlashSubcommand.__init__(self, None, ["EMPTY"], "EMPTY")
-        self.base_names[0] = data["data"]["name"]
-        _sub = data["data"]["options"][0]
-        if _sub["type"] == OptionType.SUB_COMMAND_GROUP:
-            self.base_names.append(_sub["name"])
-            self.name = _sub["options"][0]["name"]
-        else:
-            self.name = _sub["name"]
+    def __init__(self, client, command, data, user, args = None) -> None:
+        SlashSubcommand.__init__(self, command.callback, command.base_names, command.name)
+        SlashedCommand.__init__(self, client, command, data, user, args)
             
 
 class SlashedContext(Interaction, ContextCommand):
-    def __init__(self, client, command: ContextCommand, data, user, param, guild_ids = None, guild_permissions = None) -> None:
+    def __init__(self, client, command: ContextCommand, data, user, param) -> None:
         Interaction.__init__(self, client._connection, data, user)
-        ContextCommand.__init__(self, data["data"]["type"], None, "EMPTY", guild_ids=guild_ids, guild_permissions=guild_permissions)
+        ContextCommand.__init__(self, command.command_type, command.callback, command.name, guild_ids=command.guild_ids, guild_permissions=command.guild_permissions)
+        for x in self.__slots__:
+            setattr(self, x, getattr(command, x))
+        
         self._json = command.to_dict()
-        guild_permissions = guild_permissions or {}
         self.bot: Bot = client
-        self.guild_ids: List[int] = guild_ids
-        """The guild_ids where the command is available"""
         self.param: Union[Message, discord.Member, discord.User] = param
         """The parameter that was received"""
-        self.permissions: SlashPermission = guild_permissions.get(self.guild_id)
-        """The permissions for the guild"""
+        self.permissions: SlashPermission = command.guild_permissions.get(self.guild_id) if command.guild_permissions is not None else None 
+        """The permissions for this guild"""
         
 
 
@@ -551,7 +544,7 @@ class Message(discord.Message):
             rows.append(c_row) 
         return rows
 
-    async def wait_for(self, event_name: Literal["select", "button", "component"], client, custom_id=MISSING, by=MISSING, check=lambda component: True, timeout=None) -> Union[PressedButton, SelectedMenu, ComponentContext]:
+    async def wait_for(self, event_name: Literal["select", "button", "component"], client, custom_id=None, by=None, check=lambda component: True, timeout=None) -> Union[PressedButton, SelectedMenu, ComponentContext]:
         """Waits for a message component to be invoked in this message
 
         Parameters
@@ -667,7 +660,7 @@ class EphemeralComponent(Interaction):
 
 class EphemeralMessage(Message):
     """Represents a hidden (ephemeral) message"""
-    def __init__(self, state, channel, data, application_id=MISSING, token=MISSING):
+    def __init__(self, state, channel, data, application_id=None, token=None):
         Message.__init__(self, state=state, channel=channel, data=data)
         self._application_id = application_id
         self._interaction_token = token

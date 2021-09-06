@@ -5,7 +5,7 @@ from .slash.errors import NoAsyncCallback
 from .errors import MissingListenedComponentParameters, WrongType
 from .slash.tools import ParseMethod, cache_data, format_name, handle_options, handle_thing
 from .slash.http import create_global_command, create_guild_command, delete_global_command, delete_guild_command, delete_guild_commands, edit_global_command, edit_guild_command, get_command, get_command_permissions, get_global_commands, get_guild_commands, delete_global_commands, get_id, update_command_permissions
-from .slash.types import AdditionalType, CommandType, ContextCommand, MessageCommand, OptionType, SlashCommand, SlashOption, SlashSubcommand, UserCommand
+from .slash.types import AdditionalType, BaseCommand, CommandType, ContextCommand, MessageCommand, OptionType, SlashCommand, SlashOption, SlashSubcommand, UserCommand
 from .tools import MISSING, _none, _or, get_index, setup_logger, get
 from .http import jsonifyMessage, BetterRoute, send_files
 from .receive import ComponentContext, Interaction, Message, PressedButton, SelectedMenu, SlashedContext, WebhookMessage, SlashedCommand, SlashedSubCommand, getMessage
@@ -150,13 +150,15 @@ class Slash():
     async def _on_response(self, msg):
         if discord.__version__.startswith("2"):
             if isinstance(msg, bytes):
-                self._buffer.extend(msg)
-
-                if len(msg) < 4 or msg[-4:] != b'\x00\x00\xff\xff':
+                try:
+                    self._buffer.extend(msg)
+                    if len(msg) < 4 or msg[-4:] != b'\x00\x00\xff\xff':
+                        return
+                    msg = self._zlib.decompress(self._buffer)
+                    msg = msg.decode('utf-8')
+                    self._buffer = bytearray()
+                except:
                     return
-                msg = self._zlib.decompress(self._buffer)
-                msg = msg.decode('utf-8')
-                self._buffer = bytearray()
         if isinstance(msg, str):
             msg = json.loads(msg)
 
@@ -176,7 +178,7 @@ class Slash():
 
 
         #region basic commands
-        if data["data"]["type"] == CommandType.SLASH and not (data["data"].get("options") and data["data"]["options"][0]["type"] in [OptionType.SUB_COMMAND, OptionType.SUB_COMMAND_GROUP]):
+        if CommandType(data["data"]["type"]) is CommandType.Slash and not (data["data"].get("options") and data["data"]["options"][0]["type"] in [OptionType.SUB_COMMAND, OptionType.SUB_COMMAND_GROUP]):
             x = self.commands.get(data["data"]["name"])
             if x is None:
                 cog_commands = {}
@@ -187,7 +189,7 @@ class Slash():
                 options = {}
                 if data["data"].get("options") is not None:
                     options = await handle_options(data, data["data"]["options"], self.parse_method, self._discord)
-                context = SlashedCommand(self._discord, command=x, data=data, user=user, args=options, guild_ids=x.guild_ids, guild_permissions=x.guild_permissions)
+                context = SlashedCommand(self._discord, command=x, data=data, user=user, args=options)
                 context._patch(x)
                 # Handle autodefer
                 context._handle_auto_defer(self.auto_defer)
@@ -197,11 +199,11 @@ class Slash():
                 elif x.callback is not None:
                     await x.callback(context, **options)
                 return
-        elif data["data"]["type"] == CommandType.USER:
+        elif CommandType(data["data"]["type"]) is CommandType.User:
             x = self.context_commands["user"].get(data["data"]["name"])
             if x is not None:
                 member = await handle_thing(data["data"]["target_id"], OptionType.MEMBER, data, self.parse_method, self._discord)
-                context = SlashedContext(self._discord, command=x, data=data, user=user, param=member, guild_ids=x.guild_ids, guild_permissions=x.guild_permissions)
+                context = SlashedContext(self._discord, command=x, data=data, user=user, param=member)
                 # Handle autodefer
                 context._handle_auto_defer(self.auto_defer)
                 context._patch(x)
@@ -213,11 +215,11 @@ class Slash():
                     else:
                         await x.callback(context, member)
                 return
-        elif data["data"]["type"] == CommandType.MESSAGE:
+        elif CommandType(data["data"]["type"]) is CommandType.Message:
             x = self.context_commands["message"].get(data["data"]["name"])
             if x is not None:
                 message = await handle_thing(data["data"]["target_id"], 44, data, self.parse_method, self._discord)
-                context = SlashedContext(self._discord, command=x, data=data, user=user, param=message, guild_ids=x.guild_ids)
+                context = SlashedContext(self._discord, command=x, data=data, user=user, param=message)
                 context._patch(x)
                 # Handle autodefer
                 context._handle_auto_defer(self.auto_defer)
@@ -252,7 +254,7 @@ class Slash():
             options = await handle_options(data, fixed_options, self.parse_method, self._discord)
 
             if x:
-                context = SlashedSubCommand(self._discord, x, data, user, options, x.guild_ids, x.guild_permissions)
+                context = SlashedSubCommand(self._discord, x, data, user, options)
                 context._patch(x)
                 # Handle auto_defer
                 context._handle_auto_defer(self.auto_defer)
@@ -316,7 +318,7 @@ class Slash():
         async def guild_stuff(command, guild_ids):
             """Adds the command to the guilds"""
             for x in guild_ids:
-                if command.guild_permissions is not MISSING:
+                if command.guild_permissions is not None:
                     for x in list(command.guild_permissions.keys()):
                         if int(x) not in own_guild_ids:
                             raise InvalidArgument("guild_permissions invalid! Client is not in a guild with the id " + str(x))
@@ -326,7 +328,7 @@ class Slash():
                 if added_commands["guilds"].get(x) is None:
                     added_commands["guilds"][x] = {}
 
-                if command.guild_permissions is not MISSING:
+                if command.guild_permissions is not None:
                     command.permissions = command.guild_permissions.get(x)
                 
                 await self.add_guild_command(command, x)
@@ -340,17 +342,17 @@ class Slash():
             if command.__sync__ == False:
                 return
             # guild only command
-            if command.guild_ids is not MISSING:
+            if command.guild_ids is not None:
                 logging.debug("adding '" + str(command.name) + "' as guild_command")
                 await guild_stuff(command, command.guild_ids)
             # global command with guild permissions
-            elif command.guild_ids is MISSING and command.guild_permissions is not MISSING:
+            elif command.guild_ids is None and command.guild_permissions is not None:
                 logging.debug("adding '" + str(command.name) + "' as guild_command and global")
                 await global_stuff(command)
                 for guild in list(command.guild_permissions.keys()):
                     await self.update_permissions(command.name, command.type, guild_id=guild, permissions=command.guild_permissions[guild], global_command=True)
             # global command
-            elif command.guild_ids is MISSING and command.guild_permissions is MISSING:
+            elif command.guild_ids is None and command.guild_permissions is None:
                 logging.debug("adding '" + str(command.name) + "' as global command")
                 await global_stuff(command)
 
@@ -387,6 +389,8 @@ class Slash():
                 return x
     async def _get_guild_api_command(self, name, typ, guild_id) -> Union[dict, None]:
         for x in await self._get_guild_commands(guild_id):
+            if hasattr(typ, "value"):
+                typ = typ.value
             if x["name"] == name and x["type"] == typ:
                 return x
     async def _get_global_api_command(self, name, typ) -> Union[dict, None]:
@@ -440,7 +444,7 @@ class Slash():
                         # if no base command
                         else:
                             # create base0 command together with base1 option and groupcommand option
-                            commands[_base] = SlashCommand(None, _base, MISSING, [
+                            commands[_base] = SlashCommand(None, _base, None, [
                                     SlashOption(OptionType.SUB_COMMAND_GROUP, _sub, options=[group.to_option()])
                                 ],
                                 guild_ids=group.guild_ids, default_permission=group.default_permission, guild_permissions=group.guild_permissions)
@@ -469,18 +473,18 @@ class Slash():
             :raises: :class:`InvalidArgument` : When a guild-id in ``guild_permissions`` is not a valid server where the bot client is in it
         
         """
-        if command.guild_ids is not MISSING:
+        if command.guild_ids is not None:
             guild_ids = command.guild_ids
             own_guild_ids = [x.id for x in self._discord.guilds]
             for x in guild_ids:
-                if command.guild_permissions is not MISSING:
+                if command.guild_permissions is not None:
                     for x in list(command.guild_permissions.keys()):
                         if int(x) not in own_guild_ids:
                             raise InvalidArgument("guild_permissions invalid! Client is not in a guild with the id " + str(x))
                 if int(x) not in own_guild_ids:
                     raise InvalidArgument("guild_ids invalid! Client is not in a server with the id '" + str(x) + "'")
 
-                if command.guild_permissions is not MISSING:
+                if command.guild_permissions is not None:
                     command.permissions = command.guild_permissions.get(x)
                 
                 await self.add_guild_command(command, x)
@@ -532,7 +536,7 @@ class Slash():
         elif api_permissions != base.permissions:
             await update_command_permissions(self._discord.user.id, self._discord.http.token, guild_id, api_command["id"], base.permissions.to_dict())
 
-    async def update_permissions(self, name, typ: Literal["slash", 1, "user", 2, "message", 3] = 1, *, guild_id=MISSING, default_permission=MISSING,  permissions=MISSING, global_command=False):
+    async def update_permissions(self, name, typ: Literal["slash", 1, "user", 2, "message", 3] = 1, *, guild_id=None, default_permission=None,  permissions=None, global_command=False):
         """
         Updates the permissions for a command
         
@@ -541,7 +545,7 @@ class Slash():
             name: :class:`str`
                 The name of the command that should be updated
             typ: :class:`str` | :class:`int`
-                The type of the command (one of ``"slash", CommandType.SLASH, "user", CommandType.USER "message", CommandType.MESSAGE``)
+                The type of the command (one of ``"slash", CommandType.Slash, "user", CommandType.User, "message", CommandType.Message``)
             default_permission: :class:`bool`, optional
                 The default permission for the command if users can use it
             guild_id: :class:`int` | :class:`str`, optional
@@ -553,31 +557,25 @@ class Slash():
                 If the command is a global command or a guild command; default ``False``
         
         """
-        if guild_id is not MISSING:
+        if guild_id is not None:
             guild_id = int(guild_id)
-        if isinstance(typ, str):
-            if typ.lower() == "slash":
-                typ = CommandType.SLASH
-            elif typ.lower() == "user":
-                typ = CommandType.USER
-            elif typ.lower() == "message":
-                typ = CommandType.MESSAGE
+        typ = CommandType.from_string(typ).value
         if global_command is True:
             api_command = await self._get_global_api_command(name, typ)
         else:
             api_command = await self._get_guild_api_command(name, typ, guild_id)
         if api_command is None:
             raise CommandNotFound("Slash command with name " + str(name) + " and type " + str(typ) + " not found in the api!")
-        if permissions is not MISSING:
+        if permissions is not None:
             await update_command_permissions(self._discord.user.id, self._discord._connection.http.token, guild_id, api_command["id"], permissions.to_dict())
-        if default_permission is not MISSING:
+        if default_permission is not None:
             default_permission = default_permission or False
             api_command["default_permission"] = default_permission
             if global_command is True:
                 await edit_global_command(api_command["id"], self._discord, api_command)
             else:
                 await edit_guild_command(api_command["id"], self._discord, guild_id, api_command)
-    async def edit_command(self, old_name, typ: Literal["slash", 1, "user", 2, "message", 3] = 1, guild_id=MISSING, *, name, description, options, guild_ids, default_permission, guild_permissions, callback=MISSING):
+    async def edit_command(self, old_name, typ: Literal["slash", 1, "user", 2, "message", 3] = 1, guild_id=None, *, name, description, options, guild_ids, default_permission, guild_permissions, callback=MISSING):
         """
         Edits a command
         
@@ -610,14 +608,14 @@ class Slash():
             :raises: :class:`NotFound` : When a command in the api doesn't exist
         
         """
-        typ = CommandType.from_string(typ)
+        typ = CommandType.from_string(typ).value
         old_name = format_name(old_name)
 
         old_command = self._get_command(old_name, typ)
         if old_command is None:
             raise NotFound("Could not find a command in the internal cache with the name " + str(old_name) + " and the type " + str(typ))
         command = old_command
-        if guild_id is not MISSING:
+        if guild_id is not None:
             api_command = await self._get_guild_api_command(old_name, typ, guild_id)
         else:
             api_command = await self._get_global_api_command(old_name, typ)
@@ -634,32 +632,32 @@ class Slash():
             command.default_permission = default_permission
         if guild_permissions is not None:
             command.guild_permissions = guild_permissions
-        if guild_ids is not MISSING:
+        if guild_ids is not None:
             command.guild_ids = guild_ids
         if callback is not MISSING:
             command.callback = callback
         # When command only should be edited in one guild
-        if guild_id is not MISSING and guild_ids is MISSING or old_command.guild_ids == guild_ids:
+        if guild_id is not None and guild_ids is None or old_command.guild_ids == guild_ids:
             await edit_guild_command(api_command["id"], self._discord, guild_id, command.to_dict(), command.guild_permissions.get(guild_id))
         # When guild_ids were changed
-        elif guild_ids is not MISSING and guild_ids != old_command.guild_ids:
+        elif guild_ids is not None and guild_ids != old_command.guild_ids:
             for x in guild_ids:
                 await self.add_guild_command(command, x)
         # When guild command is changed to global command
-        elif guild_id is not MISSING and guild_ids is MISSING and old_command.guild_ids is not MISSING:
+        elif guild_id is not None and guild_ids is None and old_command.guild_ids is not None:
             for x in old_command.guild_ids:
                 com = await self._get_guild_api_command(old_command.name, old_command.command_type, x)
                 await delete_guild_command(self._discord, com["id"], x)
             await self.add_global_command(command)
         # When global command is changed to guild command
-        elif old_command.guild_ids is MISSING and command.guild_ids is not MISSING:
+        elif old_command.guild_ids is None and command.guild_ids is not None:
             com = await self._get_global_api_command(old_command.name, old_command.command_type)
             await delete_global_command(self._discord, com["id"])
             await self.create_command(command)
         else:
             await self.create_command(command)
         self._set_command(old_name, command)
-    async def edit_subcommand(self, base_names, old_name, guild_id=MISSING, *, name, description, options, guild_ids, default_permission, guild_permissions, callback=MISSING):
+    async def edit_subcommand(self, base_names, old_name, guild_id=None, *, name, description, options, guild_ids, default_permission, guild_permissions, callback=MISSING):
         """
         Edits a subcommand
         
@@ -701,8 +699,8 @@ class Slash():
         op: SlashOption = get(base, old_name, lambda x: x.getattr("name"))
         sub = SlashSubcommand.from_data(op.to_dict())
 
-        if guild_id is not MISSING:
-            api_command = await self._get_guild_api_command(old_name, CommandType.SLASH, guild_id)
+        if guild_id is not None:
+            api_command = await self._get_guild_api_command(old_name, CommandType.Slash, guild_id)
         else:
             api_command = await self._get_global_api_command(old_name, CommandType.Slash)
         
@@ -726,20 +724,20 @@ class Slash():
         base.default_permission = default_permission
 
         # When command only should be edited in one guild
-        if guild_id is not MISSING and guild_ids is MISSING or sub.guild_ids == guild_ids:
+        if guild_id is not MISSING and guild_ids is None or sub.guild_ids == guild_ids:
             await edit_guild_command(api_command["id"], self._discord, guild_id, base.to_dict(), sub.guild_permissions.get(guild_id))
         # When guild_ids were changed
         elif guild_ids is not MISSING and guild_ids != origin_base.guild_ids:
             for x in guild_ids:
                 await self.add_guild_command(base, x)
         # When guild command is changed to global command
-        elif guild_id is not MISSING and guild_ids is MISSING and base.guild_ids is not MISSING:
+        elif guild_id is not MISSING and guild_ids is None and base.guild_ids is not MISSING:
             for x in base.guild_ids:
                 com = await self._get_guild_api_command(base.name, base.command_type, x)
                 await delete_guild_command(self._discord, com["id"], x)
             await self.add_global_command(base)
         # When global command is changed to guild command
-        elif origin_base.guild_ids is MISSING and base.guild_ids is not MISSING:
+        elif origin_base.guild_ids is None and base.guild_ids is not MISSING:
             com = await self._get_global_api_command(origin_base.name, origin_base.command_type)
             await delete_global_command(self._discord, com["id"])
             await self.create_command(base)
@@ -749,26 +747,32 @@ class Slash():
 
     def _get_command(self, name, typ: Literal["slash", 1, "user", 2, "message", 3]) -> SlashCommand:
         typ = CommandType.from_string(typ)
-        if typ == CommandType.SLASH:
+        if typ is CommandType.Slash:
             return self.commands.get(name)
-        elif typ == CommandType.USER:
+        elif typ is CommandType.User:
             return self.context_commands["user"].get(name)
         else:
             return self.context_commands["message"].get(name)
     def _set_command(self, old_name, command: SlashCommand):
-        if command.command_type == CommandType.SLASH:
-            del self.commands[old_name]
+        if command.command_type is CommandType.Slash:
+            if self.commands.get(old_name) is not None:
+                del self.commands[old_name]
             self.commands[command.name] = command
-        elif command.command_type == CommandType.MESSAGE:
+        elif command.command_type is CommandType.Message:
             del self.context_commands["message"][old_name]
             self.context_commands["message"][command.name] = command
         else:
             del self.context_commands["user"][old_name]
             self.context_commands["user"][command.name] = command
-    def _add_to_cache(self, base: Union[SlashCommand, SlashSubcommand]):
+    def _add_to_cache(self, base: Union[SlashCommand, SlashSubcommand], is_alias=False):
+        if base.has_aliases and is_alias is False:
+            for a in base.__aliases__:
+                cur = base.copy()
+                cur.name = a
+                self._add_to_cache(cur, is_alias=True)
         if base.command_type is CommandType.Slash:
             # basic slash command
-            if isinstance(base, (SlashCommand, CogCommand)):
+            if isinstance(base, SlashCommand):
                 self.commands[base.name] = base
             # subcommand or subgroup
             else:
@@ -787,10 +791,10 @@ class Slash():
                     # add to cache
                     self.subcommands[base.base_names[0]][base.name] = base
         # context user command
-        elif base.command_type == CommandType.User:
+        elif base.command_type is CommandType.User:
             self.context_commands["user"][base.name] = base
         # context message command
-        elif base.command_type == CommandType.Message:
+        elif base.command_type is CommandType.Message:
             self.context_commands["message"][base.name] = base
     def _remove_from_cache(self, base: Union[SlashCommand, SlashSubcommand]):
         # slash command
@@ -809,11 +813,11 @@ class Slash():
                     # remove from cache
                     del self.subcommands[base.base_names[0]][base.name]
         # context user command
-        elif base.command_type == CommandType.User:
+        elif base.command_type is CommandType.User:
             # remove from cache
             del self.context_commands["user"][base.name]
         # context message command
-        elif base.command_type == CommandType.Message:
+        elif base.command_type is CommandType.Message:
             # remove from cache
             del self.context_commands["message"][base.name]
 
@@ -844,27 +848,30 @@ class Slash():
 
 
 
-    def command_alias(self, aliases):
-        """Decorator for slashcommand aliases
+    def alias(self, aliases):
+        """Decorator for slashcommand aliases that will add the same command but with different names 
         
         Usage:
         
         .. code-block::
         
-            @ui.slash.command_alias(["other_name"])
-            @ui.slash.command(name="my_name", ...)
+            @ui.slash.alias(["catz", "cute_things"])
+            @ui.slash.alias(name="cats", ...)
         
         """
         def wraper(command):
             command.__aliases__ = aliases
-            original_command = command
-            command.is_alias = True
-            for alias in aliases:
-                command.name = alias
-                self._add_to_cache(command)
-            return original_command
+            # If decorator is used after the commandd
+            if isinstance(command, BaseCommand):
+                for alias in aliases:
+                    c = command.copy()
+                    c.name = alias
+                    self._add_to_cache(c)
+                # Updates alias fields
+                self._set_command(command.name, command)
+            return command
         return wraper
-    def add_command(self, name=MISSING, callback=None, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING, api=False) -> Union[None, Coroutine]:
+    def add_command(self, name=None, callback=None, description=None, options=None, guild_ids=None, default_permission=True, guild_permissions=None, api=False) -> Union[None, Coroutine]:
         """
         Adds a new slashcommand
 
@@ -901,7 +908,7 @@ class Slash():
                 raise Exception("Slashcommands are not ready yet")
             return self.create_command(command) 
         return command
-    def command(self, name=MISSING, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
+    def command(self, name=None, description=None, options=None, guild_ids=None, default_permission=True, guild_permissions=None):
         """
         A decorator for a slash command
         
@@ -981,10 +988,10 @@ class Slash():
             """
             return self.add_command(name, callback, description, options, guild_ids, default_permission, guild_permissions)
         return wrapper
-    def add_subcommand(self, base_names, name=MISSING, callback=None, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
+    def add_subcommand(self, base_names, name=None, callback=None, description=None, options=None, guild_ids=None, default_permission=True, guild_permissions=None):
         command = SlashSubcommand(callback, base_names, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
         self._add_to_cache(command)
-    def subcommand(self, base_names, name=MISSING, description=MISSING, options=[], guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
+    def subcommand(self, base_names, name=None, description=None, options=[], guild_ids=None, default_permission=True, guild_permissions=None):
         """
         A decorator for a subcommand group
         
@@ -1090,7 +1097,7 @@ class Slash():
             self._add_to_cache(command)
 
         return wrapper
-    def user_command(self, name=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions = MISSING):
+    def user_command(self, name=None, guild_ids=None, default_permission=True, guild_permissions=None):
         """
         Decorator for user context commands in discord.
             ``Right-click username`` -> ``apps`` -> ``commands is displayed here``
@@ -1137,7 +1144,7 @@ class Slash():
         def wraper(callback):
             self._add_to_cache(UserCommand(callback, name, guild_ids, default_permission, guild_permissions))
         return wraper
-    def message_command(self, name=MISSING, guild_ids=MISSING, default_permission=True, guild_permissions=MISSING):
+    def message_command(self, name=None, guild_ids=None, default_permission=True, guild_permissions=None):
         """
         Decorator for message context commands in discord.
             ``Right-click message`` -> ``apps`` -> ``commands is displayed here``
@@ -1457,7 +1464,7 @@ class Components():
             payload["avatar_url"] = str(avatar_url)
 
         return webhook._adapter.execute_webhook(payload=payload, wait=wait, files=files)
-    def listening_component(self, custom_id, messages=MISSING, users=MISSING, component_type: Literal["button", "select"]=MISSING, check=lambda component: True):
+    def listening_component(self, custom_id, messages=None, users=None, component_type: Literal["button", "select"]=None, check=lambda component: True):
         """
         Decorator for ``add_listening_component``
 
@@ -1501,7 +1508,7 @@ class Components():
         def wrapper(callback):
             self.add_listening_component(callback, custom_id, messages, users, component_type, check)
         return wrapper
-    def add_listening_component(self, callback, custom_id, messages=MISSING, users=MISSING, component_type: Literal["button", 2, "select", 3]=MISSING, check=lambda component: True):
+    def add_listening_component(self, callback, custom_id, messages=None, users=None, component_type: Literal["button", 2, "select", 3]=None, check=lambda component: True):
         """
         Adds a listener to received components
 

@@ -7,6 +7,7 @@ from discord.errors import InvalidArgument
 
 import typing
 import inspect
+from enum import IntEnum
 
 def format_name(value):
     return str(value).lower().replace(" ", "-")
@@ -25,7 +26,7 @@ class SlashOption():
             required: :class:`bool`, optional
                 If the parameter is required or optional; default False
             choices: List[:class:`dict`], optional
-                Choices for string and int types for the user to pick from; default MISSING
+                Choices for string and int types for the user to pick from; default None
                     Choices should be formated like this: ``[{"name": "name of the choice", "value": "the real value"}, ...]``
 
                     .. note::
@@ -152,7 +153,7 @@ class SlashOption():
 
     @staticmethod
     def _from_data(data: dict):
-        return SlashOption(data["type"], data["name"], data["description"], data.get("required", False), data.get("choices", MISSING), data.get("options", MISSING))
+        return SlashOption(data["type"], data["name"], data["description"], data.get("required", False), data.get("choices"), data.get("options"))
 
     def to_dict(self):
         return self._json
@@ -212,23 +213,26 @@ class OptionType:
 class AdditionalType:
     MESSAGE     =       44
     GUILD       =       45
-class CommandType:
-    SLASH       =       Slash       =       1
-    USER        =       User        =       2
-    MESSAGE     =       Message     =       3
+class CommandType(IntEnum):
+    Slash       =              1
+    User        =              2
+    Message     =              3
 
     @staticmethod
     def from_string(typ):
         if isinstance(typ, str):
             if typ.lower() == "slash":
-                return CommandType.SLASH
+                return CommandType.Slash
             elif typ.lower() == "user":
-                return CommandType.USER
+                return CommandType.User
             elif typ.lower() == "message":
-                return CommandType.MESSAGE
-        else:
+                return CommandType.Message
+        elif isinstance(typ, CommandType):
             return typ
-
+        else:
+            return CommandType(typ)
+    def __str__(self):
+        return self.name
 
 class SlashPermission():
     """Permissions for a slash commannd
@@ -236,12 +240,12 @@ class SlashPermission():
         Parameters
         ----------
             allowed: :class:`dict` | List[:class:`discord.Member` | :class:`discord.User` | :class:`discord.Role`], optional
-                A list of ids, users or members that can use the command; default MISSING
+                A list of ids, users or members that can use the command; default None
                     Format: ``{"role_or_user_id": permission_type}]``
 
 
             forbidden: :class:`dict` | List[:class:`discord.Member` | :class:`discord.User` | :class:`discord.Role`], optional
-                A list of ids, users or members that are forbidden to use the command; default MISSING
+                A list of ids, users or members that are forbidden to use the command; default None
         
 
             .. note::
@@ -251,7 +255,7 @@ class SlashPermission():
                 You can use ``SlashPermission.ROLE`` and ``SlashPermission.USER`` instead
 
         """
-    def __init__(self, allowed: dict=MISSING, forbidden=MISSING) -> None:
+    def __init__(self, allowed: dict=None, forbidden=None) -> None:
         """Creates a new permission object for a slash command
         
         Example
@@ -267,7 +271,7 @@ class SlashPermission():
         """
         
         self._json = []
-        if allowed is not MISSING:
+        if allowed is not None:
             if isinstance(allowed, dict):
                 for _id, _type in allowed.items():
                     self._json.append(
@@ -284,7 +288,7 @@ class SlashPermission():
                         "type": SlashPermission.USER if isinstance(t, (discord.User, discord.Member)) else SlashPermission.ROLE,
                         "permission": True
                     })
-        if forbidden is not MISSING:
+        if forbidden is not None:
             if isinstance(forbidden, dict):
                 for _id, _type in forbidden.items():
                     self._json.append(
@@ -342,13 +346,11 @@ class SlashPermission():
 
 
 class BaseCommand():
-    def __init__(self, command_type, callback, name=MISSING, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
-        self.__aliases__ = None
+    __slots__ = ('__aliases__', '__sync__', '__original_name__')
+    def __init__(self, command_type, callback, name=None, description=None, options=None, guild_ids=None, default_permission=None, guild_permissions=None) -> None:
+        self.__aliases__ = getattr(callback, "__aliases__", None)
         self.__sync__ = getattr(callback, "__sync__", True)
-        self.is_alias = False
-        self._json = {
-            "type": command_type
-        }
+        self._json = {"type": getattr(command_type, "value", command_type)}
 
         self.options = _default([], options)
         if callback is not None:
@@ -356,14 +358,14 @@ class BaseCommand():
                 raise NoAsyncCallback()
 
             callback_params = inspect.signature(callback).parameters
-            if options is not MISSING:
+            if options is not None:
                 for op in options:
                     if callback_params.get(op.name) is None:
                         raise MissingOptionParameter(op.name)
                     param = callback_params[op.name]
                     if not op.required and param.default is param.empty:
                         raise OptionalOptionParameter(param.name)
-            if _none(options, empty_array=True) and self.command_type == CommandType.SLASH:
+            if _none(options, empty_array=True) and self.command_type is CommandType.Slash:
                 _ops = []
                 has_self = False
                 for _i, _name in enumerate(callback_params):
@@ -388,8 +390,9 @@ class BaseCommand():
 
         self.callback: function = callback
         self.name = _or(name, self.callback.__name__ if not _none(self.callback) else None)
+        self.__original_name__ = self.name
         self.description = _or(description, inspect.getdoc(callback).split("\n")[0] if not _none(callback) and inspect.getdoc(callback) is not None else None, self.name)
-        if default_permission is MISSING:
+        if default_permission is None:
             default_permission = True
         self.default_permission: bool = default_permission
         if not _none(guild_permissions):
@@ -399,10 +402,10 @@ class BaseCommand():
                 if not isinstance(perm, SlashPermission):
                     raise WrongType("guild_permission[" + ("'" if isinstance(_id, str) else "") + str(_id) + ("'" if isinstance(_id, str) else "") + "]", perm, "SlashPermission")
         
-        self.guild_permissions: typing.Dict[(typing.Union[str, int], SlashPermission)] = _default(MISSING, guild_permissions)
+        self.guild_permissions: typing.Dict[(typing.Union[str, int], SlashPermission)] = guild_permissions
         self.permissions: SlashPermission = SlashPermission()
-        self.guild_ids: typing.List[int] = _default(MISSING, [int(x) for x in _or(guild_ids, [])])
-
+        self.guild_ids: typing.List[int] = _default(None, [int(x) for x in _or(guild_ids, [])])
+        """The ids of the guilds where the command is available"""
     def __str__(self) -> str:
         return str(self.to_dict())
     def __eq__(self, o: object) -> bool:
@@ -427,11 +430,40 @@ class BaseCommand():
     def __ne__(self, o: object) -> bool:
         return not self.__eq__(o)
 
+    @property
+    def is_message_context(self) -> bool:
+        """Wether is command is a message-context command"""
+        return self.command_type is CommandType.Message
+    @property
+    def is_user_context(self) -> bool:
+        """Whether this command is a user-context command"""
+        return self.command_type is CommandType.User
+    @property
+    def is_chat_input(self) -> bool:
+        """Whether this command is a chat-input command"""
+        return self.command_type is CommandType.Slash
+    @property
+    def is_slash_command(self) -> bool:
+        """
+        Whether this command is a slashcommand
+            Same as `.is_chat_input`
+        """
+        return self.is_chat_input
+    @property
+    def aliases(self) -> typing.List[str]:
+        return self.__aliases__
+    @property
+    def has_aliases(self) -> bool:
+        return hasattr(self, "__aliases__") and self.__aliases__ is not None
+    @property
+    def is_alias(self) -> bool:
+        """Whether this command is an alias"""
+        return self.__aliases__ is not None and self.name in self.__aliases__
 
     # region command
     @property
-    def command_type(self) -> int:
-        return self._json["type"]
+    def command_type(self) -> CommandType:
+        return CommandType(self._json["type"])
 
     @property
     def name(self) -> str:
@@ -448,7 +480,7 @@ class BaseCommand():
             raise WrongType("name", value, "str")
         if len(value) > 32 or len(value) < 1:
             raise InvalidLength("name", 1, 32)
-        if self.command_type == CommandType.SLASH:
+        if self.command_type is CommandType.Slash:
             self._json["name"] = format_name(value)
         else:
             self._json["name"] = value
@@ -501,8 +533,11 @@ class BaseCommand():
 
     def _patch(self, command):
         self.__aliases__ = command.__aliases__
-        self.is_alias = command.is_alias
         self.guild_permissions = command.guild_permissions
+
+    def copy(self):
+        """Copies itself into a new object"""
+        raise NotImplementedError()
 
     def to_dict(self):
         return self._json
@@ -516,22 +551,22 @@ class SlashCommand(BaseCommand):
                 The callback function
             name: :class:`str`
                 1-32 characters long name
-                    If name is not passed, the name of the callback function will be used; default MISSING
+                    If name is not passed, the name of the callback function will be used; default None
                     
                 .. important::
 
                     The name will be corrected automaticaly (spaces will be replaced with "-" and the name will be lowercased)
 
             description: :class:`str`, optional
-                1-100 character description of the command; default MISSING
+                1-100 character description of the command; default None
                     If description is not passed, the docstring description of the callback function is used. 
                     If no docstring exists, the name of the command will be used
             options: List[:class:`~SlashOptions`], optional
-                Parameters for the command; default MISSING
+                Parameters for the command; default None
             choices: List[:class:`dict`], optional
-                Choices for string and int types for the user to pick from; default MISSING
+                Choices for string and int types for the user to pick from; default None
             guild_ids: :class:`str` | :class:`int`, optional
-                A list of guild ids where the command is available; default MISSING
+                A list of guild ids where the command is available; default None
             default_permission: :class:`bool`
                 Whether the command should be usable for everyone or not
             guild_permissions: Dict[``guild_id``: :class:`~SlashPermission`]
@@ -540,7 +575,7 @@ class SlashCommand(BaseCommand):
 
 
     """
-    def __init__(self, callback, name=MISSING, description=MISSING, options=MISSING, guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
+    def __init__(self, callback, name=None, description=None, options=None, guild_ids=None, default_permission=None, guild_permissions=None) -> None:
         """
         Creates a new base slash command
         
@@ -559,27 +594,36 @@ class SlashCommand(BaseCommand):
             })
         ```
         """
-        BaseCommand.__init__(self, CommandType.SLASH, callback, name, description, options, guild_ids, default_permission, guild_permissions)
+        BaseCommand.__init__(self, CommandType.Slash, callback, name, description, options, guild_ids, default_permission, guild_permissions)
+    def copy(self) -> 'SlashCommand':
+        c = SlashCommand(self.callback, self.name, self.description, self.options, self.guild_ids, self.default_permission, self.guild_permissions)
+        for x in self.__slots__:
+            setattr(c, x, getattr(self, x))
+        return c
 
 class SlashSubcommand(BaseCommand):
-    def __init__(self, callback, base_names, name, description=MISSING, options=[], guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING) -> None:
+    def __init__(self, callback, base_names, name, description=None, options=[], guild_ids=None, default_permission=None, guild_permissions=None) -> None:
         if isinstance(base_names, str):
             base_names = [base_names]
         if len(base_names) > 2:
             raise InvalidArgument("subcommand groups are currently limited to 2 bases")
         if any([len(x) > 32 or len(x) < 1 for x in base_names]):
             raise InvalidLength("base_names", 1, 32)
-        BaseCommand.__init__(self, CommandType.SLASH, callback, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
+        BaseCommand.__init__(self, CommandType.Slash, callback, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
         self.base_names = [format_name(x) for x in base_names]
     
     def to_option(self) -> SlashOption:
-        return SlashOption(OptionType.SUB_COMMAND, self.name, self.description, options=self.options or MISSING)
+        return SlashOption(OptionType.SUB_COMMAND, self.name, self.description, options=self.options or None)
     def to_dict(self):
         return self.to_option().to_dict()
-
+    def copy(self):
+        c = SlashSubcommand(self.callback, self.base_names, self.name, self.description, self.options, self.guild_ids, self.default_permission, self.guild_permissions)
+        for x in self.__slots__:
+            setattr(c, x, getattr(self, x))
+        return c
 
 class ContextCommand(BaseCommand):
-    def __init__(self, context_type, callback, name=MISSING, guild_ids=MISSING, default_permission = True, guild_permissions = MISSING) -> None:
+    def __init__(self, context_type, callback, name=None, guild_ids=None, default_permission = True, guild_permissions = None) -> None:
         if callback is not None:
             callback_params = inspect.signature(callback).parameters
             if len(callback_params) < 2:
@@ -598,11 +642,21 @@ class ContextCommand(BaseCommand):
     @options.setter
     def options(self, value):
         pass
-        
+
 class UserCommand(ContextCommand):
-    def __init__(self, callback, name=MISSING, guild_ids = MISSING, default_permission = True, guild_permissions = MISSING) -> None:
-        ContextCommand.__init__(self, CommandType.USER, callback, name, guild_ids, default_permission, guild_permissions)
+    def __init__(self, callback, name=None, guild_ids = None, default_permission = True, guild_permissions = None) -> None:
+        ContextCommand.__init__(self, CommandType.User, callback, name, guild_ids, default_permission, guild_permissions)
+    def copy(self) -> 'UserCommand':
+        c = UserCommand(self.callback, self.name, self.guild_ids, self.default_permission, self.guild_permissions)
+        for x in self.__slots__:
+            setattr(c, x, getattr(self, x))
+        return c
 
 class MessageCommand(ContextCommand):
-    def __init__(self, callback, name=MISSING, guild_ids = MISSING, default_permission = True, guild_permissions = MISSING) -> None:
-        ContextCommand.__init__(self, CommandType.MESSAGE, callback, name, guild_ids, default_permission, guild_permissions)
+    def __init__(self, callback, name=None, guild_ids = None, default_permission = True, guild_permissions = None) -> None:
+        ContextCommand.__init__(self, CommandType.Message, callback, name, guild_ids, default_permission, guild_permissions)
+    def copy(self) -> 'MessageCommand':
+        c = MessageCommand(self.callback, self.name, self.guild_ids, self.default_permission, self.guild_permissions)
+        for x in self.__slots__:
+            setattr(c, x, getattr(self, x))
+        return c

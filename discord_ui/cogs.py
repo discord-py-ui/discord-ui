@@ -1,6 +1,5 @@
 from .components import ComponentType
-from .tools import MISSING
-from .slash.types import MessageCommand, SlashCommand, SlashSubcommand, UserCommand
+from .slash.types import BaseCommand, MessageCommand, SlashCommand, SlashSubcommand, UserCommand
 
 import discord
 from discord.errors import InvalidArgument
@@ -268,6 +267,7 @@ class BaseCallable():
         return coro
 class BaseSlash(BaseCallable):
     def __init__(self, callback) -> None:
+        self.__slots__ = BaseCommand.__slots__ + ('cog',)
         self.__type__ = 1
         BaseCallable.__init__(self, callback)
 
@@ -275,19 +275,38 @@ class CogCommand(BaseSlash, SlashCommand):
     def __init__(self, *args, **kwargs) -> None:
         SlashCommand.__init__(self, *args, **kwargs)
         BaseSlash.__init__(self, args[0])
+    def copy(self) -> 'CogCommand':
+        c = CogCommand(self.callback, self.name, self.description, self.options, self.guild_ids, self.default_permission, self.guild_permissions)
+        for x in self.__slots__:
+            setattr(c, x, getattr(self, x, None))
+        return c
 class CogSubCommandGroup(BaseSlash, SlashSubcommand):
     def __init__(self, *args, **kwargs) -> None:
         SlashSubcommand.__init__(self, *args, **kwargs)
         BaseSlash.__init__(self, args[0])
+    def copy(self) -> 'CogSubCommandGroup':
+        c = CogSubCommandGroup(self.callback, self.base_names, self.name, self.description, self.options, self.guild_ids, self.default_permission, self.guild_permissions)
+        for x in self.__slots__:
+            setattr(c, x, getattr(self, x, None))
+        return c
 class CogMessageCommand(BaseSlash, MessageCommand):
     def __init__(self, *args, **kwargs) -> None:
         MessageCommand.__init__(self, *args, **kwargs)
         BaseSlash.__init__(self, args[0])
+    def copy(self) -> 'CogMessageCommand':
+        c = CogMessageCommand(self.callback, self.name, self.guild_ids, self.default_permission, self.guild_permissions)
+        for x in self.__slots__:
+            setattr(c, x, getattr(self, x, None))
+        return c
 class CogUserCommand(BaseSlash, UserCommand):
     def __init__(self, *args, **kwargs) -> None:
         UserCommand.__init__(self, *args, **kwargs)
         BaseSlash.__init__(self, args[0])
-
+    def copy(self) -> 'CogUserCommand':
+        c = CogUserCommand(self.callback, self.name, self.guild_ids, self.default_permission, self.guild_permissions)
+        for x in self.__slots__:
+            setattr(c, x, getattr(self, x, None))
+        return c
 
 class ListeningComponent(BaseCallable):
     def __init__(self, callback, messages, users, component_type, check, custom_id) -> None:
@@ -295,13 +314,13 @@ class ListeningComponent(BaseCallable):
         self.__type__ = 2
         def predicate(ctx):
             checks = []
-            if messages not in [MISSING, []]:
+            if messages not in [None, []]:
                 checks.append(ctx.message.id in [(x.id if hasattr(x, "id") else int(x)) for x in messages])
-            if users is not MISSING:
+            if users not in [None, []]:
                 checks.append(ctx.author.id in [(x.id if hasattr(x, "id") else int(x)) for x in users])
-            if component_type is not MISSING:
+            if component_type is not None:
                 checks.append(ctx.component_type == (ComponentType.BUTTON if component_type in [ComponentType.BUTTON, "button"] else ComponentType.SELECT_MENU))
-            if check is not MISSING:
+            if check is not None:
                 checks.append(check(ctx) is True)
                 if not all(checks):
                     raise WrongListener()
@@ -309,7 +328,7 @@ class ListeningComponent(BaseCallable):
         self.add_check(predicate)
         self.custom_id = custom_id
 
-def slash_cog(name=MISSING, description=MISSING, options=[], guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING):
+def slash_cog(name=None, description=None, options=[], guild_ids=None, default_permission=None, guild_permissions=None):
     """
     A decorator for cogs that will register a slashcommand
     
@@ -372,7 +391,7 @@ def slash_cog(name=MISSING, description=MISSING, options=[], guild_ids=MISSING, 
     def wraper(callback):
         return CogCommand(callback, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
     return wraper
-def subslash_cog(base_names, name=MISSING, description=MISSING, options=[], guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING):
+def subslash_cog(base_names, name=None, description=None, options=[], guild_ids=None, default_permission=None, guild_permissions=None):
     """
     A decorator for cogs that will register a subcommand/subcommand-group
   
@@ -451,7 +470,7 @@ def subslash_cog(base_names, name=MISSING, description=MISSING, options=[], guil
     def wraper(callback):
         return CogSubCommandGroup(callback, base_names, name, description=description, options=options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
     return wraper
-def context_cog(type: Literal["user", 2, "message", 3], name=MISSING, guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING):
+def context_cog(type: Literal["user", 2, "message", 3], name=None, guild_ids=None, default_permission=None, guild_permissions=None):
     """
     Decorator for cogs that will register a context command in discord
             ``Right-click message or user`` -> ``apps`` -> ``commands is displayed here``
@@ -510,7 +529,7 @@ def context_cog(type: Literal["user", 2, "message", 3], name=MISSING, guild_ids=
         else:
             raise InvalidArgument("Invalid context type! type has to be one of 'user', 1, 'message', 2!")
     return wraper
-def listening_component_cog(custom_id, messages=MISSING, users=MISSING, component_type: Literal['button', 'select'] = MISSING, check=lambda _ctx: True):
+def listening_component_cog(custom_id, messages=None, users=None, component_type: Literal['button', 'select']=None, check=lambda _ctx: True):
     """
     Decorator for cogs that will register a listening component
 
