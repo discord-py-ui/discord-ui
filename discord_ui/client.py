@@ -1591,7 +1591,7 @@ class UI():
                 ``delete_unused``: :class:`bool`, optional
                     Whether the commands that are not registered by this slash ui should be deleted in the api; Default ``False``
 
-                ``sync_on_cog``: .class:`bool`, optional
+                ``sync_on_cog``: :class:`bool`, optional
                     Whether the slashcommands should be updated whenever a new cog is added or removed; Default ``False``
 
                 ``wait_sync``: :class:`float`, optional

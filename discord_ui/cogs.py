@@ -337,38 +337,39 @@ def slash_cog(name=None, description=None, options=[], guild_ids=None, default_p
     
     Parameters
     ----------
-        name: :class:`str`, optional
-            1-32 characters long name; default MISSING
+    name: :class:`str`, optional
+        1-32 characters long name; default MISSING
 
-            .. note::
+        .. note::
 
-                The name will be corrected automaticaly (spaces will be replaced with "-" and the name will be lowercased)
-        
-        description: :class:`str`, optional
-            1-100 character description of the command; default the command name
-        options: List[:class:`~SlashOptions`], optional
-            The parameters for the command; default MISSING
-        choices: List[:class:`dict`], optional
-            Choices for string and int types for the user to pick from; default MISSING
-        guild_ids: List[:class:`str` | :class:`int`], optional
-            A list of guild ids where the command is available; default MISSING
-        default_permission: :class:`bool`, optional
-            Whether the command can be used by everyone or not
-        guild_permissions: Dict[``guild_id``: :class:`~SlashPermission`]
-            The permissions for the command in guilds
-                Format: ``{"guild_id": SlashPermission}``
+            The name will be corrected automaticaly (spaces will be replaced with "-" and the name will be lowercased)
+    
+    description: :class:`str`, optional
+        1-100 character description of the command; default the command name
+    options: List[:class:`~SlashOptions`], optional
+        The parameters for the command; default MISSING
+    choices: List[:class:`dict`], optional
+        Choices for string and int types for the user to pick from; default MISSING
+    guild_ids: List[:class:`str` | :class:`int`], optional
+        A list of guild ids where the command is available; default MISSING
+    default_permission: :class:`bool`, optional
+        Whether the command can be used by everyone or not
+    guild_permissions: Dict[``guild_id``: :class:`~SlashPermission`]
+        The permissions for the command in guilds
+            Format: ``{"guild_id": SlashPermission}``
 
     Decorator
     ---------
 
-        callback: :class:`method(ctx)`
-            The asynchron function that will be called if the command was used
-                ctx: :class:`~SlashedCommand`
-                    The used slash command
+    callback: :class:`method(ctx)` 
+        The asynchron function that will be called if the command was used
+        
+        ctx: :class:`~SlashedCommand`
+            The used slash command
 
-                .. note::
+        .. note::
 
-                    ``ctx`` is just an example name, you can use whatever you want for that
+            ``ctx`` is just an example name, you can use whatever you want for that
 
     Example
     --------
@@ -400,43 +401,43 @@ def subslash_cog(base_names, name=None, description=None, options=[], guild_ids=
 
     Parameters
     ----------
-        base_names: List[:class:`str`] | :class:`str`
-            The names of the parent bases, currently limited to 2
-                If you want to make a subcommand (``/base name``), you have to use a str instead of a list
-        name: :class:`str`, optional
-            1-32 characters long name; default MISSING
-            
-            .. note::
-
-                The name will be corrected automaticaly (spaces will be replaced with "-" and the name will be lowercased)
-        description: :class:`str`, optional
-            1-100 character description of the command; default the command name
-        options: List[:class:`~SlashOptions`], optional
-            The parameters for the command; default MISSING
-        choices: List[:class:`dict`], optional
-            Choices for string and int types for the user to pick from; default MISSING
-        guild_ids: List[:class:`str` | :class:`int`], optional
-            A list of guild ids where the command is available; default MISSING
-        default_permission: :class:`bool`, optional
-            Whether the command can be used by everyone or not
-        guild_permissions: Dict[``guild_id``: :class:`~SlashPermission`]
-            The permissions for the command in guilds
-                Format: ``{"guild_id": SlashPermission}``
-
+    base_names: List[:class:`str`] | :class:`str`
+        The names of the parent bases, currently limited to 2
+            If you want to make a subcommand (``/base name``), you have to use a str instead of a list
+    name: :class:`str`, optional
+        1-32 characters long name; default MISSING
+        
         .. note::
 
-            Permissions will be the same for every subcommand with the same base
+            The name will be corrected automaticaly (spaces will be replaced with "-" and the name will be lowercased)
+    description: :class:`str`, optional
+        1-100 character description of the command; default the command name
+    options: List[:class:`~SlashOptions`], optional
+        The parameters for the command; default MISSING
+    choices: List[:class:`dict`], optional
+        Choices for string and int types for the user to pick from; default MISSING
+    guild_ids: List[:class:`str` | :class:`int`], optional
+        A list of guild ids where the command is available; default MISSING
+    default_permission: :class:`bool`, optional
+        Whether the command can be used by everyone or not
+    guild_permissions: Dict[``guild_id``: :class:`~SlashPermission`]
+        The permissions for the command in guilds
+            Format: ``{"guild_id": SlashPermission}``
+
+    .. note::
+
+        Permissions will be the same for every subcommand with the same base
 
     Decorator
     ---------
-        callback: :class:`method(ctx)`
-            The asynchron function that will be called if the command was used
-                ctx: :class:`~SlashedSubCommand`
-                    The used slash command
+    callback: :class:`method(ctx)`
+        The asynchron function that will be called if the command was used
+            ctx: :class:`~SlashedSubCommand`
+                The used slash command
 
-                .. note::
+            .. note::
 
-                    ``ctx`` is just an example name, you can use whatever you want for that
+                ``ctx`` is just an example name, you can use whatever you want for that
     
     Example
     --------
@@ -475,34 +476,34 @@ def context_cog(type: Literal["user", 2, "message", 3], name=None, guild_ids=Non
     Decorator for cogs that will register a context command in discord
             ``Right-click message or user`` -> ``apps`` -> ``commands is displayed here``
 
-        Parameters
-        ----------
-            type: Literal[``'user'``, ``2`` | ``'message'`` | ``3``]
-                The type of the contextcommand. 
-                    ``'user'`` and ``2`` are user-commands; ``'message'`` and ``3`` are message-commansd
-            name: :class:`str`, optional
-                The name of the command; default MISSING
-            guild_ids: List[:class:`str` | :class:`int`]
-                A list of guilds where the command can be used
-            default_permission: :class:`bool`, optional
-                Whether the command can be used by everyone; default True
-            guild_permissions: Dict[:class:`SlashPermission`], optional
-                Special permissions for guilds; default MISSING
+    Parameters
+    ----------
+        type: Literal[``'user'``, ``2`` | ``'message'`` | ``3``]
+            The type of the contextcommand. 
+                ``'user'`` and ``2`` are user-commands; ``'message'`` and ``3`` are message-commansd
+        name: :class:`str`, optional
+            The name of the command; default MISSING
+        guild_ids: List[:class:`str` | :class:`int`]
+            A list of guilds where the command can be used
+        default_permission: :class:`bool`, optional
+            Whether the command can be used by everyone; default True
+        guild_permissions: Dict[:class:`SlashPermission`], optional
+            Special permissions for guilds; default MISSING
 
-        Decorator
-        ---------
+    Decorator
+    ---------
 
-            callback: :class:`method(ctx, message)`
-                The asynchron function that will be called if the command was used
-                    ctx: :class:`~SlashedSubCommand`
-                        The used slash command
-                    message: :class:`~Message`
-                        The message on which the command was used
-                    
-                    .. note::
+        callback: :class:`method(ctx, message)`
+            The asynchron function that will be called if the command was used
+                ctx: :class:`~SlashedSubCommand`
+                    The used slash command
+                message: :class:`~Message`
+                    The message on which the command was used
+                
+                .. note::
 
-                        ``ctx`` and ``message`` are just example names, you can use whatever you want for that
-        
+                    ``ctx`` and ``message`` are just example names, you can use whatever you want for that
+    
         Example
         -------
         

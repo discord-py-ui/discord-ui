@@ -9,13 +9,49 @@
     color: white;
 } */
 
-html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple) dl:not(.field-list)>dt {
+
+
+
+.wy-side-nav-search input[type="text"] {
+    border-color: #5865F2;
+}
+
+/* Class */
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple)>dt:first-child {
     color: black;
     background-color: #F6F6F6;
     border: 3px solid #F6F6F6;
+    width: 90%;
+    height: 110%;
     border-radius: 4px;
-    border-left: 3px solid black;
+    border-bottom: 3px solid black;
+    font-size: 100%;
+}
+
+/* Attribute */
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple) dl:not(.field-list):not(.simple)>dt {
+    width: 90%;
+    height: 110%;
     font-size: 95%;
+    color: black;
+    border: 4.5px solid #F6F6F6;
+    border-radius: 6px;
+    background-color: #F6F6F6;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple) dd>dl.simple:not(.field-list)>dt {
+    font-weight: 500;
+    color: #404040;
+}
+
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple) dl:not(.field-list)>dt {
+    border: none;
+    border-left: none;
+    font-size: 16px;
+    font-weight: 600;
+    color: #404040;
     background-color: #fcfcfc;
 }
 
@@ -86,10 +122,6 @@ code.docutils.literal.notranslate, .highlight, div.highlight-default.notranslate
 .toctree-l1.current {
     /* border: 0.5px solid white; */
     border-radius: 2.5px;
-}
-
-dt::before {
-    content: " "
 }
 
 
