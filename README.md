@@ -255,6 +255,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     </details>
 
 -   <details>
+    <summary>4.2.8</summary>
     
     ## **Added**
 
