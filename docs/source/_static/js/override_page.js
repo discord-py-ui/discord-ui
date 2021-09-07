@@ -70,22 +70,22 @@ window.onload = function() {
 
 
     // functions
-    result = document.getElementsByClassName("sig sig-object py")
-    for (let i = 0; i < result.length; i++) {
-        result[i].style["color"] = "black";
-        result[i].style["background-color"] = "#F6F6F6";
-        result[i].style["border"] = "3px solid #F6F6F6";
-        result[i].style["border-radius"] = "4px";
-        result[i].style["border-top"] = "3px solid black";
-        result[i].style["font-size"] = "95%"
-    }
+    // result = document.getElementsByClassName("sig sig-object py")
+    // for (let i = 0; i < result.length; i++) {
+    //     result[i].style["color"] = "black";
+    //     result[i].style["background-color"] = "#F6F6F6";
+    //     result[i].style["border"] = "3px solid #F6F6F6";
+    //     result[i].style["border-radius"] = "4px";
+    //     result[i].style["border-top"] = "3px solid black";
+    //     result[i].style["font-size"] = "95%"
+    // }
 
-    result = document.getElementsByTagName("dt")
-    for (let i = 0; i < result.length; i++)
-    {
-        result[i].style["background-color"] = "#fcfcfc";
-        result[i].style["border-left"] = "5px solid #fcfcfc";
-    }
+    // result = document.getElementsByTagName("dt")
+    // for (let i = 0; i < result.length; i++)
+    // {
+    //     result[i].style["background-color"] = "#fcfcfc";
+    //     result[i].style["border-left"] = "5px solid #fcfcfc";
+    // }
 
 
     // attribute einzeln in eine Zeile packen
