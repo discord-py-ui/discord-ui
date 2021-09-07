@@ -139,7 +139,7 @@ async def on_message(message: discord.Message):
         ], max_values=2)])
         try:
             sel = await msg.wait_for("select", client, by=message.author, timeout=20)
-            await sel.respond("you selected `" + str([x.content for x in sel.selected_values]) + "`")
+            await sel.respond("you selected `" + str([x.content for x in sel.selected_options]) + "`")
         except TimeoutError:
             await msg.delete()
 
@@ -206,6 +206,10 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
         > Whether the invoked command is an alias or not
         - aliases
         > All the available aliases for the command
+
+    ## **Changed**
+    - SelectedMenu
+    > `SelectedMenu.selected_values` are not the raw values that were selected, `SelectMenu.selected_options` are the options of type `SlashOption` that were selected
 
 
     </details>
@@ -277,18 +281,15 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>4.2.7</summary>
 
     ## **Added**
-
     - `on_component`
     > There is now an event with the name `component` that will be dispatched whenever a component was received
     > If you use `Message.wait_for`, there is now a new event choice with the name `component` (`message.wait_for("component", client)`)
 
     ## **Fixed**
-
     - #94
     > DM issue with deleting messages
 
     ## **Changed**
-
     - `edit`
     > Edit now takes "content" as not positional (`.edit("the content")` works now)
     - component lenght

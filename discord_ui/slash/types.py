@@ -391,6 +391,7 @@ class BaseCommand():
 
         self.callback: function = callback
         self.name = _or(name, self.callback.__name__ if not _none(self.callback) else None)
+        # Set the original name to the name once so if the name should be changed, this value still stays to what it is
         self.__original_name__ = self.name
         self.description = _or(description, inspect.getdoc(callback).split("\n")[0] if not _none(callback) and inspect.getdoc(callback) is not None else None, self.name)
         if default_permission is None:
@@ -450,15 +451,22 @@ class BaseCommand():
             Same as `.is_chat_input`
         """
         return self.is_chat_input
+    
+    @property
+    def original_name(self) -> str:
+        """The original name for this command"""
+        return self.__original_name__
     @property
     def aliases(self) -> typing.List[str]:
+        """The list of available aliases for this command"""
         return self.__aliases__
     @property
     def has_aliases(self) -> bool:
+        """Returns True if this command has aliases"""
         return hasattr(self, "__aliases__") and self.__aliases__ is not None
     @property
     def is_alias(self) -> bool:
-        """Whether this command is an alias"""
+        """Returns True if this command is an alias to another command"""
         return self.__aliases__ is not None and self.name in self.__aliases__
 
     # region command

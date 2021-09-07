@@ -1613,7 +1613,7 @@ class UI():
         UI(client, slash_options={"delete_unused": True, "wait_sync": 2}, auto_defer=True)
         ```
         """
-        self.components = Components(client, override_dpy=override_dpy, auto_defer=auto_defer)
+        self.components: Components = Components(client, override_dpy=override_dpy, auto_defer=auto_defer)
         """
         For using message components
         
@@ -1623,7 +1623,7 @@ class UI():
             slash_options = {"resolve_data": True, "delete_unused": False, "wait_sync": 1, "auto_defer": auto_defer}
         if slash_options.get("auto_defer") is None:
             slash_options["auto_defer"] = auto_defer
-        self.slash = Slash(client, **slash_options)
+        self.slash: Slash = Slash(client, **slash_options)
         """
         For using slash commands
         
