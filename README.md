@@ -274,14 +274,13 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     </details>
 
 -   <details>
-    <summary>4.2.7<summary>
+    <summary>4.2.7</summary>
 
     ## **Added**
 
     - `on_component`
     > There is now an event with the name `component` that will be dispatched whenever a component was received
     > If you use `Message.wait_for`, there is now a new event choice with the name `component` (`message.wait_for("component", client)`)
-
 
     ## **Fixed**
 
