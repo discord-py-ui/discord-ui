@@ -107,7 +107,7 @@ window.onload = function() {
     // remove the discord_ui. ... prefix
     result = document.getElementsByClassName("reference internal")
     for(let i = 0; i < result.length; i++) {
-        if (result[i].text != null && result[i].text.match("discord_ui\.[\w]*\.")) 
+        if (result[i].text != null && result[i].text.match("discord_ui\.[\w]*\."))
             result[i].text = (result[i].text.split(".").at(-1))
     }
 

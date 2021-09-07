@@ -1,22 +1,31 @@
-import discord
-import types
-import functools
-from copy import deepcopy
+"""
+discord_ui.ext
+~~~~~~~~~~~~~~~
 
-from ..receive import Message
+An extension module to the libary that has some usefull decorators and functions 
+for application-commands.
+
+.. code-block::
+
+    from discord_ui import ext
+
+
+Important: Every decorator should be placed before the actual slashcommand decorator.
+    When using the cog decorator it shouldn't be important
+
+"""
+
+import functools
 
 def no_sync():
     """Decorator that will prevent an application-command to be synced with the api.
-
-    Important: The decorator has to be placed before the actual slashcommand
-
    
     Example
     -------
 
     .. code-block::
 
-        from discord_ui.slash import ext
+        from discord_ui import ext
 
         @ui.slash.command()
         @ext.no_sync()
@@ -31,9 +40,7 @@ def no_sync():
     return wraper
 
 def auto_defer(hidden=False):
-    """A decorator for setting the auto defer for this command
-    
-    Important: The decorator has to be placed before the actual slashcommand
+    """A decorator for auto deferring a command
 
     Parameters
     ----------
@@ -45,9 +52,11 @@ def auto_defer(hidden=False):
 
     .. code-block::
 
+        from discord_ui import ext
+
         @ui.slash.command()
         @ext.auto_defer()
-        async def auto_deferring(ctx):
+        async def my_command(ctx):
             \"\"\"This command will be deferred automatically\"\"\"
             ...
     """

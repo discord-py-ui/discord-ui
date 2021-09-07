@@ -5,10 +5,8 @@ Home
 
 Welcome to the discord-ui docs!
 
-This libary is an extension to `discord.py <https://github.com/Rapptz/discord.py>`__ made for using 
-the ui and interaction features in discord together with python
-
-
+This libary is an extension to `discord.py <https://github.com/Rapptz/discord.py>`__  which helps you 
+using ui and interaction features in discord.
 With this libary, you can send message components like Buttons, LinkButtons and SelectMenus, 
 receive data like who pressed the button and who selected which value in a menu, create 
 application-commands like slash-commands, message-commands and user-commands, receive their interaction and 
@@ -19,7 +17,6 @@ Installation
 ---------------------
 
 To install this package, open your terminal or command line and type
-
 
 Windows
 
@@ -38,31 +35,44 @@ Linux
 Examples
 ---------------------
 
-we have some examples `here <https://github.com/discord-py-ui/discord-ui/tree/main/examples>`__
-
-
-Docs
----------------------
-
-.. toctree::
-   :maxdepth: 1
-
-   usage.rst
-   ui.rst
-   cogs.rst
-   interactions.rst
-   components.rst
-   slash.rst
+We got some examples `here <https://github.com/discord-py-ui/discord-ui/tree/main/examples>`__
 
 
 Links
 ---------------------
 
-*  `Pip package <https://pypi.org/project/discord-ui/>`__
-*  `Git repo <https://github.com/discord-py-ui/discord-ui>`__
+*  `Github <https://github.com/discord-py-ui/discord-ui>`__
+*  `Pypi <https://pypi.org/project/discord-ui/>`__
 *  `404kuso <https://github.com/404kuso>`__
 *  `RedstoneZockt <https://github.com/RedstoneZockt>`__
 *  `discord.py <https://github.com/Rapptz/discord.py>`__
-*  `discord message component docs <https://discord.com/developers/docs/interactions/message-components>`__
-*  `discord application commands docs <https://discord.com/developers/docs/interactions/application-commands>`__
-*  And in case you don't like our package, check out `another good libary <https://github.com/discord-py-interactions/discord-py-interactions>`__
+*  `Message-Component docs <https://discord.com/developers/docs/interactions/message-components>`__
+*  `Application-Commands docs <https://discord.com/developers/docs/interactions/application-commands>`__
+*  `Alternatives to our lib <https://github.com/discord-py-interactions/discord-py-interactions>`__
+
+
+Index
+~~~~~~~
+
+
+.. toctree::
+   :maxdepth: 1
+   :caption: General
+
+   usage.rst
+   ui.rst
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Interactions
+
+   interactions.rst
+   components.rst
+   slash.rst
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Extension
+
+   cogs.rst
+   ext.rst

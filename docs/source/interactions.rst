@@ -1,7 +1,7 @@
 .. currentmodule:: discord_ui
 
 =====================
-General-interactions
+Interactions
 =====================
 
 You can receive general interactions of all possible types with the client event ``interaction_received``.

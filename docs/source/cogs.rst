@@ -1,7 +1,7 @@
 .. currentmodule:: discord_ui
 
 ======
-cogs
+Cogs
 ======
 
 Setup

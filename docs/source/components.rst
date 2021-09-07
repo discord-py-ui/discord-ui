@@ -1,7 +1,7 @@
 .. currentmodule:: discord_ui
 
 ====================
-Message-components
+Components
 ====================
 
 

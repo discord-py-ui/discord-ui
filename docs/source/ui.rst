@@ -5,9 +5,11 @@ UI
 ====================
 
 
-This is the main extension for the discord.py module.
+This is the most important part in this libary, because this class has most of the features you need.
 
-In this documentation, :class:`~Components` and :class:`~Slash` are initalized and accesable by ``ui.slash`` and ``ui.components`` attributes
+.. note::
+
+    In this documentation, :class:`~Components` and :class:`~Slash` are initalized and accesable by ``ui.slash`` and ``ui.components`` attributes
 
 
 UI

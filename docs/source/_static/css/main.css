@@ -1,10 +1,20 @@
 
+.wy-menu-vertical header, .wy-menu-vertical p.caption {
+    color: #5865F2;
+}
+
 /* Dark-Mode */
 /* .wy-nav-content, .wy-nav-content-wrap {
     background-color: #23272A;
     color: white;
 } */
 
+.wy-nav-content a:hover {
+    color: rgba(88,101,242,.5)
+}
+.wy-nav-content a, .wy-nav-content a:visited {
+    color: rgb(88,101,242)
+}
 
 .py.property {
     display: block;
@@ -20,6 +30,11 @@
     border-radius: 5px;
     color: white
 }
+
+.rst-content .note .admonition-title, .note .admonition-title {
+    background-color: rgba(88,101,242,.5);
+}
+
 
 .admonition-title {
     border-top: 1px solid white;
