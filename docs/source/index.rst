@@ -52,8 +52,7 @@ Links
 
 
 Index
-~~~~~~~
-
+~~~~~~
 
 .. toctree::
    :maxdepth: 1
