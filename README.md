@@ -177,12 +177,10 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
-    <summary>4.3.0</summary>
+    <summary>4.2.15</summary>
 
     ## **Fixed**
-    - `Message.wait_for`
-    > by keyword doesn't work properly
-
+    - #97
 
     </details>
 
