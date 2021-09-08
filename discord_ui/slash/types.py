@@ -129,7 +129,13 @@ class SlashOption():
         return self._json.get("choices")
     @choices.setter
     def choices(self, value):
-        self._json["choices"] = value
+        if isinstance(value, list):
+            if all(isinstance(x, dict) for x in value):
+                self._json["choices"] = value
+            elif all(isinstance(x, tuple) for x in value):
+                self._json["choices"] = [{"name": x[0], "value": x[1]} for x in value]
+            else:
+                raise WrongType("choices", value, ["List[dict]", "List[tuple]"])
 
     @property
     def options(self) -> typing.List['SlashOption']:
@@ -351,6 +357,8 @@ class BaseCommand():
         self.__aliases__ = getattr(callback, "__aliases__", None)
         self.__sync__ = getattr(callback, "__sync__", True)
         self.__auto_defer__ = getattr(callback, "__auto_defer__", None)
+        self.__guild_changes__ = getattr(callback, "__guild_changes__", {})
+
         self._json = {"type": getattr(command_type, "value", command_type)}
 
         self.options = _default([], options)
@@ -572,7 +580,7 @@ class SlashCommand(BaseCommand):
                     If no docstring exists, the name of the command will be used
             options: List[:class:`~SlashOptions`], optional
                 Parameters for the command; default None
-            choices: List[:class:`dict`], optional
+            choices: List[:class:`tuple`] | List[:class:`dict`], optional
                 Choices for string and int types for the user to pick from; default None
             guild_ids: :class:`str` | :class:`int`, optional
                 A list of guild ids where the command is available; default None
@@ -596,7 +604,7 @@ class SlashCommand(BaseCommand):
 
         SlashCommand(callback=my_function, name="hello_world", description="This is a test command",
             options=[
-                SlashOption(str, name="parameter", description="this is a parameter", choices=[{ "name": "choice 1", "value": 1 }])
+                SlashOption(str, name="parameter", description="this is a parameter", choices=[("choice 1", 1)])
             ], guild_ids=[785567635802816595], default_permission=False,
             guild_permissions={
                 785567635802816595: SlashPermission(allowed={"539459006847254542": SlashPermission.USER})

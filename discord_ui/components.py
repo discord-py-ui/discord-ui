@@ -301,7 +301,7 @@ class SelectMenu(Component):
     @property
     def options(self) -> List[SelectOption]:
         """
-        The choices in the select menu to select from
+        The options in the select menu to select from
 
         :type: List[:class:`~SelectOption`]
         """

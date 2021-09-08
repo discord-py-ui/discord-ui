@@ -315,9 +315,11 @@ class Slash():
         own_guild_ids = [x.id for x in self._discord.guilds]
         
         commands = self.gather_commands()
-        async def guild_stuff(command, guild_ids):
+        async def guild_stuff(command, guild_ids, is_change=False):
             """Adds the command to the guilds"""
             for x in guild_ids:
+                if str(x) in list(command.__guild_changes__.keys()) and is_change is False:
+                    continue
                 if command.guild_permissions is not None:
                     for x in list(command.guild_permissions.keys()):
                         if int(x) not in own_guild_ids:
@@ -341,6 +343,18 @@ class Slash():
             # If command is set to no sync
             if command.__sync__ == False:
                 return
+            if command.__guild_changes__ != {}:
+                for guild_id in command.__guild_changes__:
+                    _name, _description, _default_permission = command.__guild_changes__[guild_id]
+                    cur = command.copy()
+                    if _name is not None:
+                        cur.name = _name
+                    if _description is not None:
+                        cur.description = _description
+                    if _default_permission is not None:
+                        cur.default_permission = _default_permission
+                    cur.guild_ids = [int(guild_id)]
+                    await guild_stuff(cur, [int(guild_id)], is_change=True)
             # guild only command
             if command.guild_ids is not None:
                 logging.debug("adding '" + str(command.name) + "' as guild_command")
@@ -764,12 +778,24 @@ class Slash():
         else:
             del self.context_commands["user"][old_name]
             self.context_commands["user"][command.name] = command
-    def _add_to_cache(self, base: Union[SlashCommand, SlashSubcommand], is_alias=False):
-        if base.has_aliases and is_alias is False:
+    def _add_to_cache(self, base: Union[SlashCommand, SlashSubcommand], is_base=False):
+        if base.has_aliases and is_base is False:
             for a in base.__aliases__:
                 cur = base.copy()
                 cur.name = a
                 self._add_to_cache(cur, is_alias=True)
+        if base.__guild_changes__ != {} and is_base is False:
+            for guild_id in base.__guild_changes__:
+                _name, _description, _default_permission = base.__guild_changes__.get(guild_id)
+                cur = base.copy()
+                if _name is not None:
+                    cur.name = _name
+                if _description is not None:
+                    cur.description = _description
+                if _default_permission is not None:
+                    cur.default_permission = _default_permission
+                cur.guild_ids = [int(guild_id)]
+                self.commands[cur.name] = cur
         if base.command_type is CommandType.Slash:
             # basic slash command
             if isinstance(base, SlashCommand):
@@ -847,30 +873,6 @@ class Slash():
         logging.info("nuked all commands")
 
 
-
-    def alias(self, aliases):
-        """Decorator for slashcommand aliases that will add the same command but with different names 
-        
-        Usage:
-        
-        .. code-block::
-        
-            @ui.slash.alias(["catz", "cute_things"])
-            @ui.slash.alias(name="cats", ...)
-        
-        """
-        def wraper(command):
-            command.__aliases__ = aliases
-            # If decorator is used after the commandd
-            if isinstance(command, BaseCommand):
-                for alias in aliases:
-                    c = command.copy()
-                    c.name = alias
-                    self._add_to_cache(c)
-                # Updates alias fields
-                self._set_command(command.name, command)
-            return command
-        return wraper
     def add_command(self, name=None, callback=None, description=None, options=None, guild_ids=None, default_permission=True, guild_permissions=None, api=False) -> Union[None, Coroutine]:
         """
         Adds a new slashcommand
@@ -887,7 +889,7 @@ class Slash():
             1-100 character description of the command; default the command name
         options: List[:class:`~SlashOptions`], optional
             The parameters for the command; default MISSING
-        choices: List[:class:`dict`], optional
+        choices: List[:class:`tuple`] | List[:class:`dict`], optional
             Choices for string and int types for the user to pick from; default MISSING
         guild_ids: List[:class:`str` | :class:`int`], optional
             A list of guild ids where the command is available; default MISSING
@@ -928,7 +930,7 @@ class Slash():
                 1-100 character description of the command; default the command name
             options: List[:class:`~SlashOptions`], optional
                 The parameters for the command; default MISSING
-            choices: List[:class:`dict`], optional
+            choices: List[:class:`tuple`] | List[:class:`dict`], optional
                 Choices for string and int types for the user to pick from; default MISSING
             guild_ids: List[:class:`str` | :class:`int`], optional
                 A list of guild ids where the command is available; default MISSING
@@ -956,7 +958,7 @@ class Slash():
 
             @slash.command(name="hello_world", description="This is a test command", 
             options=[
-                SlashOption(str, name="parameter", description="this is a parameter", choices=[{ "name": "choice 1", "value": "test" }])
+                SlashOption(str, name="parameter", description="this is a parameter", choices=[("choice 1", "test")])
             ], guild_ids=[785567635802816595], default_permission=False, 
             guild_permissions={
                     785567635802816595: SlashPermission(allowed={"539459006847254542": SlashPermission.USER})
@@ -1013,7 +1015,7 @@ class Slash():
                 1-100 character description of the command; default the command name
             options: List[:class:`~SlashOptions`], optional
                 The parameters for the command; default MISSING
-            choices: List[:class:`dict`], optional
+            choices: List[:class:`tuple`] | List[:class:`dict`], optional
                 Choices for string and int types for the user to pick from; default MISSING
             guild_ids: List[:class:`str` | :class:`int`], optional
                 A list of guild ids where the command is available; default MISSING

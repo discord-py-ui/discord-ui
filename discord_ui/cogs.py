@@ -73,10 +73,10 @@ class BaseCallable():
     async def __call__(self, *args, **kwds):
         return self.callback(*args, **kwds)
     async def invoke(self, ctx, *args, **kwargs):
-        if self._before_invoke is not None:
-            await self._before_invoke(ctx)
         if not await self.can_run(ctx):
             raise errors.CheckFailure()
+        if self._before_invoke is not None:
+            await self._before_invoke(ctx)
 
         if self._max_concurrency is not None:
             await self._max_concurrency.acquire(ctx)
@@ -99,7 +99,6 @@ class BaseCallable():
                 self.on_error(getattr(self, "cog", None), ctx, ex)
         if self._after_invoke is not None:
             await self._after_invoke(ctx)
-
     async def can_run(self, ctx):
         """Whether the command can be run"""
         predicates = self.checks
@@ -348,7 +347,7 @@ def slash_cog(name=None, description=None, options=[], guild_ids=None, default_p
         1-100 character description of the command; default the command name
     options: List[:class:`~SlashOptions`], optional
         The parameters for the command; default MISSING
-    choices: List[:class:`dict`], optional
+    choices: List[:class:`tuple`] | List[:class:`dict`], optional
         Choices for string and int types for the user to pick from; default MISSING
     guild_ids: List[:class:`str` | :class:`int`], optional
         A list of guild ids where the command is available; default MISSING
@@ -414,7 +413,7 @@ def subslash_cog(base_names, name=None, description=None, options=[], guild_ids=
         1-100 character description of the command; default the command name
     options: List[:class:`~SlashOptions`], optional
         The parameters for the command; default MISSING
-    choices: List[:class:`dict`], optional
+    choices: List[:class:`tuple`] | List[:class:`dict`], optional
         Choices for string and int types for the user to pick from; default MISSING
     guild_ids: List[:class:`str` | :class:`int`], optional
         A list of guild ids where the command is available; default MISSING
