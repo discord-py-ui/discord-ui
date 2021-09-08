@@ -5,7 +5,7 @@ UI
 ====================
 
 
-This is the main extension for the discord.py module.
+This is the main extension for the discord module.
 
 In this documentation, :class:`~Components` and :class:`~Slash` are initalized and accesable by ``ui.slash`` and ``ui.components`` attributes
 
