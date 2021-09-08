@@ -9,10 +9,14 @@ for application-commands.
 
     from discord_ui import ext
 
+- - -
 
-Important: Every decorator should be placed before the actual slashcommand decorator.
-    When using the cog decorator it shouldn't be important
+Important: Every decorator should be placed before the actual slashcommand decorator, 
+except check auto-response decorators, they have to be placed after the target check decorator.
 
+Note: **Theoretically**, these decorators could be used together with normal cog commands and 
+not only the slash cog commands, but if you use them for the normal commands, the ``hidden`` param 
+doesn't work
 """
 
 import functools
@@ -77,10 +81,10 @@ def check_failure_response(content=None, hidden=False, **fields):
         async def invoke(ctx, *args, **kwargs):
             try:
                 if not check(ctx):
-                    await ctx.respond(content, **fields, hidden=hidden)
+                    await ctx.send(content, **fields, hidden=hidden)
                     return
             except errors.CheckFailure:
-                await ctx.respond(content, **fields, hidden=hidden)
+                await ctx.send(content, **fields, hidden=hidden)
                 raise
             await _invoke(ctx, *args, **kwargs)
 
@@ -89,7 +93,7 @@ def check_failure_response(content=None, hidden=False, **fields):
     return wraper
 
 def any_failure_response(content, hidden=False, **fields):
-    """Decorator for autoresponding to all cog checks that failed.
+    """Decorator for autoresponding to all checks of a cog command that failed.
 
     Note if you use the `check_failure_response` for a check, its response will be sent
     
@@ -128,10 +132,10 @@ def any_failure_response(content, hidden=False, **fields):
         async def invoke(ctx, *args, **kwargs):
             try:
                 if not await cog.can_run(ctx):
-                    await ctx.respond(content, hidden=hidden, **fields)
+                    await ctx.send(content, hidden=hidden, **fields)
                     return
             except errors.CheckFailure:
-                await ctx.respond(content, hidden=hidden, **fields)
+                await ctx.send(content, hidden=hidden, **fields)
                 raise
             await _invoke(ctx, *args, **kwargs)
 
@@ -167,6 +171,11 @@ def guild_change(guild_id, *, name=None, description=None, default_permission=Tr
 def alias(aliases):
     """Decorator for slashcommand aliases that will add the same command but with different names.
     
+    Parameters
+    ----------
+    aliases: List[:class:`str`] | :class:`str`
+        The alias(es) for the command with wich the command can be invoked with
+
     Usage:
     
     .. code-block::
@@ -176,7 +185,10 @@ def alias(aliases):
     
     """
     def wraper(command):
-        command.__aliases__ = aliases
+        if not hasattr(command, "__aliases__"):
+            command.__aliases__ = []
+        # Allow multiple alias decorators
+        command.__aliases__.append(aliases if not isinstance(aliases, str) else [aliases])
         return command
     return wraper
 
@@ -228,7 +240,6 @@ def auto_defer(hidden=False):
         func.__auto_defer__ = True
         @functools.wraps(func)
         async def wraper(*args, **kwargs):
-            params = inspect.signature(func).parameters.keys()[0] == "self"
             # if there is self param use the next one
             ctx = args[1 if list(inspect.signature(func).parameters.keys()[0]) == "self" else 0]
             # use defer for "auto_defering"
