@@ -229,7 +229,8 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     </details>
 
 -   <details>
-    
+    <summary>4.2.8</summary>
+
     ## **Added**
 
     - edit_subcomand
@@ -247,7 +248,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     </details>
 
 -   <details>
-    <summary>4.2.7<summary>
+    <summary>4.2.7</summary>
 
     ## **Added**
 
