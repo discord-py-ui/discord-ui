@@ -189,7 +189,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     
     ## **Added**
     - `discord_ui.ext`
-    > A module with usefull tools and decorators to use [more information](https://discord-ui.readthedocs.io/en/unstable/ext.html)
+    > A module with usefull tools and decorators to use [more information](https://discord-ui.readthedocs.io/en/latest/ext.html)
     
     - BaseCommand
     > BaseCommand (the superclass for all applicationcommands) has now some extra properties:
@@ -215,7 +215,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     - Listeners
     > Listeners are something that you can use for a better processing of received components.
     > You could see them as a cog to the message components
-    > [more information](https://discord-ui.readthedocs.io/en/unstable/listeners.html)
+    > [more information](https://discord-ui.readthedocs.io/en/latest/listeners.html)
 
     ## **Changed**
     - SelectedMenu
