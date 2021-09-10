@@ -190,8 +190,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     ## **Added**
     - `discord_ui.ext`
     > A module with usefull tools and decorators to use [more information](https://discord-ui.readthedocs.io/en/unstable/ext.html)
-    - `slash.alias`
-    > You can use aliases for commands now
+    
     - BaseCommand
     > BaseCommand (the superclass for all applicationcommands) has now some extra properties:
         
