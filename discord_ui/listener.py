@@ -25,6 +25,9 @@ Example
     class MyListener(Listener):
         ...
 
+Listeners
+---------
+
 To add a button listener, you need to use the ``Listener.button`` deorator
 
 .. code-block::
@@ -35,9 +38,6 @@ To add a button listener, you need to use the ``Listener.button`` deorator
         @Listener.button("custom_id here")
         async def somebutton(self, ctx):
             ...
-
-Listeners
----------
 
 This will add a button listener that will wait for a button with the custom id "custom_id here"
 
@@ -84,12 +84,12 @@ You can add a timeout to the listener after which the listener will be removed f
         def __init__(self):
             self.timeout = 20   # 20 seconds timeout
 
-If you set timeout to ``None``, the listener will never timeout
+If you **set** timeout to ``None``, the listener will never timeout
 
 Sending
 --------
 
-To send components and add the listener, you can use four different ways
+To send components and add the listener, you can use five different ways
 
 First method:
 
@@ -139,7 +139,7 @@ Third method:
         msg = await message.channel.send("showcase", components=[Button("test", "this is a showcase")])
         msg.attach_listener(MyListener())
 
-And the last method:
+Fourth method:
 
 .. code-block::
 
@@ -156,6 +156,24 @@ And the last method:
 
         msg = await message.channel.send("showcase", components=[Button("test", "this is a showcase")])
         ui.components.attach_listener_to(msg, MyListener())
+
+And the last method:
+
+.. code-block::
+
+    ui = discord_ui.UI(bot)
+
+    @bot.listen()
+    async def on_message(message)
+        class MyListener(Listener):
+            def __init__(self):
+                pass
+            @Listener.button("test")
+            async def test(self, ctx):
+                ...
+
+        msg = await message.channel.send("showcase", components=[Button("test", "this is a showcase")])
+        MyListener.attach_me_to(msg)
 """
 
 from .tools import setup_logger
