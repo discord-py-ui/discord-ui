@@ -670,7 +670,7 @@ class Slash():
         else:
             await self.create_command(command)
         self._set_command(old_name, command)
-    async def edit_subcommand(self, base_names, old_name, guild_id=None, *, name, description, options, guild_ids, default_permission, guild_permissions, callback=MISSING):
+    async def edit_subcommand(self, base_names, old_name, guild_id=MISSING, *, name=None, description=None, options=None, guild_ids=MISSING, default_permission=None, guild_permissions=None, callback=MISSING):
         """
         Edits a subcommand
         

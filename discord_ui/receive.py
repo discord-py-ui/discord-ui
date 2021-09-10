@@ -454,7 +454,7 @@ class Message(discord.Message):
         self._update_components(data)
 
     async def edit(self, content=MISSING, *, embed=MISSING, embeds=MISSING, attachments=MISSING, suppress=MISSING, 
-        delete_after=MISSING, allowed_mentions=MISSING, components=MISSING, component_state=MISSING):
+        delete_after=MISSING, allowed_mentions=MISSING, components=MISSING):
         """Edits the message and updates its properties
 
         .. note::
@@ -479,12 +479,7 @@ class Message(discord.Message):
             The mentions proceeded in the message
         components: List[:class:`~Button` | :class:`~LinkButton` | :class:`~SelectMenu`]
             A list of components to be included the message
-        component_state: :class:`bool`
-            The disable state of the message's components. 
-                If component_state is ``True``, all components of this message will be enabled, if ``False``, all components will be disabled
         """
-        if component_state is not MISSING and components is MISSING and components is not None:
-            components = self.action_row.disable(component_state).items
         payload = jsonifyMessage(content, embed=embed, embeds=embeds, allowed_mentions=allowed_mentions, attachments=attachments, suppress=suppress, flags=self.flags.value, components=components)
         data = await self._state.http.edit_message(self.channel.id, self.id, **payload)
         self._update(data)
