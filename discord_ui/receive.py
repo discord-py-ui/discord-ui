@@ -197,7 +197,7 @@ class Interaction():
         if hide_message is True:
             msg = EphemeralMessage(state=self._state, channel=self._state.get_channel(int(r["channel_id"])), data=r, application_id=self.application_id, token=self.token)
             if listener is not MISSING:
-                listener._start(msg._state, msg.id)
+                listener._start(msg)
             return msg
 
         
@@ -207,7 +207,7 @@ class Interaction():
             if not _none(delete_after):
                 await msg.delete(delete_after)
             if listener is not MISSING:
-                listener._start(msg._state, msg.id)
+                listener._start(msg)
             return msg
 
     async def send(self, content=None, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, files=MISSING, nonce=MISSING,
@@ -269,11 +269,11 @@ class Interaction():
         if hidden is True:
             msg = EphemeralMessage(state=self._state, channel=self._state.get_channel(r["channel_id"]), data=r, application_id=self.application_id, token=self.token)
             if listener is not None:
-                listener._start(self._state, msg.id)
+                listener._start(msg)
         msg = await getMessage(self._state, r, response=False)
         
         if listener is not MISSING:
-            listener._start(self._state, msg.id)
+            listener._start(msg)
         return msg
     def _handle_auto_defer(self, auto_defer):
         self.deferred = auto_defer[0]
@@ -657,7 +657,7 @@ class Message(discord.Message):
             The listener that should be attached
         
         """
-        listener._start(self._state, self.id)
+        listener._start(self)
     def remove_listener(self):
         """Removes the listener from this message"""
         try:

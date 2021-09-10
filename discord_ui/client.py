@@ -1597,7 +1597,7 @@ class Components():
             The listener that will be attached
         
         """
-        listener._start(target_message._state, target_message.id)
+        listener._start(target_message, target_message)
 
 class UI():
     """

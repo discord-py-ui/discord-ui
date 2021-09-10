@@ -65,7 +65,7 @@ def override_dpy():
             await msg.delete(delay=kwargs.get("delete_after"))
     
         if listener is not None:
-            listener._start(self._state, msg.id)
+            listener._start(msg)
 
         return msg
     def message_override(cls, *args, **kwargs):

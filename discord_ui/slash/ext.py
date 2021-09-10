@@ -215,7 +215,7 @@ def no_sync():
     return wraper
 
 def auto_defer(hidden=False):
-    """A decorator for auto deferring a command. This decorator has to be placed before the main decorator
+    """A decorator for auto deferring a interaction. This decorator has to be placed before the main decorator
     
     Parameters
     ----------

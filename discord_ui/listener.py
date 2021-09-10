@@ -39,7 +39,6 @@ To add a button listener, you need to use the ``Listener.button`` deorator
 Listeners
 ---------
 
-
 This will add a button listener that will wait for a button with the custom id "custom_id here"
 
 
@@ -131,7 +130,8 @@ Third method:
     async def on_message(message)
         class MyListener(Listener):
             def __init__(self):
-                pass
+                ...
+            
             @Listener.button("test")
             async def test(self, ctx):
                 ...
@@ -160,7 +160,7 @@ And the last method:
 
 from .tools import setup_logger
 from .components import Button, ComponentType, LinkButton, SelectMenu
-from .receive import ComponentContext
+from .receive import ComponentContext, Message
 
 import discord
 from discord.ext import commands
@@ -215,18 +215,17 @@ class WrongUser(Exception):
 
 
 class Listener():
-    """A class for a listener attached to a message that will receive components of it
+    """A class for a listener attached to a message that will receive components of it.
+        To use this class you have to create a subclass inhering this class
 
-    To use this class you have to create a subclass inhering this class
 
     Example
-    --------
+    -------
 
     .. code-block::
 
-        class MyListener(Listener):
-            def __init__(self, ...)
-                ...
+        class MyListener(Listener)
+            ...
 
     Parameters
     -----------
@@ -244,6 +243,8 @@ class Listener():
         """The user from who the interaction has to come8"""
         self.components: List[Union[List[Button, LinkButton, SelectMenu], Button, LinkButton, SelectMenu]] = []
         """The components that are going to be send together with the listener"""
+        self.message: Message = None
+        """The target message"""
     def __init_subclass__(cls) -> None:
         cls.__listeners__ = []
 
@@ -254,8 +255,8 @@ class Listener():
         Parameters
         ----------
         custom_id: :class:`str`, optional
-            The custom id of the target button. 
-            If no custom_id is passed, the name of the callback will be used for the custom id.
+            The custom id of the target button.  If no custom_id is passed, the name of the callback will be used for the custom id.
+                Note that you can't have two callbacks with the same function name
 
         Example
         --------
@@ -282,6 +283,7 @@ class Listener():
         ----------
         custom_id: :class:`str`, optional
             The custom id of the target menu. If no id specified, the name of the callback will be used.
+                Note that you can't have two callbacks with the same function name
         values: List[:class:`str`], optional
             What values must be selected in order to invoke the callback; default None
         
@@ -322,7 +324,6 @@ class Listener():
                 listeners[lister.custom_id] = []
             listeners[lister.custom_id].append(lister)
         return listeners
-
     def _get_listeners_for(self, interaction_component: ComponentContext) -> _Listener:
         listeners = self._get_listeners()
         listers = []
@@ -337,15 +338,17 @@ class Listener():
                 else:
                     listers.append(listener)
         return listers
+   
     def to_components(self):
         return self.components
 
     def _stop(self):
         del self._state._component_listeners[self._target_message_id]
         logging.debug("deleted listener")
-    def _start(self, state, message_id: int):
-        self._state: ConnectionState = state
-        self._target_message_id = str(message_id)
+    def _start(self, message):
+        self.message = message
+        self._state: ConnectionState = message._state
+        self._target_message_id = str(self.message.id)
         self._state._component_listeners[self._target_message_id] = self
         
         # region removal
@@ -361,7 +364,7 @@ class Listener():
             The target message
         
         """
-        self._start(message._state, message.id)
+        self._start(message)
     async def put_me_to(self, message):
         """Attaches this listener to a message and edits it if the message is missing components
         
@@ -372,5 +375,5 @@ class Listener():
         
         """
         if len(message.components) == 0:
-            await message.edit(components=self.to_components)
+            await message.edit(components=self.to_components())
         self.attach_me_to(message)
