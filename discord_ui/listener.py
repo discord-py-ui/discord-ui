@@ -240,7 +240,7 @@ class Listener():
         self.timeout: float = timeout
         """Timeout after how many seconds the listener should timeout and be deleted"""
         self.target_user: Union[discord.Member, discord.User] = target_user
-        """The user from who the interaction has to come8"""
+        """The user from which the interaction has to come"""
         self.components: List[Union[List[Button, LinkButton, SelectMenu], Button, LinkButton, SelectMenu]] = []
         """The components that are going to be send together with the listener"""
         self.message: Message = None
@@ -277,7 +277,7 @@ class Listener():
         return wraper
     @staticmethod
     def select(custom_id=None, values=None):
-        """A decorator that will set a callback up for a selecct menu
+        """A decorator that will set a callback up for a select menu
         
         Parameters
         ----------

@@ -202,6 +202,10 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
         > Whether the invoked command is an alias or not
         - aliases
         > All the available aliases for the command
+    - Listeners
+    > Listeners are something that you can use for a better processing of received components.
+    > You could see them as a cog to the message components
+    > [More information](https://discord-ui.readthedocs.io/en/unstable/listeners.html)
 
     ## **Changed**
     - SelectedMenu
