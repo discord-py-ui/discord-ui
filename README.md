@@ -177,6 +177,14 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>4.3.1</summary>
+
+    ## **Removed**
+    - unused parameter
+
+    </details>
+
+-   <details>
     <summary>4.3.0</summary>
 
     ## **Fixed**
