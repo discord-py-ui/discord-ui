@@ -26,11 +26,15 @@ for using discord's newest ui features like buttons, slash commands and context 
 
 ## Installation
 
-```cmd
-# windows
-py -m pip install discord-ui
 
-# linux
+### Windows
+
+```cmd
+py -m pip install discord-ui
+```
+
+### Linux
+```bash
 python3 -m pip install discord-ui
 ```
 
@@ -205,7 +209,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     - Listeners
     > Listeners are something that you can use for a better processing of received components.
     > You could see them as a cog to the message components
-    > [More information](https://discord-ui.readthedocs.io/en/unstable/listeners.html)
+    > [more information](https://discord-ui.readthedocs.io/en/unstable/listeners.html)
 
     ## **Changed**
     - SelectedMenu
