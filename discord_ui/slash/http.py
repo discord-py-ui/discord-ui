@@ -8,16 +8,16 @@ import aiohttp
 
 logging = setup_logger(__name__)
 
-async def get_command(command_name, client: com.Bot, guild_id=MISSING):
+async def get_command(command_name, client: com.Bot, guild_id=None):
     return get(
         (
             await get_global_commands(client)
-        ) if guild_id is MISSING else (
+        ) if guild_id is None else (
             await get_guild_commands(client, guild_id)
         ),
         command_name, lambda x: x.get("name")
     )
-async def get_id(command_name, client: com.bot, guild_id=MISSING):
+async def get_id(command_name, client: com.bot, guild_id=None):
     found = (await get_command(command_name, client, guild_id))
     if found is None:
         raise Exception("No slash command found with name '" + command_name + "'")
@@ -73,8 +73,9 @@ async def update_command_permissions(application_id, token, guild_id, command_id
             if response.status == 200:
                 return await response.json()
             elif response.status == 429:
-                await handle_rate_limit(await response.json())
-                return await update_command_permissions(application_id, token, guild_id, command_id, permissions)
+                data = await handle_rate_limit(await response.json())
+                await update_command_permissions(application_id, token, guild_id, command_id, permissions)
+                return data
             raise HTTPException(response, response.content)
 
 async def create_global_command(command: dict, client: com.Bot):
@@ -88,7 +89,8 @@ async def create_global_command(command: dict, client: com.Bot):
 async def create_guild_command(command, client: com.Bot, guild_id, permissions = []):
     try:
         data = await client.http.request(BetterRoute("POST", f"/applications/{client.user.id}/guilds/{guild_id}/commands"), json=command)
-        return await update_command_permissions(client.user.id, client.http.token, guild_id, data["id"], permissions)
+        await update_command_permissions(client.user.id, client.http.token, guild_id, data["id"], permissions)
+        return data
     except HTTPException as ex:
         if ex.status == 429:
             await handle_rate_limit(await ex.response.json())
@@ -104,10 +106,10 @@ async def edit_global_command(command_id: str, client: com.Bot, new_command: dic
             await handle_rate_limit(await ex.response.json())
             return await edit_global_command(command_id, client, new_command)
         raise ex
-async def edit_guild_command(command_id, client: com.Bot, guild_id: str, new_command: dict, permissions: dict=MISSING):
+async def edit_guild_command(command_id, client: com.Bot, guild_id: str, new_command: dict, permissions: dict=None):
     try:
         data = await client.http.request(BetterRoute("PATCH", f"/applications/{client.user.id}/guilds/{guild_id}/commands/{command_id}"), json=new_command)
-        if permissions is not MISSING:
+        if permissions is not None:
             return await update_command_permissions(client.user.id, client.http.token, guild_id, data["id"], permissions)
     except HTTPException as ex:
         if ex.status == 429:

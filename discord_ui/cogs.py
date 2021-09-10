@@ -1,6 +1,5 @@
 from .components import ComponentType
-from .tools import MISSING
-from .slash.types import MessageCommand, SlashCommand, SlashSubcommand, UserCommand
+from .slash.types import BaseCommand, MessageCommand, SlashCommand, SlashSubcommand, UserCommand
 
 import discord
 from discord.errors import InvalidArgument
@@ -74,10 +73,10 @@ class BaseCallable():
     async def __call__(self, *args, **kwds):
         return self.callback(*args, **kwds)
     async def invoke(self, ctx, *args, **kwargs):
-        if self._before_invoke is not None:
-            await self._before_invoke(ctx)
         if not await self.can_run(ctx):
             raise errors.CheckFailure()
+        if self._before_invoke is not None:
+            await self._before_invoke(ctx)
 
         if self._max_concurrency is not None:
             await self._max_concurrency.acquire(ctx)
@@ -100,7 +99,6 @@ class BaseCallable():
                 self.on_error(getattr(self, "cog", None), ctx, ex)
         if self._after_invoke is not None:
             await self._after_invoke(ctx)
-
     async def can_run(self, ctx):
         """Whether the command can be run"""
         predicates = self.checks
@@ -268,6 +266,7 @@ class BaseCallable():
         return coro
 class BaseSlash(BaseCallable):
     def __init__(self, callback) -> None:
+        self.__slots__ = BaseCommand.__slots__ + ('cog',)
         self.__type__ = 1
         BaseCallable.__init__(self, callback)
 
@@ -275,19 +274,38 @@ class CogCommand(BaseSlash, SlashCommand):
     def __init__(self, *args, **kwargs) -> None:
         SlashCommand.__init__(self, *args, **kwargs)
         BaseSlash.__init__(self, args[0])
+    def copy(self) -> 'CogCommand':
+        c = CogCommand(self.callback, self.name, self.description, self.options, self.guild_ids, self.default_permission, self.guild_permissions)
+        for x in self.__slots__:
+            setattr(c, x, getattr(self, x, None))
+        return c
 class CogSubCommandGroup(BaseSlash, SlashSubcommand):
     def __init__(self, *args, **kwargs) -> None:
         SlashSubcommand.__init__(self, *args, **kwargs)
         BaseSlash.__init__(self, args[0])
+    def copy(self) -> 'CogSubCommandGroup':
+        c = CogSubCommandGroup(self.callback, self.base_names, self.name, self.description, self.options, self.guild_ids, self.default_permission, self.guild_permissions)
+        for x in self.__slots__:
+            setattr(c, x, getattr(self, x, None))
+        return c
 class CogMessageCommand(BaseSlash, MessageCommand):
     def __init__(self, *args, **kwargs) -> None:
         MessageCommand.__init__(self, *args, **kwargs)
         BaseSlash.__init__(self, args[0])
+    def copy(self) -> 'CogMessageCommand':
+        c = CogMessageCommand(self.callback, self.name, self.guild_ids, self.default_permission, self.guild_permissions)
+        for x in self.__slots__:
+            setattr(c, x, getattr(self, x, None))
+        return c
 class CogUserCommand(BaseSlash, UserCommand):
     def __init__(self, *args, **kwargs) -> None:
         UserCommand.__init__(self, *args, **kwargs)
         BaseSlash.__init__(self, args[0])
-
+    def copy(self) -> 'CogUserCommand':
+        c = CogUserCommand(self.callback, self.name, self.guild_ids, self.default_permission, self.guild_permissions)
+        for x in self.__slots__:
+            setattr(c, x, getattr(self, x, None))
+        return c
 
 class ListeningComponent(BaseCallable):
     def __init__(self, callback, messages, users, component_type, check, custom_id) -> None:
@@ -295,13 +313,13 @@ class ListeningComponent(BaseCallable):
         self.__type__ = 2
         def predicate(ctx):
             checks = []
-            if messages not in [MISSING, []]:
+            if messages not in [None, []]:
                 checks.append(ctx.message.id in [(x.id if hasattr(x, "id") else int(x)) for x in messages])
-            if users is not MISSING:
+            if users not in [None, []]:
                 checks.append(ctx.author.id in [(x.id if hasattr(x, "id") else int(x)) for x in users])
-            if component_type is not MISSING:
-                checks.append(ctx.component_type == (ComponentType.BUTTON if component_type in [ComponentType.BUTTON, "button"] else ComponentType.SELECT_MENU))
-            if check is not MISSING:
+            if component_type is not None:
+                checks.append(ctx.component_type is (ComponentType.Button if component_type in [ComponentType.Button, "button"] else ComponentType.Select))
+            if check is not None:
                 checks.append(check(ctx) is True)
                 if not all(checks):
                     raise WrongListener()
@@ -309,7 +327,7 @@ class ListeningComponent(BaseCallable):
         self.add_check(predicate)
         self.custom_id = custom_id
 
-def slash_cog(name=MISSING, description=MISSING, options=[], guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING):
+def slash_cog(name=None, description=None, options=[], guild_ids=None, default_permission=None, guild_permissions=None):
     """
     A decorator for cogs that will register a slashcommand
     
@@ -318,38 +336,39 @@ def slash_cog(name=MISSING, description=MISSING, options=[], guild_ids=MISSING, 
     
     Parameters
     ----------
-        name: :class:`str`, optional
-            1-32 characters long name; default MISSING
+    name: :class:`str`, optional
+        1-32 characters long name; default MISSING
 
-            .. note::
+        .. note::
 
-                The name will be corrected automaticaly (spaces will be replaced with "-" and the name will be lowercased)
-        
-        description: :class:`str`, optional
-            1-100 character description of the command; default the command name
-        options: List[:class:`~SlashOptions`], optional
-            The parameters for the command; default MISSING
-        choices: List[:class:`dict`], optional
-            Choices for string and int types for the user to pick from; default MISSING
-        guild_ids: List[:class:`str` | :class:`int`], optional
-            A list of guild ids where the command is available; default MISSING
-        default_permission: :class:`bool`, optional
-            Whether the command can be used by everyone or not
-        guild_permissions: Dict[``guild_id``: :class:`~SlashPermission`]
-            The permissions for the command in guilds
-                Format: ``{"guild_id": SlashPermission}``
+            The name will be corrected automaticaly (spaces will be replaced with "-" and the name will be lowercased)
+    
+    description: :class:`str`, optional
+        1-100 character description of the command; default the command name
+    options: List[:class:`~SlashOptions`], optional
+        The parameters for the command; default MISSING
+    choices: List[:class:`tuple`] | List[:class:`dict`], optional
+        Choices for string and int types for the user to pick from; default MISSING
+    guild_ids: List[:class:`str` | :class:`int`], optional
+        A list of guild ids where the command is available; default MISSING
+    default_permission: :class:`bool`, optional
+        Whether the command can be used by everyone or not
+    guild_permissions: Dict[``guild_id``: :class:`~SlashPermission`]
+        The permissions for the command in guilds
+            Format: ``{"guild_id": SlashPermission}``
 
     Decorator
     ---------
 
-        callback: :class:`method(ctx)`
-            The asynchron function that will be called if the command was used
-                ctx: :class:`~SlashedCommand`
-                    The used slash command
+    callback: :class:`method(ctx)` 
+        The asynchron function that will be called if the command was used
+        
+        ctx: :class:`~SlashedCommand`
+            The used slash command
 
-                .. note::
+        .. note::
 
-                    ``ctx`` is just an example name, you can use whatever you want for that
+            ``ctx`` is just an example name, you can use whatever you want for that
 
     Example
     --------
@@ -372,7 +391,7 @@ def slash_cog(name=MISSING, description=MISSING, options=[], guild_ids=MISSING, 
     def wraper(callback):
         return CogCommand(callback, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
     return wraper
-def subslash_cog(base_names, name=MISSING, description=MISSING, options=[], guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING):
+def subslash_cog(base_names, name=None, description=None, options=[], guild_ids=None, default_permission=None, guild_permissions=None):
     """
     A decorator for cogs that will register a subcommand/subcommand-group
   
@@ -381,43 +400,43 @@ def subslash_cog(base_names, name=MISSING, description=MISSING, options=[], guil
 
     Parameters
     ----------
-        base_names: List[:class:`str`] | :class:`str`
-            The names of the parent bases, currently limited to 2
-                If you want to make a subcommand (``/base name``), you have to use a str instead of a list
-        name: :class:`str`, optional
-            1-32 characters long name; default MISSING
-            
-            .. note::
-
-                The name will be corrected automaticaly (spaces will be replaced with "-" and the name will be lowercased)
-        description: :class:`str`, optional
-            1-100 character description of the command; default the command name
-        options: List[:class:`~SlashOptions`], optional
-            The parameters for the command; default MISSING
-        choices: List[:class:`dict`], optional
-            Choices for string and int types for the user to pick from; default MISSING
-        guild_ids: List[:class:`str` | :class:`int`], optional
-            A list of guild ids where the command is available; default MISSING
-        default_permission: :class:`bool`, optional
-            Whether the command can be used by everyone or not
-        guild_permissions: Dict[``guild_id``: :class:`~SlashPermission`]
-            The permissions for the command in guilds
-                Format: ``{"guild_id": SlashPermission}``
-
+    base_names: List[:class:`str`] | :class:`str`
+        The names of the parent bases, currently limited to 2
+            If you want to make a subcommand (``/base name``), you have to use a str instead of a list
+    name: :class:`str`, optional
+        1-32 characters long name; default MISSING
+        
         .. note::
 
-            Permissions will be the same for every subcommand with the same base
+            The name will be corrected automaticaly (spaces will be replaced with "-" and the name will be lowercased)
+    description: :class:`str`, optional
+        1-100 character description of the command; default the command name
+    options: List[:class:`~SlashOptions`], optional
+        The parameters for the command; default MISSING
+    choices: List[:class:`tuple`] | List[:class:`dict`], optional
+        Choices for string and int types for the user to pick from; default MISSING
+    guild_ids: List[:class:`str` | :class:`int`], optional
+        A list of guild ids where the command is available; default MISSING
+    default_permission: :class:`bool`, optional
+        Whether the command can be used by everyone or not
+    guild_permissions: Dict[``guild_id``: :class:`~SlashPermission`]
+        The permissions for the command in guilds
+            Format: ``{"guild_id": SlashPermission}``
+
+    .. note::
+
+        Permissions will be the same for every subcommand with the same base
 
     Decorator
     ---------
-        callback: :class:`method(ctx)`
-            The asynchron function that will be called if the command was used
-                ctx: :class:`~SlashedSubCommand`
-                    The used slash command
+    callback: :class:`method(ctx)`
+        The asynchron function that will be called if the command was used
+            ctx: :class:`~SlashedSubCommand`
+                The used slash command
 
-                .. note::
+            .. note::
 
-                    ``ctx`` is just an example name, you can use whatever you want for that
+                ``ctx`` is just an example name, you can use whatever you want for that
     
     Example
     --------
@@ -451,39 +470,39 @@ def subslash_cog(base_names, name=MISSING, description=MISSING, options=[], guil
     def wraper(callback):
         return CogSubCommandGroup(callback, base_names, name, description=description, options=options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
     return wraper
-def context_cog(type: Literal["user", 2, "message", 3], name=MISSING, guild_ids=MISSING, default_permission=MISSING, guild_permissions=MISSING):
+def context_cog(type: Literal["user", 2, "message", 3], name=None, guild_ids=None, default_permission=None, guild_permissions=None):
     """
     Decorator for cogs that will register a context command in discord
             ``Right-click message or user`` -> ``apps`` -> ``commands is displayed here``
 
-        Parameters
-        ----------
-            type: Literal[``'user'``, ``2`` | ``'message'`` | ``3``]
-                The type of the contextcommand. 
-                    ``'user'`` and ``2`` are user-commands; ``'message'`` and ``3`` are message-commansd
-            name: :class:`str`, optional
-                The name of the command; default MISSING
-            guild_ids: List[:class:`str` | :class:`int`]
-                A list of guilds where the command can be used
-            default_permission: :class:`bool`, optional
-                Whether the command can be used by everyone; default True
-            guild_permissions: Dict[:class:`SlashPermission`], optional
-                Special permissions for guilds; default MISSING
+    Parameters
+    ----------
+        type: Literal[``'user'``, ``2`` | ``'message'`` | ``3``]
+            The type of the contextcommand. 
+                ``'user'`` and ``2`` are user-commands; ``'message'`` and ``3`` are message-commansd
+        name: :class:`str`, optional
+            The name of the command; default MISSING
+        guild_ids: List[:class:`str` | :class:`int`]
+            A list of guilds where the command can be used
+        default_permission: :class:`bool`, optional
+            Whether the command can be used by everyone; default True
+        guild_permissions: Dict[:class:`SlashPermission`], optional
+            Special permissions for guilds; default MISSING
 
-        Decorator
-        ---------
+    Decorator
+    ---------
 
-            callback: :class:`method(ctx, message)`
-                The asynchron function that will be called if the command was used
-                    ctx: :class:`~SlashedSubCommand`
-                        The used slash command
-                    message: :class:`~Message`
-                        The message on which the command was used
-                    
-                    .. note::
+        callback: :class:`method(ctx, message)`
+            The asynchron function that will be called if the command was used
+                ctx: :class:`~SlashedSubCommand`
+                    The used slash command
+                message: :class:`~Message`
+                    The message on which the command was used
+                
+                .. note::
 
-                        ``ctx`` and ``message`` are just example names, you can use whatever you want for that
-        
+                    ``ctx`` and ``message`` are just example names, you can use whatever you want for that
+    
         Example
         -------
         
@@ -510,7 +529,7 @@ def context_cog(type: Literal["user", 2, "message", 3], name=MISSING, guild_ids=
         else:
             raise InvalidArgument("Invalid context type! type has to be one of 'user', 1, 'message', 2!")
     return wraper
-def listening_component_cog(custom_id, messages=MISSING, users=MISSING, component_type: Literal['button', 'select'] = MISSING, check=lambda _ctx: True):
+def listening_component_cog(custom_id, messages=None, users=None, component_type: Literal['button', 'select']=None, check=lambda _ctx: True):
     """
     Decorator for cogs that will register a listening component
 

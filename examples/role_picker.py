@@ -51,7 +51,7 @@ async def command(ctx: SlashedCommand):
             for _r in roles:
                 # If the id of the current guild role is the same as the value of the current selected value 
                 # (in our case the value is the id of the role the user should get) 
-                if str(_r.id) == str(role.value):
+                if str(_r.id) == str(role):
                     # Add the role to the user
                     await menu.author.add_roles(_r)
                     # Add the current role name to an array where all the given roles are

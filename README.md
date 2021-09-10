@@ -2,7 +2,7 @@
 <p align="center">
     <h2 align="center">discord-ui</h2>
     <p align="center">
-        A discord.py user-interface extension
+        A discord.py extension for using discord ui/interaction features
         <br />
         <a href="https://pypi.org/project/discord-ui/"><b>pip package</b></a>
         ▪ 
@@ -22,21 +22,21 @@
 This is a [discord.py](https://github.com/Rapptz/discord.py) ui extension made by [404kuso](https://github.com/404kuso) and [RedstoneZockt](https://github.com/RedstoneZockt)
 for using discord's newest ui features like buttons, slash commands and context commands (we got dpy2 supported if you want to keep using our libary)
 
+[Documentation](https://discord-ui.readthedocs.io/en/latest/)
+
 ## Installation
 
-```cmd
-# windows
-py -m pip install discord-ui
 
-# linux
-python3 -m pip install discord-ui
+### Windows
+
+```cmd
+py -m pip install discord-ui
 ```
 
-## Docs
-
-You can read the docs [here](https://discord-ui.rtfd.io/)
-
-> The docs can include some typos or issues, if so, plz let me know
+### Linux
+```bash
+python3 -m pip install discord-ui
+```
 
 ## License
 
@@ -139,7 +139,7 @@ async def on_message(message: discord.Message):
         ], max_values=2)])
         try:
             sel = await msg.wait_for("select", client, by=message.author, timeout=20)
-            await sel.respond("you selected `" + str([x.content for x in sel.selected_values]) + "`")
+            await sel.respond("you selected `" + str([x.content for x in sel.selected_options]) + "`")
         except TimeoutError:
             await msg.delete()
 
@@ -177,9 +177,60 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
-    <summary>4.2.15</summary>
+    <summary>4.3.0</summary>
 
     ## **Fixed**
+    - `Message.wait_for`
+    > by keyword doesn't work properly
+
+    ## **Removed**
+    - Hash
+    > Removed the hash property from Buttons and SelectMenus due to the removal of it from the api
+    
+    ## **Added**
+    - `discord_ui.ext`
+    > A module with usefull tools and decorators to use [more information](https://discord-ui.readthedocs.io/en/latest/ext.html)
+    
+    - BaseCommand
+    > BaseCommand (the superclass for all applicationcommands) has now some extra properties:
+        
+        - is_chat_input
+        > Whether this command is a slash command
+        
+        - is_message_context
+        > Whether this command is a message context command
+        
+        - is_user_context
+        > Whether this command is a user context command
+    
+    - SlashedCommand
+    > Added properties:
+        
+        - is_alias
+        > Whether the invoked command is an alias or not
+        
+        - aliases
+        > All the available aliases for the command
+    
+    - Listeners
+    > Listeners are something that you can use for a better processing of received components.
+    > You could see them as a cog to the message components
+    > [more information](https://discord-ui.readthedocs.io/en/latest/listeners.html)
+
+    ## **Changed**
+    - SelectedMenu
+    > `SelectedMenu.selected_values` are not the raw values that were selected, `SelectMenu.selected_options` are the options of type `SlashOption` that were selected
+    - MISSING => None
+    > All instance values that were `MISSING` by default are now `None`
+
+
+
+    </details>
+
+-   <details>
+    <summary>4.2.15</summary>
+
+    # Fixed
     - #97
 
     </details>
@@ -230,7 +281,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 
 -   <details>
     <summary>4.2.8</summary>
-
+    
     ## **Added**
 
     - edit_subcomand
@@ -251,19 +302,15 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>4.2.7</summary>
 
     ## **Added**
-
     - `on_component`
     > There is now an event with the name `component` that will be dispatched whenever a component was received
     > If you use `Message.wait_for`, there is now a new event choice with the name `component` (`message.wait_for("component", client)`)
 
-
     ## **Fixed**
-
     - #94
     > DM issue with deleting messages
 
     ## **Changed**
-
     - `edit`
     > Edit now takes "content" as not positional (`.edit("the content")` works now)
     - component lenght
@@ -949,5 +996,5 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 You can contact us on discord
 
 - `RedstoneZockt#2510`
-- `! DaKuso#6969`
+- `! kuso#6969`
 - [discord](https://discord.gg/bDJCGD994p)

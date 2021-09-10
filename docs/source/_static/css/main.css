@@ -1,10 +1,67 @@
 
+.wy-menu-vertical header, .wy-menu-vertical p.caption {
+    color: #5865F2;
+}
+
 /* Dark-Mode */
 /* .wy-nav-content, .wy-nav-content-wrap {
     background-color: #23272A;
     color: white;
 } */
 
+.wy-menu-vertical li.toctree-l2 span.toctree-expand {
+    color: black;
+}
+
+.wy-side-nav-search input[type="text"] {
+    border-color: #5865F2;
+}
+
+/* Class */
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple)>dt:first-child {
+    color: black;
+    background-color: #F6F6F6;
+    border: 3px solid #F6F6F6;
+    width: 90%;
+    height: 110%;
+    border-radius: 4px;
+    border-bottom: 3px solid black;
+    font-size: 100%;
+}
+
+/* Attribute */
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple) dl:not(.field-list):not(.simple)>dt {
+    width: 90%;
+    height: 110%;
+    font-size: 95%;
+    color: black;
+    border: 4.5px solid #F6F6F6;
+    border-radius: 6px;
+    background-color: #F6F6F6;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple) dd>dl.simple:not(.field-list)>dt {
+    font-weight: 500;
+    color: #404040;
+}
+
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple) dl:not(.field-list)>dt {
+    border: none;
+    border-left: none;
+    font-size: 16px;
+    font-weight: 600;
+    color: #404040;
+    background-color: #fcfcfc;
+}
+
+.wy-nav-content a:hover {
+    color: rgba(88,101,242,.5);
+}
+.wy-nav-content a, .wy-nav-content a:visited {
+    color: rgb(88,101,242);
+}
 
 .py.property {
     display: block;
@@ -14,12 +71,23 @@
     max-width: 100%;
 }
 
-
 .btn.btn-neutral {
     border: 1px solid #2C2F33;
     border-radius: 5px;
     color: white
 }
+
+.rst-content .note .admonition-title, .note .admonition-title {
+    background-color: rgba(88,101,242,.5);
+}
+
+.rst-content .warning .admonition-title, .warning .admonition-title {
+    background-color: #fee65cad;
+}
+.rst-content .warning, .warning {
+    background-color: rgba(254,231,92,.5);
+}
+
 
 .admonition-title {
     border-top: 1px solid white;
@@ -55,10 +123,6 @@ code.docutils.literal.notranslate, .highlight, div.highlight-default.notranslate
 .toctree-l1.current {
     /* border: 0.5px solid white; */
     border-radius: 2.5px;
-}
-
-dt::before {
-    content: " "
 }
 
 

@@ -68,10 +68,11 @@ html_static_path = ['_static']
 #     app.add_css_file('css/main.css')
 
 # html_context = {
-#     'css_files': ['_static/css/main.css'],
-#     'js_files': ['_static/js/override_page.js'],
+#     'css_files': ['css/main.css'],
+#     'js_files': ['js/override_page.js', 'js/keyboard.js'],
 # }
 
 def setup(app):
     app.add_css_file('css/main.css')
     app.add_js_file("js/override_page.js")
+    app.add_js_file("js/keyboard.js")

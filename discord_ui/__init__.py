@@ -38,10 +38,12 @@ from .slash.tools import ParseMethod
 from .tools import components_to_dict
 from .slash.tools import create_choice
 from .receive import Interaction, InteractionType, Message, WebhookMessage, PressedButton, SelectedMenu, ComponentContext, SlashedCommand, SlashedSubCommand, EphemeralMessage, EphemeralResponseMessage
+from .slash import ext
+from .listener import Listener
 
 from .override import override_dpy, override_dpy2_client
 override_dpy2_client()
 
 
 __title__ = "discord-ui"
-__version__ = "4.2.15"
+__version__ = "4.3.0"

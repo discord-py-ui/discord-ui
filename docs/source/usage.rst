@@ -160,7 +160,7 @@ If you want to acces the message on which the button is, you use ``btn.messsage`
     @client.listen('on_menu_select')
     async def on_menu(menu):
         # respond
-        await menu.respond("you selected " + ', '.join([value.content for value in menu.selected_values]))
+        await menu.respond("you selected " + ', '.join([value.content for value in menu.selected_options]))
  
 .. image:: images/components/select_menu_example.gif
    :width: 600
