@@ -9,6 +9,10 @@
     color: white;
 } */
 
+.wy-menu-vertical li.toctree-l2 span.toctree-expand {
+    color: black;
+}
+
 .wy-side-nav-search input[type="text"] {
     border-color: #5865F2;
 }

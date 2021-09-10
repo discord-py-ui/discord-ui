@@ -5,6 +5,7 @@ from discord import Emoji
 from discord.errors import InvalidArgument
 
 import inspect
+from enum import IntEnum
 from typing import Any, List, Union
 
 
@@ -182,8 +183,7 @@ class SelectOption():
 
 class Component():
     def __init__(self, component_type) -> None:
-        self._custom_id = None
-        self._component_type = component_type
+        self._component_type = getattr(component_type, "value", component_type)
     @property
     def component_type(self) -> int:
         """
@@ -191,7 +191,12 @@ class Component():
 
         :type: :class:`int`
         """
-        return self._component_type
+        return ComponentType(self._component_type)
+
+class UseableComponent(Component):
+    def __init__(self, component_type) -> None:
+        Component.__init__(self, component_type)
+        self._custom_id = None
     @property
     def custom_id(self) -> str:
         """
@@ -208,7 +213,7 @@ class Component():
             raise WrongType("custom_id", value, "str")
         self._custom_id = value
 
-class SelectMenu(Component):
+class SelectMenu(UseableComponent):
     """
     Represents a ui-dropdown selectmenu
 
@@ -229,7 +234,7 @@ class SelectMenu(Component):
     disabled: :class:`bool`, optional
         Whether the select menu should be disabled or not; default ``False``
     """
-    def __init__(self, custom_id, options, min_values = 1, max_values = 1, placeholder=None, default=None, disabled=False) -> None:
+    def __init__(self, custom_id, options, min_values=1, max_values=1, placeholder=None, default=None, disabled=False) -> None:
         """
         Creates a new ui select menu
 
@@ -238,7 +243,7 @@ class SelectMenu(Component):
         SelectMenu(custom_id="my_id", options=[SelectOption(...)], min_values=2, placeholder="select something", default=0)
         ```
         """
-        Component.__init__(self, ComponentType.SELECT_MENU)
+        UseableComponent.__init__(self, ComponentType.Select)
         self._options = None
 
         self.max_values: int = 0
@@ -271,19 +276,19 @@ class SelectMenu(Component):
 
         if min_values is not None and max_values is None:
             if min_values < 0 or min_values > 25:
-                raise OutOfValidRange("min_values", 1, 25)
+                raise OutOfValidRange("min_values", 0, 25)
             self.min_values = min_values
             self.max_values = min_values
         elif min_values is None and max_values is not None:
             if max_values < 0 or min_values > 25:
-                raise OutOfValidRange("min_values", 1, 25)
+                raise OutOfValidRange("min_values", 0, 25)
             self.min_values = 1
             self.max_values = max_values
         elif min_values is not None and max_values is not None:
             if max_values < 0 or min_values > 25:
-                raise OutOfValidRange("min_values", 1, 25)
+                raise OutOfValidRange("min_values", 0, 25)
             if min_values < 0 or min_values > 25:
-                raise OutOfValidRange("min_values", 1, 25)
+                raise OutOfValidRange("min_values", 0, 25)
             self.min_values = min_values
             self.max_values = max_values
         
@@ -352,7 +357,7 @@ class SelectMenu(Component):
             "type": self._component_type,
             "custom_id": self._custom_id,
             "options": self._options,
-            "disabled": self._disabled,
+            "disabled": self.disabled,
             "min_values": self.min_values,
             "max_values": self.max_values
         }
@@ -360,10 +365,9 @@ class SelectMenu(Component):
             payload["placeholder"] = self.placeholder
         return payload
 
-# region Button
-class BaseButton(Component):
+class BaseButton():
     def __init__(self, label, color, emoji, new_line, disabled) -> None:
-        Component.__init__(self, ComponentType.BUTTON)
+        Component.__init__(self, ComponentType.Button)
         if label is None and emoji is None:
             raise InvalidArgument("You need to pass a label or an emoji")
         self._label = None
@@ -433,7 +437,7 @@ class BaseButton(Component):
     def color(self, val):
         if ButtonStyles.getColor(val) is None:
             raise InvalidArgument(str(val) + " is not a valid color")
-        self._style = ButtonStyles.getColor(val)
+        self._style = ButtonStyles.getColor(val).value
     
     @property
     def emoji(self) -> str:
@@ -468,9 +472,8 @@ class BaseButton(Component):
             self._emoji = val
         else:
             raise WrongType("emoji", val, ["str", "discord.Emoji", "dict"])
-    
 
-class Button(BaseButton):
+class Button(BaseButton, UseableComponent):
     """
     A ui-button
 
@@ -507,6 +510,7 @@ class Button(BaseButton):
         ```
         """
         BaseButton.__init__(self, label, color, emoji, new_line, disabled)
+        UseableComponent.__init__(self, self.component_type)
         self.custom_id = custom_id
     def __repr__(self) -> str:
         return f"<discord_ui.Button({self.custom_id}:{self.content})>"
@@ -561,11 +565,6 @@ class LinkButton(BaseButton):
         return LinkButton(self.url, self.label, self.emoji, self.new_line, self.disabled)
 
     @property
-    def custom_id(self):
-        """Always ``None``"""
-        return None
-
-    @property
     def url(self) -> str:
         """
         The link which will be opened upon pressing the button
@@ -584,19 +583,24 @@ class LinkButton(BaseButton):
         return LinkButton(data["url"], data.get("label"), data.get("emoji"), new_line, data.get("disabled", False))
 
 
-class ButtonStyles:
+class ButtonStyles(IntEnum):
     """
     A list of button styles (colors) in message components
     """
-    Primary     =   blurple         = 1
-    Secondary   =   grey            = 2
-    Succes      =   green           = 3
-    Danger      =   red             = 4
-    url                             = 5
+    Primary     =     	 blurple        = 1
+    Secondary   =         grey          = 2
+    Succes      =        green          = 3
+    Danger      =         red           = 4
+    url                                 = 5
+
+    def __str__(self) -> str:
+        return self.name
 
     @classmethod
     def getColor(cls, s):
         if isinstance(s, int):
+            return cls(s)
+        if isinstance(s, cls):
             return s
         s = s.lower()
         if s in ("blurple", "primary"):
@@ -659,20 +663,23 @@ class ActionRow():
         return [x for x in self.items if check(x)]
 
 
-class ComponentType:
+class ComponentType(IntEnum):
     """
     A list of component types
     """
-    ACTION_ROW      =       Action_row       =           1
-    BUTTON          =        Button          =           2
-    SELECT_MENU     =        Select          =           3
+    Action_row      =           1
+    Button          =           2
+    Select          =           3
+
+    def __str__(self) -> str:
+        return self.name
 
 def make_component(data, new_line = False):
-    if data["type"] == ComponentType.BUTTON:
+    if ComponentType(data["type"]) == ComponentType.Button:
         if data["style"] == ButtonStyles.url:
             return LinkButton._fromData(data, new_line)
         return Button._fromData(data, new_line)
-    if data["type"] == ComponentType.SELECT_MENU:
+    if ComponentType(data["type"]) is ComponentType.Select:
         return SelectMenu._fromData(data)
     # if data["type"] == ComponentType.ACTION_ROW:
         # return ActionRow._fromData(data)

@@ -3,7 +3,7 @@ from .slash.errors import AlreadyDeferred, EphemeralDeletion
 from .slash.types import ContextCommand, OptionType, SlashCommand, SlashOption, SlashPermission, SlashSubcommand
 from .tools import MISSING, setup_logger, _none
 from .http import BetterRoute, jsonifyMessage, send_files
-from .components import ActionRow, Button, Component, LinkButton, SelectMenu, SelectOption, make_component
+from .components import ActionRow, Button, Component, LinkButton, SelectMenu, SelectOption, UseableComponent, make_component
 
 import discord
 from discord.ext.commands import Bot
@@ -98,8 +98,8 @@ class Interaction():
         self.deferred = True
 
     async def respond(self, content=MISSING, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, files=MISSING, nonce=MISSING,
-    allowed_mentions=MISSING, mention_author=MISSING, components=MISSING, delete_after=MISSING, hidden=False,
-    ninja_mode=False) -> Union['Message', 'EphemeralMessage']:
+    allowed_mentions=MISSING, mention_author=MISSING, components=MISSING, delete_after=MISSING, listener=MISSING, 
+    hidden=False, ninja_mode=False) -> Union['Message', 'EphemeralMessage']:
         """
         Responds to the interaction
         
@@ -127,6 +127,8 @@ class Interaction():
             A list of message components to be included
         delete_after: :class:`float`
             After how many seconds the message should be deleted, only works for non-hiddend messages; default MISSING
+        listener: :class:`Listener`
+            A component-listener for this message
         hidden: :class:`bool`
             Whether the response should be visible only to the user 
         ninja_mode: :class:`bool`
@@ -152,9 +154,10 @@ class Interaction():
                     raise x
 
         if self.responded is True:
-            return await self.send(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components, hidden=hidden)
+            return await self.send(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components, listener=listener, hidden=hidden)
 
-        
+        if components is MISSING and listener is not MISSING:
+            components = listener.to_components()        
         payload = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components)
         
         if self._deferred_hidden is hidden:
@@ -192,7 +195,10 @@ class Interaction():
         self.responded = True
         
         if hide_message is True:
-            return EphemeralMessage(state=self._state, channel=self._state.get_channel(int(r["channel_id"])), data=r, application_id=self.application_id, token=self.token)
+            msg = EphemeralMessage(state=self._state, channel=self._state.get_channel(int(r["channel_id"])), data=r, application_id=self.application_id, token=self.token)
+            if listener is not MISSING:
+                listener._start(msg._state, msg.id)
+            return msg
 
         
         if not hide_message:
@@ -200,10 +206,12 @@ class Interaction():
             msg = await getMessage(self._state, data=responseMSG, response=False)
             if not _none(delete_after):
                 await msg.delete(delete_after)
+            if listener is not MISSING:
+                listener._start(msg._state, msg.id)
             return msg
 
     async def send(self, content=None, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, files=MISSING, nonce=MISSING,
-    allowed_mentions=MISSING, mention_author=MISSING, components=MISSING, hidden=False) -> Union['Message', 'EphemeralMessage']:
+    allowed_mentions=MISSING, mention_author=MISSING, components=MISSING, listener=MISSING, hidden=False) -> Union['Message', 'EphemeralMessage']:
         """
         Sends a message to the interaction using a webhook
         
@@ -229,6 +237,8 @@ class Interaction():
             Whether the author should be mentioned
         components: List[:class:`~Button` | :class:`~LinkButton` | :class:`~SelectMenu`]
             A list of message components to be included
+        listener: :class:`Listener`
+            A component-listener for this message
         hidden: :class:`bool`
             Whether the response should be visible only to the user 
         ninja_mode: :class:`bool`
@@ -240,8 +250,10 @@ class Interaction():
         :type: :class:`~Message` | :class:`EphemeralMessage`
         """
         if self.responded is False:
-            return await self.respond(content=content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components, hidden=hidden)
+            return await self.respond(content=content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components, listener=listener, hidden=hidden)
 
+        if components is MISSING and listener is not MISSING:
+            components = listener.to_components()
         payload = jsonifyMessage(content=content, tts=tts, embed=embed, embeds=embeds, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components)
         
         if hidden:
@@ -255,24 +267,30 @@ class Interaction():
             r = await self._state.http.request(route, json=payload)
 
         if hidden is True:
-            return EphemeralMessage(state=self._state, channel=self._state.get_channel(r["channel_id"]), data=r, application_id=self.application_id, token=self.token)
-        return await getMessage(self._state, r, response=False)
-
+            msg = EphemeralMessage(state=self._state, channel=self._state.get_channel(r["channel_id"]), data=r, application_id=self.application_id, token=self.token)
+            if listener is not None:
+                listener._start(self._state, msg.id)
+        msg = await getMessage(self._state, r, response=False)
+        
+        if listener is not MISSING:
+            listener._start(self._state, msg.id)
+        return msg
     def _handle_auto_defer(self, auto_defer):
         self.deferred = auto_defer[0]
         self._deferred_hidden = auto_defer[1]
 
-class ComponentContext(Interaction, Component):
+class ComponentContext(Interaction, UseableComponent):
     """A received component"""
     def __init__(self, state, data, user, message) -> None:
         Interaction.__init__(self, state, data, user=user, message=message)
-        Component.__init__(self, data["data"]["component_type"])
+        UseableComponent.__init__(self, data["data"]["component_type"])
 
 class SelectedMenu(Interaction, SelectMenu):
     """A :class:`~SelectMenu` object in which an item was selected"""
     def __init__(self, data, user, s, msg, client) -> None:
         Interaction.__init__(self, client._connection, data, user, msg)
-        SelectMenu.__init__(self, s.custom_id, s.options, s.min_values, s.max_values, s.placeholder, next([i for i, o in s.options if o.default is True], None), s.disabled)
+        default = [i for i, o in enumerate(s.options) if o.default is True]
+        SelectMenu.__init__(self, s.custom_id, s.options, s.min_values, s.max_values, s.placeholder, default[0] if len(default) == 1 else None, s.disabled)
         
         self.bot: Bot = client
         self.selected_options: List[SelectOption] = []
@@ -617,6 +635,37 @@ class Message(discord.Message):
         
         raise InvalidEvent(event_name, ["button", "select", "component"])
 
+    async def put_listener(self, listener):
+        """Adds a listener to this message and edits it if the components are missing
+        
+        Parameters
+        ----------
+        listener: :class:`Listener`
+            The listener which should be put to the message
+        
+        """
+        if len(self.components) == 0:
+            await self.edit(components=listener.to_components())
+        self.attach_listener(listener)
+        
+    def attach_listener(self, listener):
+        """Attaches a listener to this message after it was sent
+        
+        Parameters
+        ----------
+        listener: :class:`Listener`
+            The listener that should be attached
+        
+        """
+        listener._start(self._state, self.id)
+    def remove_listener(self):
+        """Removes the listener from this message"""
+        try:
+            del self._state._component_listeners[str(self.id)]
+        except KeyError:
+            pass
+
+
 class WebhookMessage(Message, discord.WebhookMessage):
     def __init__(self, *, state, channel, data):
         Message.__init__(self, state=state, channel=channel, data=data)
@@ -637,27 +686,6 @@ class WebhookMessage(Message, discord.WebhookMessage):
         """
         return await self._state._webhook._adapter.edit_webhook_message(message_id=self.id, payload=jsonifyMessage(*args, **fields))
     
-
-class EphemeralComponent(Interaction):
-    """Represents a component in a hidden message
-    
-    .. note::
-    
-        You will only get this class for components if you set a component on a hidden response in an interaction and the component was used
-    
-    This class only has the custom_id of the used component, the component type and values
-    """
-    def __init__(self, state, user, data) -> None:
-        Interaction.__init__(self, state, data, user)
-        self.custom_id = data["data"]["custom_id"]
-        self.component_type = data["data"]["component_type"]
-        if self.component_type == 3:
-            class EphemeralValue():
-                def __init__(self, value) -> None:
-                    self.name = None
-                    self.value = value
-            self.selected_values = [EphemeralValue(x) for x in data["data"]["values"]]
-
 
 class EphemeralMessage(Message):
     """Represents a hidden (ephemeral) message"""

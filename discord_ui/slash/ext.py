@@ -188,7 +188,7 @@ def alias(aliases):
         if not hasattr(command, "__aliases__"):
             command.__aliases__ = []
         # Allow multiple alias decorators
-        command.__aliases__.append(aliases if not isinstance(aliases, str) else [aliases])
+        command.__aliases__.extend(aliases if not isinstance(aliases, str) else [aliases])
         return command
     return wraper
 
@@ -215,8 +215,8 @@ def no_sync():
     return wraper
 
 def auto_defer(hidden=False):
-    """A decorator for auto deferring a command.
-
+    """A decorator for auto deferring a command. This decorator has to be placed before the main decorator
+    
     Parameters
     ----------
     hidden: :class:`bool`, optional
@@ -234,6 +234,7 @@ def auto_defer(hidden=False):
         async def my_command(ctx):
             \"\"\"This command will be deferred automatically\"\"\"
             ...
+    
     """
     # https://stackoverflow.com/questions/69076152/how-to-inject-a-line-of-code-into-an-existing-function#answers-header
     def decorator(func):
@@ -241,7 +242,7 @@ def auto_defer(hidden=False):
         @functools.wraps(func)
         async def wraper(*args, **kwargs):
             # if there is self param use the next one
-            ctx = args[1 if list(inspect.signature(func).parameters.keys()[0]) == "self" else 0]
+            ctx = args[1 if list(inspect.signature(func).parameters.keys())[0] == "self" else 0]
             # use defer for "auto_defering"
             await ctx.defer(hidden=hidden)
             return await func(*args, **kwargs)

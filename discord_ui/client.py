@@ -1,4 +1,3 @@
-from discord.channel import TextChannel
 from .cogs import BaseCallable, CogCommand, CogMessageCommand, CogSubCommandGroup, ListeningComponent
 from .components import Component, ComponentType
 from .slash.errors import NoAsyncCallback
@@ -10,6 +9,7 @@ from .tools import MISSING, _none, _or, get_index, setup_logger, get
 from .http import jsonifyMessage, BetterRoute, send_files
 from .receive import ComponentContext, Interaction, Message, PressedButton, SelectedMenu, SlashedContext, WebhookMessage, SlashedCommand, SlashedSubCommand, getMessage
 from .override import override_dpy as override_it
+from .listener import Listener
 
 import discord
 from discord.ext import commands as com
@@ -21,7 +21,6 @@ import json
 import inspect
 import asyncio
 import contextlib
-from functools import wraps
 from typing import Coroutine, Dict, List, Tuple, Union
 try:
     from typing import Literal
@@ -112,9 +111,9 @@ class Slash():
         self.subcommands: Dict[(str, Dict[(str, Union[dict, SlashSubcommand])])] = {}
         self.context_commands: Dict[str, ContextCommand] = {"message": {}, "user": {}}
         if discord.__version__.startswith("2"):
-            self._discord.add_listener(self._on_response, "on_socket_raw_receive")
+            self._discord.add_listener(self._on_slash_response, "on_socket_raw_receive")
         elif discord.__version__.startswith("1"):
-            self._discord.add_listener(self._on_response, 'on_socket_response')
+            self._discord.add_listener(self._on_slash_response, 'on_socket_response')
 
         
         old_add = self._discord.add_cog
@@ -147,7 +146,7 @@ class Slash():
             await self.sync_commands(self.delete_unused)
         self._discord.add_listener(on_connect)
 
-    async def _on_response(self, msg):
+    async def _on_slash_response(self, msg):
         if discord.__version__.startswith("2"):
             if isinstance(msg, bytes):
                 try:
@@ -783,7 +782,7 @@ class Slash():
             for a in base.__aliases__:
                 cur = base.copy()
                 cur.name = a
-                self._add_to_cache(cur, is_alias=True)
+                self._add_to_cache(cur, is_base=True)
         if base.__guild_changes__ != {} and is_base is False:
             for guild_id in base.__guild_changes__:
                 _name, _description, _default_permission = base.__guild_changes__.get(guild_id)
@@ -1274,10 +1273,11 @@ class Components():
         self.listening_components: Dict[str, List[ListeningComponent]] = {}
         """A list of components that are listening for interaction"""
         self._discord: com.Bot = client
+        self._discord._connection._component_listeners = {}
         if discord.__version__.startswith("2"):
-            self._discord.add_listener(self._on_response, "on_socket_raw_receive")
+            self._discord.add_listener(self._on_component_response, "on_socket_raw_receive")
         elif discord.__version__.startswith("1"):
-            self._discord.add_listener(self._on_response, 'on_socket_response')
+            self._discord.add_listener(self._on_component_response, 'on_socket_response')
 
         old_add = self._discord.add_cog
         def add_cog_override(*args, **kwargs):
@@ -1299,7 +1299,7 @@ class Components():
             old_remove(*args, **kwargs)
         self._discord.remove_cog = remove_cog_override
     
-    async def _on_response(self, msg):
+    async def _on_component_response(self, msg):
         if discord.__version__.startswith("2"):
             if isinstance(msg, bytes):
                 self._buffer.extend(msg)
@@ -1329,6 +1329,7 @@ class Components():
 
         self._discord.dispatch("component", ComponentContext(self._discord._connection, data, user, msg))
 
+
         # Handle auto_defer
         if int(data["data"]["component_type"]) == 2:
             for x in msg.buttons:
@@ -1339,7 +1340,6 @@ class Components():
                 if x.custom_id == data["data"]["custom_id"]:
                     component = SelectedMenu(data, user, x, msg, self._discord)
         component._handle_auto_defer(self.auto_defer)
-
         
         # Get listening components with the same custom id
         listening_components = self.listening_components.get(data["data"]["custom_id"])
@@ -1347,9 +1347,13 @@ class Components():
             for listening_component in listening_components:
                 await listening_component.invoke(component)
 
-        if data["data"]["component_type"] == ComponentType.BUTTON:
+        listener: Listener = self._discord._connection._component_listeners.get(str(msg.id))
+        if listener is not None:
+            await listener._call_listeners(component)
+
+        if ComponentType(data["data"]["component_type"]) is ComponentType.Button:
             self._discord.dispatch("button_press", component)
-        elif data["data"]["component_type"] == ComponentType.SELECT_MENU:
+        elif ComponentType(data["data"]["component_type"]) is ComponentType.Select:
             self._discord.dispatch("menu_select", component)
 
     async def send(self, channel, content=MISSING, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, 
@@ -1566,7 +1570,34 @@ class Components():
 
     def _get_listening_cogs(self, cog):
         return [x[1] for x in inspect.getmembers(cog, lambda x: isinstance(x, ListeningComponent))]
+
+    async def put_listener_to(self, target_message, listener):
+        """Adds a listener to a message and edits it if the components are missing
         
+        Parameters
+        ----------
+        target_message: :class:`Message`
+            The message to which the listener should be attached
+        listener: :class:`Listener`
+            The listener which should be put to the message
+        
+        """
+        if len(target_message.components) == 0:
+            await target_message.edit(components=listener.to_components())
+        self.attach_listener_to(target_message, listener)
+
+    def attach_listener_to(self, target_message, listener):
+        """Attaches a listener to a message after it was sent
+        
+        Parameters
+        ----------
+        target_message: :class:`Message`
+            The message to which the listener should be attached
+        listener: :class:`Listener`
+            The listener that will be attached
+        
+        """
+        listener._start(target_message._state, target_message.id)
 
 class UI():
     """

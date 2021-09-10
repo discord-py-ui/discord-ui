@@ -318,7 +318,7 @@ class ListeningComponent(BaseCallable):
             if users not in [None, []]:
                 checks.append(ctx.author.id in [(x.id if hasattr(x, "id") else int(x)) for x in users])
             if component_type is not None:
-                checks.append(ctx.component_type == (ComponentType.BUTTON if component_type in [ComponentType.BUTTON, "button"] else ComponentType.SELECT_MENU))
+                checks.append(ctx.component_type is (ComponentType.Button if component_type in [ComponentType.Button, "button"] else ComponentType.Select))
             if check is not None:
                 checks.append(check(ctx) is True)
                 if not all(checks):

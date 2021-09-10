@@ -7,6 +7,7 @@
     own class, which enables `enable_debug_events` in order for our lib to work
 """
 
+import asyncio
 from .tools import MISSING
 from .receive import Message, WebhookMessage
 from .http import jsonifyMessage, BetterRoute, send_files
@@ -42,6 +43,10 @@ def override_dpy():
         channel = await self._get_channel()
         route = BetterRoute("POST", f"/channels/{channel.id}/messages")
         
+        if kwargs.get("listener") is not None:
+            listener = kwargs.pop("listener")
+        if kwargs.get("components") is None and listener is not None:
+            kwargs["components"] = listener.to_components()
         r = None
         if kwargs.get("file") is None and kwargs.get("files") is None:
             payload = jsonifyMessage(content=content, **kwargs)
@@ -59,6 +64,9 @@ def override_dpy():
         if kwargs.get("delete_after") is not None:
             await msg.delete(delay=kwargs.get("delete_after"))
     
+        if listener is not None:
+            listener._start(self._state, msg.id)
+
         return msg
     def message_override(cls, *args, **kwargs):
         if cls is discord.message.Message:

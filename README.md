@@ -2,7 +2,7 @@
 <p align="center">
     <h2 align="center">discord-ui</h2>
     <p align="center">
-        A discord.py user-interface extension
+        A discord.py extension for using discord ui/interaction features
         <br />
         <a href="https://pypi.org/project/discord-ui/"><b>pip package</b></a>
         ▪ 
@@ -22,6 +22,8 @@
 This is a [discord.py](https://github.com/Rapptz/discord.py) ui extension made by [404kuso](https://github.com/404kuso) and [RedstoneZockt](https://github.com/RedstoneZockt)
 for using discord's newest ui features like buttons, slash commands and context commands (we got dpy2 supported if you want to keep using our libary)
 
+[Documentation](https://discord-ui.readthedocs.io/en/latest/)
+
 ## Installation
 
 ```cmd
@@ -31,12 +33,6 @@ py -m pip install discord-ui
 # linux
 python3 -m pip install discord-ui
 ```
-
-## Docs
-
-You can read the docs [here](https://discord-ui.rtfd.io/)
-
-> The docs can include some typos or issues, if so, plz let me know
 
 ## License
 
@@ -211,6 +207,14 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     - SelectedMenu
     > `SelectedMenu.selected_values` are not the raw values that were selected, `SelectMenu.selected_options` are the options of type `SlashOption` that were selected
 
+
+    </details>
+
+-   <details>
+    <summary>4.2.15</summary>
+
+    # Fixed
+    - #97
 
     </details>
 
