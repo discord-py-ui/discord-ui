@@ -368,7 +368,7 @@ class BaseCommand():
 
             callback_params = inspect.signature(callback).parameters
             if self.options is not None:
-                for op in options:
+                for op in self.options:
                     if callback_params.get(op.name) is None:
                         raise MissingOptionParameter(op.name)
                     param = callback_params[op.name]
