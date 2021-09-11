@@ -54,7 +54,7 @@ class SlashOption():
         if not _none(options):
             self.options = _default([], options)
         if not _none(choices):
-            self._json["choices"] = choices
+            self.choices = choices
     def __repr__(self) -> str:
         return f"<discord_ui.SlashOption({str(self.to_dict())})>"
     def __eq__(self, o: object) -> bool:
