@@ -177,6 +177,14 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>4.3.2</summary>
+
+    ## **Fixed**
+    - `Could not find a matching option type for parameter '<class 'NoneType'>'`
+
+    </details>
+
+-   <details>
     <summary>4.3.1</summary>
 
     ## **Removed**

@@ -367,14 +367,14 @@ class BaseCommand():
                 raise NoAsyncCallback()
 
             callback_params = inspect.signature(callback).parameters
-            if options is not None:
+            if self.options is not None:
                 for op in options:
                     if callback_params.get(op.name) is None:
                         raise MissingOptionParameter(op.name)
                     param = callback_params[op.name]
                     if not op.required and param.default is param.empty:
                         raise OptionalOptionParameter(param.name)
-            if _none(options, empty_array=True) and self.command_type is CommandType.Slash:
+            if self.options in [[], None] and self.command_type is CommandType.Slash:
                 _ops = []
                 has_self = False
                 for _i, _name in enumerate(callback_params):
@@ -382,7 +382,7 @@ class BaseCommand():
                     if _name == "self":
                         has_self = True
                         continue
-                    if _i == [0, 1][has_self]:
+                    if _i == (1 if has_self else 0):
                         continue
                     _val = callback_params.get(_name)
                     op_type = None

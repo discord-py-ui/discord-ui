@@ -82,7 +82,7 @@ class Slash():
 
         ...
         @slash.subcommand_group(base_names=["base", "group"], name="sub", description="this is a sub command group")
-        async def subgroup(ctx: SlasedSubCommand):
+        async def subgroup(ctx: SlashedSubCommand):
             ...
         
 

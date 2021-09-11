@@ -335,8 +335,8 @@ class SlashedCommand(Interaction, SlashCommand):
 class SlashedSubCommand(SlashedCommand, SlashSubcommand):
     """A Sub-:class:`~SlashCommand` command that was used"""
     def __init__(self, client, command, data, user, args = None) -> None:
-        SlashSubcommand.__init__(self, command.callback, command.base_names, command.name)
         SlashedCommand.__init__(self, client, command, data, user, args)
+        SlashSubcommand.__init__(self, command.callback, command.base_names, command.name, command.description, command.options, command.guild_ids, command.default_permission, command.guild_permissions)
             
 
 class SlashedContext(Interaction, ContextCommand):
