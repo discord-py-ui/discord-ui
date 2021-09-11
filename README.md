@@ -177,6 +177,13 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>4.3.4</summary>
+
+    ## Fixed
+    - SlashOption not accepting tuple
+
+    </details>
+-    <details>
     <summary>4.3.3</summary>
 
     ## **Fixed**
