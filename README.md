@@ -177,6 +177,14 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>4.3.3</summary>
+
+    ## **Fixed**
+    - fixed `TypeError: 'NoneType' object is not iterable`
+
+    </details>
+
+-   <details>
     <summary>4.3.2</summary>
 
     ## **Fixed**
