@@ -183,7 +183,8 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     - SlashOption not accepting tuple
 
     </details>
--    <details>
+
+-   <details>
     <summary>4.3.3</summary>
 
     ## **Fixed**
