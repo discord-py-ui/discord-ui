@@ -43,6 +43,7 @@ def override_dpy():
         channel = await self._get_channel()
         route = BetterRoute("POST", f"/channels/{channel.id}/messages")
         
+        listener = None
         if kwargs.get("listener") is not None:
             listener = kwargs.pop("listener")
         if kwargs.get("components") is None and listener is not None:
