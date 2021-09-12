@@ -355,7 +355,7 @@ class SlashedContext(Interaction, ContextCommand):
         
 
 
-async def getMessage(state: ConnectionState, data, response = True):
+async def getMessage(state: ConnectionState, data, response=True):
     """
     Async function to get the response message
 
@@ -380,11 +380,11 @@ async def getMessage(state: ConnectionState, data, response = True):
 
     channel = state.get_channel(int(data["channel_id"])) or state.get_channel(int(msg_base["author"]["id"]))
     if response:
-        if data.get("message") is not None and msg_base["flags"] == 64:
+        if msg_base["flags"] == 64:
             return EphemeralResponseMessage(state=state, channel=channel, data=data.get("message", data))
         return Message(state=state, channel=channel, data=msg_base)
 
-    if data.get("message") is not None and msg_base["flags"] == 64:
+    if msg_base["flags"] == 64:
         return EphemeralMessage(state=state, channel=channel, data=msg_base)
     return Message(state=state, channel=channel, data=msg_base)
 
@@ -687,6 +687,11 @@ class WebhookMessage(Message, discord.WebhookMessage):
 class EphemeralMessage(Message):
     """Represents a hidden (ephemeral) message"""
     def __init__(self, state, channel, data, application_id=None, token=None):
+        #region fix reference keyerror
+        if data.get("message_reference"):
+            if data["message_reference"].get("channel_id") is None:
+                data["message_reference"]["channel_id"] = str(channel.id)
+        #endregion
         Message.__init__(self, state=state, channel=channel, data=data)
         self._application_id = application_id
         self._interaction_token = token
