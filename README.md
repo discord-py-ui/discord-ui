@@ -164,7 +164,7 @@ class Example(commands.Cog):
         await ctx.respond("gotchu")
 
     @subslash_cog(base_names="example", name="command"):
-    async def example_command(sef, ctx):
+    async def example_command(self, ctx):
         await ctx.respond("okayy")
     
 bot.add_cog(Example(bot))
