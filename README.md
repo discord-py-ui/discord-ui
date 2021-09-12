@@ -177,9 +177,19 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>4.3.6</summary>
+
+    ## **Fixed**
+    - Slashcommand comparing
+    - Ephemeralmessage keyerror exception
+
+
+    </details>
+
+-   <details>
     <summary>4.3.5</summary>
 
-    ## Fixed
+    ## **Fixed**
     - send function issues
 
     </details>
