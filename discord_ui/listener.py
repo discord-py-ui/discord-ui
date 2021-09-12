@@ -345,7 +345,7 @@ class Listener():
     def _get_listeners_for(self, interaction_component: ComponentContext) -> _Listener:
         listeners = self._get_listeners()
         listers = []
-        for listener in listeners.get(interaction_component.custom_id):
+        for listener in listeners.get(interaction_component.custom_id, []):
             if hasattr(self, 'target_user') and self.target_user.id != interaction_component.author.id:
                 continue
             if listener.type == interaction_component.component_type:
