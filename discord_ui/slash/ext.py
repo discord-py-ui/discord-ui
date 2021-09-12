@@ -25,6 +25,19 @@ import inspect
 from discord.ext.commands import errors
 
 
+def auto_component_respond():
+    """A decorator for autoresponding with ninjamode to a component"""
+    def decorator(func):
+        @functools.wraps(func)
+        async def wraper(*args, **kwargs):
+            # if there is self param use the next one
+            ctx = args[1 if list(inspect.signature(func).parameters.keys())[0] == "self" else 0]
+            # use defer for "auto_defering"
+            await ctx.respond(ninja_mode=True)
+            return await func(*args, **kwargs)
+        return wraper
+    return decorator
+
 def check_failure_response(content=None, hidden=False, **fields):
     """A decorator for autoresponding to a cog check that failed.
     

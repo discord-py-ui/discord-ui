@@ -17,24 +17,24 @@ class SlashOption():
         
         Parameters
         ----------
-            argument_type: :class:`int` | :class:`str` | :class:`class`
-                What type of parameter the option should accept
-            name: :class:`str`
-                1-32 lowercase character name for the option
-            description: :class:`str`, optional
-                1-100 character description of the command; default name
-            required: :class:`bool`, optional
-                If the parameter is required or optional; default False
-            choices: List[:class:`dict`], optional
-                Choices for string and int types for the user to pick from; default None
-                    Choices should be formated like this: ``[{"name": "name of the choice", "value": "the real value"}, ...]``
+        argument_type: :class:`int` | :class:`str` | :class:`class`
+            What type of parameter the option should accept
+        name: :class:`str`
+            1-32 lowercase character name for the option
+        description: :class:`str`, optional
+            1-100 character description of the command; default name
+        required: :class:`bool`, optional
+            If the parameter is required or optional; default False
+        choices: List[:class:`dict`], optional
+            Choices for string and int types for the user to pick from; default None
+                Choices should be formated like this: ``[{"name": "name of the choice", "value": "the real value"}, ...]``
 
-                    .. note::
+                .. note::
 
-                        The choice value has to be of the same type as the type this option accepts
+                    The choice value has to be of the same type as the type this option accepts
 
-            options: List[:class:`~SlashOption`]
-                This parameter is only for subcommands to work, you shouldn't need to use that, unless you know what you're doing 
+        options: List[:class:`~SlashOption`]
+            This parameter is only for subcommands to work, you shouldn't need to use that, unless you know what you're doing 
         """
     def __init__(self, argument_type, name, description=None, required=False, choices=None, options=None) -> None:
         """
@@ -49,12 +49,9 @@ class SlashOption():
         self.argument_type = argument_type
         self.name = name
         self.description = _or(description, self.name)
-        if required is True:
-            self.required = _default([], required)
-        if not _none(options):
-            self.options = _default([], options)
-        if not _none(choices):
-            self.choices = choices
+        self.required = _default([], required)
+        self.options = _default([], options)
+        self.choices = _default([], choices)
     def __repr__(self) -> str:
         return f"<discord_ui.SlashOption({str(self.to_dict())})>"
     def __eq__(self, o: object) -> bool:
@@ -421,11 +418,11 @@ class BaseCommand():
     def __eq__(self, o: object) -> bool:
         if isinstance(o, dict):
             return (
-                o.get('type') == self._json["type"] 
+                o.get('type') == self.command_type.value 
                 and o.get('name') == self.name
                 and o.get('description') == self.description
                 and o.get('options', []) == self.options
-                and o.get("default_permission", False) == self.default_permission
+                and o.get("default_permission", True) == self.default_permission
             )
         elif isinstance(o, SlashCommand):
             return (

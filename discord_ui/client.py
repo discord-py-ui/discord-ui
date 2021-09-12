@@ -1602,6 +1602,9 @@ class Components():
         
         """
         listener._start(target_message, target_message)
+    def clear_listeners(self):
+        """Removes all component listeners"""
+        self._connection._component_listeners = {}
 
 class UI():
     """
