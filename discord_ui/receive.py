@@ -376,7 +376,7 @@ async def getMessage(state: ConnectionState, data, response = True):
     :class:`~Message` | :class:`~EphemeralMessage`
         The sent message
     """
-    channel = state.get_channel(int(data["channel_id"])) or state._get_private_channel_by_user(data["message"]["author"]["id"])
+    channel = state.get_channel(int(data["channel_id"])) or state._get_private_channel_by_user(data["author"]["id"])
     if response:
         if data.get("message") is not None and data.get("message", data)["flags"] == 64:
             return EphemeralResponseMessage(state=state, channel=channel, data=data.get("message", data))
