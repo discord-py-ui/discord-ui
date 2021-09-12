@@ -98,7 +98,7 @@ class Interaction():
         self.deferred = True
 
     async def respond(self, content=MISSING, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, files=MISSING, nonce=MISSING,
-    allowed_mentions=MISSING, mention_author=MISSING, components=MISSING, delete_after=MISSING, listener=None, 
+    allowed_mentions=MISSING, mention_author=MISSING, components=MISSING, delete_after=MISSING, listener=MISSING, 
     hidden=False, ninja_mode=False) -> Union['Message', 'EphemeralMessage']:
         """
         Responds to the interaction
@@ -196,7 +196,7 @@ class Interaction():
         
         if hide_message is True:
             msg = EphemeralMessage(state=self._state, channel=self._state.get_channel(int(r["channel_id"])), data=r, application_id=self.application_id, token=self.token)
-            if listener is not None:
+            if listener is not MISSING:
                 listener._start(msg)
             return msg
 
@@ -206,12 +206,12 @@ class Interaction():
             msg = await getMessage(self._state, data=responseMSG, response=False)
             if not _none(delete_after):
                 await msg.delete(delete_after)
-            if listener is not None:
+            if listener is not MISSING:
                 listener._start(msg)
             return msg
 
     async def send(self, content=None, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, files=MISSING, nonce=MISSING,
-    allowed_mentions=MISSING, mention_author=MISSING, components=MISSING, listener=None, hidden=False) -> Union['Message', 'EphemeralMessage']:
+    allowed_mentions=MISSING, mention_author=MISSING, components=MISSING, listener=MISSING, hidden=False) -> Union['Message', 'EphemeralMessage']:
         """
         Sends a message to the interaction using a webhook
         
@@ -268,11 +268,11 @@ class Interaction():
 
         if hidden is True:
             msg = EphemeralMessage(state=self._state, channel=self._state.get_channel(r["channel_id"]), data=r, application_id=self.application_id, token=self.token)
-            if listener is not None:
+            if listener is not MISSING:
                 listener._start(msg)
         msg = await getMessage(self._state, r, response=False)
         
-        if listener is not None:
+        if listener is not MISSING:
             listener._start(msg)
         return msg
     def _handle_auto_defer(self, auto_defer):
