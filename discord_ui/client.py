@@ -169,6 +169,8 @@ class Slash():
             return
 
         user = discord.Member(data=data["member"], guild=self._discord._connection._get_guild(int(data["guild_id"])), state=self._discord._connection) if data.get("member") is not None else discord.User(state=self._discord._connection, data=data["user"])
+        if user.dm_channel is None:
+            await user.create_dm()
 
         interaction = Interaction(self._discord._connection, data, user)
         if self.auto_defer[0] is True:
@@ -1320,6 +1322,8 @@ class Components():
             return
         
         user = discord.Member(data=data["member"], guild=self._discord._connection._get_guild(int(data["guild_id"])), state=self._discord._connection) if data.get("member") is not None else discord.User(state=self._discord._connection, data=data["user"])
+        if user.dm_channel is None:
+            await user.create_dm()
         msg = await getMessage(self._discord._connection, data=data, response=True)
         
         interaction = Interaction(self._discord._connection, data, user, msg)

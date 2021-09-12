@@ -68,7 +68,7 @@ class Interaction():
         
         :type: :class:`discord.TextChannel` | :class:`discord.DMChannel`
         """
-        return self._state.get_channel(self.channel_id)
+        return self._state.get_channel(self.channel_id) or self._state.get_channel(self.author.id)
 
     async def defer(self, hidden=False):
         """
@@ -376,15 +376,17 @@ async def getMessage(state: ConnectionState, data, response = True):
     :class:`~Message` | :class:`~EphemeralMessage`
         The sent message
     """
-    channel = state.get_channel(int(data["channel_id"])) or state._get_private_channel_by_user(data["author"]["id"])
-    if response:
-        if data.get("message") is not None and data.get("message", data)["flags"] == 64:
-            return EphemeralResponseMessage(state=state, channel=channel, data=data.get("message", data))
-        return Message(state=state, channel=channel, data=data.get("message", data))
+    msg_base = data.get("message", data)
 
-    if data.get("message") is not None and data["message"]["flags"] == 64:
-        return EphemeralMessage(state=state, channel=channel, data=data.get("message", data))
-    return Message(state=state, channel=channel, data=data.get("message", data))
+    channel = state.get_channel(int(data["channel_id"])) or state.get_channel(int(msg_base["author"]["id"]))
+    if response:
+        if data.get("message") is not None and msg_base["flags"] == 64:
+            return EphemeralResponseMessage(state=state, channel=channel, data=data.get("message", data))
+        return Message(state=state, channel=channel, data=msg_base)
+
+    if data.get("message") is not None and msg_base["flags"] == 64:
+        return EphemeralMessage(state=state, channel=channel, data=msg_base)
+    return Message(state=state, channel=channel, data=msg_base)
 
 class Message(discord.Message):
     """A fixed :class:`discord.Message` optimized for components"""
