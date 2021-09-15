@@ -150,7 +150,8 @@ class Slash():
     async def _on_slash_response(self, msg):
         if discord.__version__.startswith("2"):
             # comment decompressing out in canse it is needed in the future for some reason
-            # if isinstance(msg, bytes):
+            if isinstance(msg, bytes):
+                raise NotImplementedError("decompressing was removed! Please upgrade your discord.py version")
             #     try:
             #         self._buffer.extend(msg)
             #         if len(msg) < 4 or msg[-4:] != b'\x00\x00\xff\xff':
@@ -1307,7 +1308,8 @@ class Components():
     async def _on_component_response(self, msg):
         if discord.__version__.startswith("2"):
         # disable deecompressing
-        #     if isinstance(msg, bytes):
+            if isinstance(msg, bytes):
+                raise NotImplementedError("decompressing was removed! Please upgrade your discord.py version")
         #         self._buffer.extend(msg)
 
         #         if len(msg) < 4 or msg[-4:] != b'\x00\x00\xff\xff':

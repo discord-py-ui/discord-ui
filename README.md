@@ -179,7 +179,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     <summary>4.3.7</summary>
     
     ## **Fixed**
-    - Issue with SLashOptions
+    - Issue with SlashOptions
     > required is now false by default again
     
     </details>
