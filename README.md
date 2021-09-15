@@ -175,6 +175,14 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 
 
 # Changelog
+-   <details>
+    <summary>4.3.7</summary>
+    
+    ## **Fixed**
+    - Issue with SLashOptions
+    > required is now false by default again
+    
+    </details>
 
 -   <details>
     <summary>4.3.7</summary>
