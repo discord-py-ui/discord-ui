@@ -177,6 +177,23 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>4.3.7</summary>
+
+    ## **Changed**
+    - SlashOption
+    > Required is now ``True`` by default
+
+    ## **Fixed**
+    - `AttributeError: 'LinkButton' object has no attribute 'component_type'`
+
+    ## **Removed**
+    - decompressing
+    > The lib now doesn't decompress byte data anymore, which means everything before the dpy commit `848d752` doesn't work with this lib 
+    > [message reference](https://discord.com/channels/336642139381301249/381965829857738772/879980113742143548) in discordpy discord server
+
+    </details>
+
+-   <details>
     <summary>4.3.6</summary>
 
     ## **Fixed**

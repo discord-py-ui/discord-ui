@@ -96,8 +96,9 @@ class Slash():
         Slash(client)
         ```
         """
-        self._buffer = bytearray()
-        self._zlib = zlib.decompressobj()
+        # disable decompressing
+        # self._buffer = bytearray()
+        # self._zlib = zlib.decompressobj()
 
         self.ready = False
         self.parse_method: int = parse_method
@@ -148,18 +149,19 @@ class Slash():
 
     async def _on_slash_response(self, msg):
         if discord.__version__.startswith("2"):
-            if isinstance(msg, bytes):
-                try:
-                    self._buffer.extend(msg)
-                    if len(msg) < 4 or msg[-4:] != b'\x00\x00\xff\xff':
-                        return
-                    msg = self._zlib.decompress(self._buffer)
-                    msg = msg.decode('utf-8')
-                    self._buffer = bytearray()
-                except:
-                    return
-        if isinstance(msg, str):
-            msg = json.loads(msg)
+            # comment decompressing out in canse it is needed in the future for some reason
+            # if isinstance(msg, bytes):
+            #     try:
+            #         self._buffer.extend(msg)
+            #         if len(msg) < 4 or msg[-4:] != b'\x00\x00\xff\xff':
+            #             return
+            #         msg = self._zlib.decompress(self._buffer)
+            #         msg = msg.decode('utf-8')
+            #         self._buffer = bytearray()
+            #     except:
+            #         return
+            if isinstance(msg, str):
+                msg = json.loads(msg)
 
         if msg["t"] != "INTERACTION_CREATE":
             return
@@ -1268,8 +1270,9 @@ class Components():
         if override_dpy:
             override_it()
 
-        self._buffer = bytearray()
-        self._zlib = zlib.decompressobj()
+        # disable decompressing
+        # self._buffer = bytearray()
+        # self._zlib = zlib.decompressobj()
 
         self.auto_defer: Tuple[bool, bool] = (auto_defer, False) if isinstance(auto_defer, bool) else auto_defer
         self.listening_components: Dict[str, List[ListeningComponent]] = {}
@@ -1303,14 +1306,15 @@ class Components():
     
     async def _on_component_response(self, msg):
         if discord.__version__.startswith("2"):
-            if isinstance(msg, bytes):
-                self._buffer.extend(msg)
+        # disable deecompressing
+        #     if isinstance(msg, bytes):
+        #         self._buffer.extend(msg)
 
-                if len(msg) < 4 or msg[-4:] != b'\x00\x00\xff\xff':
-                    return
-                msg = self._zlib.decompress(self._buffer)
-                msg = msg.decode('utf-8')
-                self._buffer = bytearray()
+        #         if len(msg) < 4 or msg[-4:] != b'\x00\x00\xff\xff':
+        #             return
+        #         msg = self._zlib.decompress(self._buffer)
+        #         msg = msg.decode('utf-8')
+        #         self._buffer = bytearray()
             if isinstance(msg, str):
                 msg = json.loads(msg)
         

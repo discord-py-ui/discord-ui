@@ -24,7 +24,7 @@ class SlashOption():
         description: :class:`str`, optional
             1-100 character description of the command; default name
         required: :class:`bool`, optional
-            If the parameter is required or optional; default False
+            If the parameter is required or optional; default True
         choices: List[:class:`dict`], optional
             Choices for string and int types for the user to pick from; default None
                 Choices should be formated like this: ``[{"name": "name of the choice", "value": "the real value"}, ...]``
@@ -36,7 +36,7 @@ class SlashOption():
         options: List[:class:`~SlashOption`]
             This parameter is only for subcommands to work, you shouldn't need to use that, unless you know what you're doing 
         """
-    def __init__(self, argument_type, name, description=None, required=False, choices=None, options=None) -> None:
+    def __init__(self, argument_type, name, description=None, required=True, choices=None, options=None) -> None:
         """
         Creates a new option for a slash command
 
@@ -49,7 +49,7 @@ class SlashOption():
         self.argument_type = argument_type
         self.name = name
         self.description = _or(description, self.name)
-        self.required = _default([], required)
+        self.required = required
         self.options = _default([], options)
         self.choices = _default([], choices)
     def __repr__(self) -> str:

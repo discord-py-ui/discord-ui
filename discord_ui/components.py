@@ -365,7 +365,7 @@ class SelectMenu(UseableComponent):
             payload["placeholder"] = self.placeholder
         return payload
 
-class BaseButton():
+class BaseButton(Component):
     def __init__(self, label, color, emoji, new_line, disabled) -> None:
         Component.__init__(self, ComponentType.Button)
         if label is None and emoji is None:
@@ -555,7 +555,7 @@ class LinkButton(BaseButton):
         LinkButton("https://discord.com/", "press me (if you can)!", emoji="😀", disabled=True)
         ```
         """
-        BaseButton.__init__(self, label, ButtonStyles.url, emoji, new_line, disabled) 
+        BaseButton.__init__(self, label, ButtonStyles.url, emoji, new_line, disabled)
         self._url = None
         self.url = url
 
