@@ -88,8 +88,8 @@ SlashedCommand
     :inherited-members:
 
 
-Ephemeral (hidden) classes
-===========================
+Ephemeral
+==========
 
 EphemeralMessage
 ~~~~~~~~~~~~~~~~
