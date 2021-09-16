@@ -8,6 +8,7 @@ Commands
 Slash
 =====
 
+
 .. autoclass:: Slash
     :members:
 

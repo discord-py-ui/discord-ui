@@ -91,11 +91,11 @@ window.onload = function() {
         if (result[i].text != null && result[i].text.match("discord_ui\.[\w]*\."))
             result[i].text = (result[i].text.split(".").at(-1))
     }
-    result = document.getElementsByClassName("sig sig-object py")
-    for (let i = 0; i < result.length; i++) {
-        if (result[i].innerText.startsWith("class"))
-            result[i].innerText = result[i].innerText.replace("discord_ui.", " ").replace("", "")
-    }
+    // result = document.getElementsByClassName("sig sig-object py")
+    // for (let i = 0; i < result.length; i++) {
+    //     if (result[i].innerText.startsWith("class"))
+    //         result[i].innerText = result[i].innerText.replace("discord_ui.", " ").replace("", "")
+    // }
 
     // Add author
     document.getElementsByClassName("rst-content")[0].innerHTML += "\n<p style='color: gray;'>Modified by <a href='https://github.com/404kuso' target='_blank'>404kuso</a></p>"
