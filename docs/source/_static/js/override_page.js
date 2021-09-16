@@ -94,7 +94,7 @@ window.onload = function() {
     result = document.getElementsByClassName("sig sig-object py")
     for (let i = 0; i < result.length; i++) {
         if (result[i].innerText.startsWith("class"))
-            result[i].innerText = result[i].innerText.replace("discord_ui.", " ")
+            result[i].innerText = result[i].innerText.replace("discord_ui.", " ").replace("", "")
     }
 
     // Add author
