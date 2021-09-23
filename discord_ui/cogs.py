@@ -351,8 +351,9 @@ def slash_cog(name=None, description=None, options=[], guild_ids=None, default_p
         Choices for string and int types for the user to pick from; default MISSING
     guild_ids: List[:class:`str` | :class:`int`], optional
         A list of guild ids where the command is available; default MISSING
-    default_permission: :class:`bool`, optional
-        Whether the command can be used by everyone or not
+    default_permission: :class:`bool` | :class:`discord.Permissions`, optional
+        Permissions that a user needs to have in order to execute the command, default ``True``. 
+                    If a bool was passed, it will indicate whether all users can use the command (``True``) or not (``False``)
     guild_permissions: Dict[``guild_id``: :class:`~SlashPermission`]
         The permissions for the command in guilds
             Format: ``{"guild_id": SlashPermission}``
@@ -417,8 +418,9 @@ def subslash_cog(base_names, name=None, description=None, options=[], guild_ids=
         Choices for string and int types for the user to pick from; default MISSING
     guild_ids: List[:class:`str` | :class:`int`], optional
         A list of guild ids where the command is available; default MISSING
-    default_permission: :class:`bool`, optional
-        Whether the command can be used by everyone or not
+    default_permission: :class:`bool` | :class:`discord.Permissions`, optional
+        Permissions that a user needs to have in order to execute the command, default ``True``.
+                    If a bool was passed, it will indicate whether all users can use the command (``True``) or not (``False``)
     guild_permissions: Dict[``guild_id``: :class:`~SlashPermission`]
         The permissions for the command in guilds
             Format: ``{"guild_id": SlashPermission}``
@@ -484,8 +486,9 @@ def context_cog(type: Literal["user", 2, "message", 3], name=None, guild_ids=Non
             The name of the command; default MISSING
         guild_ids: List[:class:`str` | :class:`int`]
             A list of guilds where the command can be used
-        default_permission: :class:`bool`, optional
-            Whether the command can be used by everyone; default True
+        default_permission: :class:`bool` | :class:`discord.Permissions`, optional
+            Permissions that a user needs to have in order to execute the command, default ``True``.
+                    If a bool was passed, it will indicate whether all users can use the command (``True``) or not (``False``)
         guild_permissions: Dict[:class:`SlashPermission`], optional
             Special permissions for guilds; default MISSING
 

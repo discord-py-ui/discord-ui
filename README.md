@@ -19,6 +19,7 @@
 
 ## Introduction
 
+
 This is a [discord.py](https://github.com/Rapptz/discord.py) ui extension made by [404kuso](https://github.com/404kuso) and [RedstoneZockt](https://github.com/RedstoneZockt)
 for using discord's newest ui features like buttons, slash commands and context commands (we got dpy2 supported if you want to keep using our libary)
 
@@ -28,7 +29,6 @@ for using discord's newest ui features like buttons, slash commands and context 
 
 
 ### Windows
-
 ```cmd
 py -m pip install discord-ui
 ```
@@ -175,6 +175,30 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 
 
 # Changelog
+
+-   <details>
+    <summary>5.0.0</summary>
+
+    ## **Fixed**
+    - Roles not being parsed correctly
+
+    ## **Changed**
+    - default_permission
+    > default_permission can now be of type `discord.Permissions` but the api doesn't support that yet.
+    - slash http
+    > some code changes to slash-http features
+
+    ## **Added**
+    - ChoiceGeneratorContext
+    > Context class for choice generation
+    - SlashOption
+    > `choice_generator` keyword and `autocomplete` keyword. 
+    > `autocomplete` is not needed if you pass choice_generator
+    - File sending
+    > You are now able to send hidden files 
+
+    </details>
+
 -   <details>
     <summary>4.3.8</summary>
     

@@ -157,8 +157,9 @@ def guild_change(guild_id, *, name=None, description=None, default_permission=Tr
         The new name; default None
     description: :class:`str`, optional
         The new description; default None
-    default_permission: :class:`bool`, optional
-        Whether this command can be used by default; default True
+    default_permission: :class:`bool` | :class:`discord.Permissions`, optional
+        Permissions that a user needs to have in order to execute the command, default ``True``.
+            If a bool was passed, it will indicate whether all users can use the command (``True``) or not (``False``)
     
     """
     def wraper(callback):

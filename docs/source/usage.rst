@@ -471,6 +471,56 @@ To set the guilds where the command is useable, you need to set the ``guild_id``
     async def command(ctx, parameter1="nothing"):
         ...
 
+
+autocompletion
+~~~~~~~~~~~~~~~
+You are now able to generate choices for an option based on input, author, channel and more things.
+
+This feature is currently limited to desktop only, mobile clients will treat the option like a normal option.
+
+To use that feature, you need to change two things with :class:`~SlashOption`
+
+.. code-block::
+
+    async def my_generator(ctx: ChoiceGeneratorContext):
+        ...
+        return [choices here]
+
+    @ui.slash.command(options=[SlashOption(str, "name", autocomplete=True, generator=my_generator, required=True)])
+    async def my_command(ctx, name):
+        ...
+
+The callback function needs to return a list of a dict or a tuple that are going to be the choices.
+
+For example
+
+.. code-block::
+
+    async def my_generator(ctx: ChoiceGeneratorContext):
+        ...
+        return [{"name": "a choice name", "value": "yeah"}, ("other choice", "other value")]
+
+You can change the options based on the "query" the user has already typed
+
+.. code-block::
+
+    async def my_generator(ctx: ChoiceGeneratorContext):
+        available_choices = ["hello", "hellow", "world", "warudo", "this", "is", "a", "test"]
+        return [(x, x) for x in available_choices if x.startswith(ctx.value_query)]
+
+
+You can also generate choices based on other options that were already selected. 
+This example filters user that have the role passed in the "staff" option
+.. code-block::
+
+    async def my_generator(ctx: ChoiceGeneratorContext):
+        role: discord.Role = ctx.selected_options["staff"]
+        members = role.guild.fetch_members().filter(predicate=lambda x: x.get_role(role.id))
+        return [(x.name, str(x.id)) async for x in members]
+
+.. image:: images/slash/autogenerate.gif
+    :width: 550
+
 Subcommands, Subcommandgroups and Contextcommands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -562,6 +612,7 @@ They both work in the same way as slash commands, so responding to them will sti
 .. note::
 
     ``message`` and ``user`` are just example names for the parameters, you can use whatever you want for them
+
 
 
 easier ways

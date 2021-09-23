@@ -2,7 +2,6 @@
 Home
 ======================================================
 
-
 Welcome to the discord-ui docs!
 
 This libary is an extension to `discord.py <https://github.com/Rapptz/discord.py>`__  which helps you 
@@ -22,14 +21,13 @@ Windows
 
 .. code-block::
 
-   > py -m install discord-ui
+   > py -m pip install discord-ui
 
 Linux
 
 .. code-block::
 
    $ python3 -m pip install discord-ui
-
 
 
 Examples
@@ -41,7 +39,7 @@ We got some examples `here <https://github.com/discord-py-ui/discord-ui/tree/mai
 Links
 ---------------------
 
-*  `Github <https://github.com/discord-py-ui/discord-ui>`__
+*  `Github <https://github.com/discord-py-ui/discord-ui/>`__
 *  `Pypi <https://pypi.org/project/discord-ui/>`__
 *  `404kuso <https://github.com/404kuso>`__
 *  `RedstoneZockt <https://github.com/RedstoneZockt>`__

@@ -96,9 +96,9 @@ async def fetch_data(value, typ, data, _discord):
     elif typ == OptionType.CHANNEL:
         return await _discord.fetch_channel(int(value))
     elif typ == OptionType.ROLE:
-        return get(await (await _discord.fetch_guild(int(data["guild_id"]))).fetch_roles(), value, lambda x: getattr(x, "id", None) == int(value))
+        return get(await (await _discord.fetch_guild(int(data["guild_id"]))).fetch_roles(), check=lambda x: x.id == int(value))
     elif typ == AdditionalType.MESSAGE:
-        return await (await _discord.fetch_channel(data["channel_id"])).fetch_message(int(value))
+        return await (await _discord.fetch_channel(int(data["channel_id"]))).fetch_message(int(value))
     else:
         return value
 
@@ -147,6 +147,7 @@ async def handle_options(data, options, method, _discord: discord.Client):
 
 async def handle_thing(value, typ, data, method, _discord, auto=False) -> typing.Union[str, int, bool, discord.Member, discord.TextChannel, discord.Role, float, discord.Message, discord.Guild]:
     logging.debug("Trying to handle val " + str(value) + " type " + str(typ) +  " with method " + str(method) + " auto is" + str(auto))
+    typ = int(typ)
     if method is ParseMethod.RESOLVE or method is ParseMethod.AUTO:
         try:
             return resolve_data(value, typ, data, _discord._connection)

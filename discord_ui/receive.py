@@ -1,16 +1,17 @@
+from .slash.http import ModifiedSlashState
 from .errors import InvalidEvent, OutOfValidRange, WrongType
 from .slash.errors import AlreadyDeferred, EphemeralDeletion
-from .slash.types import ContextCommand, OptionType, SlashCommand, SlashOption, SlashPermission, SlashSubcommand
-from .tools import MISSING, setup_logger, _none
+from .tools import MISSING, setup_logger, _none, get, _default
+from .slash.types import ContextCommand, SlashCommand, SlashOption, SlashPermission, SlashSubcommand
 from .http import BetterRoute, jsonifyMessage, send_files
-from .components import ActionRow, Button, Component, LinkButton, SelectMenu, SelectOption, UseableComponent, make_component
+from .components import ActionRow, Button, LinkButton, SelectMenu, SelectOption, UseableComponent, make_component
 
 import discord
 from discord.ext.commands import Bot
 from discord.errors import HTTPException
 from discord.state import ConnectionState
 
-from typing import List, Union, Dict
+from typing import Any, List, Union, Dict
 try:
     from typing import Literal
 except ImportError:
@@ -20,13 +21,14 @@ logging = setup_logger("discord-ui")
 
 
 class InteractionType:
-    PING                        =       Ping        =           1
-    APPLICATION_COMMAND         =      Command      =           2
-    MESSAGE_COMPONENT           =     Component     =           3
+    PING                                =       Ping        =           1
+    APPLICATION_COMMAND                 =      Command      =           2
+    MESSAGE_COMPONENT                   =     Component     =           3
+    APPLICATION_COMMAND_AUTOCOMPLETE    =    Autocomplete   =           4
 
 class Interaction():
     def __init__(self, state, data, user=None, message=None) -> None:
-        self._state: ConnectionState = state
+        self._state: ModifiedSlashState = state
 
         self.deferred: bool = False
         self.responded: bool = False
@@ -88,13 +90,12 @@ class Interaction():
             logging.error(AlreadyDeferred())
             return
 
-        body = {"type": 5}
-        
+        payload = None
         if hidden is True:
-            body["data"] = {"flags": 64}
+            payload = {"flags": 64}
             self._deferred_hidden = True
         
-        await self._state.http.request(BetterRoute("POST", f'/interactions/{self.id}/{self.token}/callback'), json=body)
+        await self._state.slash_http.respond_to(self.id, self.token, 5, payload)
         self.deferred = True
 
     async def respond(self, content=MISSING, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, files=MISSING, nonce=MISSING,
@@ -141,10 +142,7 @@ class Interaction():
         """
         if ninja_mode is True or all(y in [MISSING, False] for x, y in locals().items() if x not in ["self"]):
             try:
-                route = BetterRoute("POST", f'/interactions/{self.id}/{self.token}/callback')
-                r = await self._state.http.request(route, json={
-                    "type": 6
-                })
+                await self._state.slash_http.respond_to(self.id, self.token, 6)
                 return
             except HTTPException as x:
                 if "value must be one of (4, 5)" in str(x).lower():
@@ -169,49 +167,34 @@ class Interaction():
 
 
         r = None
-        if not _none(delete_after) and hide_message is True:
+        if delete_after is not MISSING and hide_message is True:
             raise EphemeralDeletion()
 
         if hide_message:
             payload["flags"] = 64
-
-        if (file is not MISSING or files is not MISSING) and self.deferred is False:
-            await self.defer(hidden=hide_message)
         
-        if self.deferred is False and hide_message is False:
-            route = BetterRoute("POST", f'/interactions/{self.id}/{self.token}/callback')
-            r = await self._state.http.request(route, json={
-                "type": 4,
-                "data": payload
-            })
-        else:
-            if self.deferred is False and hide_message is True:
-                await self.defer(hide_message)
+        if self.deferred:
             route = BetterRoute("PATCH", f'/webhooks/{self.application_id}/{self.token}/messages/@original')
             if file is not MISSING or files is not MISSING:
-                r = await send_files(route=route, files=[file] if files is MISSING else files, payload=payload, http=self._state.http)
+                await send_files(route=route, files=[file] if files is MISSING else files, payload=payload, http=self._state.http)
             else:
-                r = await self._state.http.request(route, json=payload)
+                await self._state.http.request(route, json=payload)    
+        else:
+            await self._state.slash_http.respond_to(self.id, self.token, 4, payload, files=[file] if file is not MISSING else _default(None, files))
         self.responded = True
         
+        r = await self._state.http.request(BetterRoute("GET", f"/webhooks/{self.application_id}/{self.token}/messages/@original"))
         if hide_message is True:
-            msg = EphemeralMessage(state=self._state, channel=self._state.get_channel(int(r["channel_id"])), data=r, application_id=self.application_id, token=self.token)
-            if listener is not MISSING:
-                listener._start(msg)
-            return msg
-
-        
-        if not hide_message:
-            responseMSG = await self._state.http.request(BetterRoute("GET", f"/webhooks/{self.application_id}/{self.token}/messages/@original"))
-            msg = await getMessage(self._state, data=responseMSG, response=False)
-            if not _none(delete_after):
-                await msg.delete(delete_after)
-            if listener is not MISSING:
-                listener._start(msg)
-            return msg
-
+            msg = EphemeralMessage(state=self._state, channel=self.channel, data=r, application_id=self.application_id, token=self.token)
+        else:
+            msg = await getMessage(self._state, data=r, response=False)
+        if listener is not MISSING:
+            listener._start(msg)
+        if not _none(delete_after):
+            await msg.delete(delete_after)
+        return msg
     async def send(self, content=None, *, tts=False, embed=MISSING, embeds=MISSING, file=MISSING, files=MISSING, nonce=MISSING,
-    allowed_mentions=MISSING, mention_author=MISSING, components=MISSING, listener=MISSING, hidden=False) -> Union['Message', 'EphemeralMessage']:
+    allowed_mentions=MISSING, mention_author=MISSING, components=MISSING, delete_after=MISSING, listener=MISSING, hidden=False) -> Union['Message', 'EphemeralMessage']:
         """
         Sends a message to the interaction using a webhook
         
@@ -237,6 +220,8 @@ class Interaction():
             Whether the author should be mentioned
         components: List[:class:`~Button` | :class:`~LinkButton` | :class:`~SelectMenu`]
             A list of message components to be included
+        delete_after: :class:`float`
+            After how many seconds the message should be deleted, only works for non-hiddend messages; default MISSING
         listener: :class:`Listener`
             A component-listener for this message
         hidden: :class:`bool`
@@ -250,7 +235,7 @@ class Interaction():
         :type: :class:`~Message` | :class:`EphemeralMessage`
         """
         if self.responded is False:
-            return await self.respond(content=content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components, listener=listener, hidden=hidden)
+            return await self.respond(content=content, tts=tts, embed=embed, embeds=embeds, file=file, files=files, nonce=nonce, allowed_mentions=allowed_mentions, mention_author=mention_author, components=components, delete_after=delete_after, listener=listener, hidden=hidden)
 
         if components is MISSING and listener is not MISSING:
             components = listener.to_components()
@@ -260,24 +245,47 @@ class Interaction():
             payload["flags"] = 64
 
         route = BetterRoute("POST", f'/webhooks/{self.application_id}/{self.token}')
-        
         if file is not MISSING or files is not MISSING:
             r = await send_files(route=route, files=[file] if files is MISSING else files, payload=payload, http=self._state.http)
         else:
             r = await self._state.http.request(route, json=payload)
 
         if hidden is True:
-            msg = EphemeralMessage(state=self._state, channel=self._state.get_channel(r["channel_id"]), data=r, application_id=self.application_id, token=self.token)
-            if listener is not MISSING:
-                listener._start(msg)
-        msg = await getMessage(self._state, r, response=False)
-        
+            msg = EphemeralMessage(state=self._state, channel=self._state.get_channel(int(r["channel_id"])), data=r, application_id=self.application_id, token=self.token)
+        else:
+            msg = await getMessage(self._state, r, response=False)
+        if delete_after is not MISSING:
+            await msg.delete(delete_after)
         if listener is not MISSING:
             listener._start(msg)
+        print(msg)
         return msg
     def _handle_auto_defer(self, auto_defer):
         self.deferred = auto_defer[0]
         self._deferred_hidden = auto_defer[1]
+
+class ChoiceGeneratorContext(Interaction):
+    """A class for information that could be needed for generating choices for autocomopletion"""
+    def __init__(self, command, state, data, options, user=None) -> None:
+        Interaction.__init__(self, state, data, user=user)
+        self.focused_option: dict = options[get(options, check=lambda x: options[x].get("focused", False))]
+        """The option for which the choices should be generated"""
+        self.value_query: Union[str, int] = self.focused_option["value"]
+        """The current 'query' for the value"""
+        self.selected_options: Dict[str, Any] = {options[x]["name"]: options[x]["value"] for x in options}
+        """All the options that were already selected"""
+        self.command: Union[SlashedCommand, SlashedCommand, SlashedContext] = command
+        """The slash command for which the choices should be generated"""
+
+    async def defer(self, *args, **kwargs):
+        """Cannot defer this type of interaction"""
+        raise NotImplementedError()
+    async def respond(self, *args, **kwargs):
+        """Cannot rerspond to this type of interaction"""
+        raise NotImplementedError()
+    async def send(self, *args, **kwargs):
+        """Cannot send followup message to this type of interaction"""
+        raise NotImplementedError()
 
 class ComponentContext(Interaction, UseableComponent):
     """A received component"""
@@ -370,6 +378,8 @@ async def getMessage(state: ConnectionState, data, response=True):
         The User which pressed the button
     response: :class:`bool`
         Whether the Message returned should be of type `ResponseMessage` or `Message`
+    channel: :class:`discord.Messageable`
+        An alternative channel that will be used when no channel was found
 
     Returns
     -------
@@ -486,7 +496,7 @@ class Message(discord.Message):
         data = await self._state.http.edit_message(self.channel.id, self.id, **payload)
         self._update(data)
 
-        if not _none(delete_after):
+        if delete_after is not MISSING:
             await self.delete(delay=delete_after)
 
     async def disable_action_row(self, row, disable = True):

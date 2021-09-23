@@ -66,7 +66,7 @@ def get_index(l: list, elem: Any, mapping = lambda x: x, default: int = -1) -> i
         i += 1
     return default
 
-def get(l: list, elem: Any, mapping = lambda x: x, default: Any = None, check=lambda x: True):
+def get(l: list, elem: Any = True, mapping = lambda x: True, default: Any = None, check=lambda x: True):
     """Gets a element from a list
     
     Parameters
@@ -170,14 +170,15 @@ def setup_logger(name):
     Thx redstone ;)
     https://github.com/RedstoneZockt/rotstein-dc-py/blob/main/rotstein_py/logging.py
     """
+    level = logging.ERROR
 
     logger = logging.getLogger(name)
-    logger.setLevel(logging.ERROR)
+    logger.setLevel(level)
     
     stream_handler = logging.StreamHandler()
     formatter = logging.Formatter(f"%(levelname)s: %(message)s")
     stream_handler.setFormatter(formatter)
-    stream_handler.setLevel(logging.ERROR)
+    stream_handler.setLevel(level)
     
     logger.addHandler(stream_handler)
     return logger

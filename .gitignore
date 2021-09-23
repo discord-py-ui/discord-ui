@@ -133,4 +133,4 @@ dmypy.json
 .vs/
 
 internal/
-test.py
+test*.py
