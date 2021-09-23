@@ -196,6 +196,14 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>5.0.1</summary>
+
+    ## **Fixed**
+    - Choices not working
+
+    </details>
+
+-   <details>
     <summary>5.0.0</summary>
 
     ## **Fixed**
