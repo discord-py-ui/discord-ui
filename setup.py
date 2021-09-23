@@ -1,6 +1,4 @@
-import os
 import setuptools
-
 
 def get_version():
     """returns the version of the package"""
