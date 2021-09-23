@@ -88,6 +88,25 @@ ui = UI(client)
 async def avatar(ctx, user: discord.Member):
     """Sends the avatar of a user"""
     await ctx.respond(embed=discord.Embed(description=user.display_name).set_image(url=user.avatar_url))
+
+client.run("your_token")
+```
+
+Example for autocompletion of choices
+
+```py
+import discord
+from discord_ui import UI, SlashOption, ChoiceGeneratorContext
+
+async def generator(ctx: ChoiceGeneratorContext):
+    available_choices = ["hmm", "this", "is", "a", "an", "test", "testing"]
+    return [x for x in available_choices if x.startswith(ctx.value_query)]
+
+@ui.slash.command("search_word", options=[SlashOption(str, "query", choice_generator=generator)])
+async def search_word(ctx, query):
+    await ctx.send("got " + query + " for query")
+
+client.run("your_token")
 ```
 
 Example for sending a button and receiving it
@@ -195,7 +214,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     > `choice_generator` keyword and `autocomplete` keyword. 
     > `autocomplete` is not needed if you pass choice_generator
     - File sending
-    > You are now able to send hidden files 
+    > You are now able to send hidden files
 
     </details>
 
