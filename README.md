@@ -100,7 +100,7 @@ from discord_ui import UI, SlashOption, ChoiceGeneratorContext
 
 async def generator(ctx: ChoiceGeneratorContext):
     available_choices = ["hmm", "this", "is", "a", "an", "test", "testing"]
-    return [x for x in available_choices if x.startswith(ctx.value_query)]
+    return [(x, x) for x in available_choices if x.startswith(ctx.value_query)]
 
 @ui.slash.command("search_word", options=[SlashOption(str, "query", choice_generator=generator)])
 async def search_word(ctx, query):
