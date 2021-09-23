@@ -61,7 +61,7 @@ class SlashOption():
         self.required = required
         self.options = _default([], options)
         self.autocomplete = autocomplete
-        self.choices = choices if self.autocomplete is None else None
+        self.choices = choices if self.autocomplete is False else None
         self.choice_generator: typing.Callable[[typing.Any], typing.List[typing.Union[dict, tuple]]] = choice_generator
         """A function which will generate choices for this option"""
     def __repr__(self) -> str:
