@@ -258,7 +258,6 @@ class Interaction():
             await msg.delete(delete_after)
         if listener is not MISSING:
             listener._start(msg)
-        print(msg)
         return msg
     def _handle_auto_defer(self, auto_defer):
         self.deferred = auto_defer[0]
