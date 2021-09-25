@@ -196,6 +196,13 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 # Changelog
 
 -   <details>
+    <summary>5.0.2</summary>
+
+    ## **Fixed**
+    - removed print statements
+    </details>
+
+-   <details>
     <summary>5.0.1</summary>
 
     ## **Fixed**
