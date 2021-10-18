@@ -1,4 +1,4 @@
-from .cogs import BaseCallable, CogCommand, CogSubCommandGroup, ListeningComponent
+from .cogs import BaseCallable, CogCommand, CogMessageCommand, CogSubCommandGroup, ListeningComponent
 from .components import ComponentType
 from .slash.errors import NoAsyncCallback
 from .errors import MissingListenedComponentParameters, WrongType
@@ -956,7 +956,7 @@ class Slash():
                 raise Exception("Slashcommands are not ready yet")
             return self.create_command(command) 
         return command
-    def command(self, name=None, description=None, options=None, guild_ids=None, default_permission=True, guild_permissions=None) -> SlashCommand:
+    def command(self, name=None, description=None, options=None, guild_ids=None, default_permission=True, guild_permissions=None):
         """
         A decorator for a slash command
         
@@ -1040,7 +1040,7 @@ class Slash():
     def add_subcommand(self, base_names, name=None, callback=None, description=None, options=None, guild_ids=None, default_permission=True, guild_permissions=None):
         command = SlashSubcommand(callback, base_names, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
         self._add_to_cache(command)
-    def subcommand(self, base_names, name=None, description=None, options=[], guild_ids=None, default_permission=True, guild_permissions=None) -> SlashSubcommand:
+    def subcommand(self, base_names, name=None, description=None, options=[], guild_ids=None, default_permission=True, guild_permissions=None):
         """
         A decorator for a subcommand group
         
@@ -1147,7 +1147,7 @@ class Slash():
             self._add_to_cache(command)
 
         return wrapper
-    def user_command(self, name=None, guild_ids=None, default_permission=True, guild_permissions=None) -> UserCommand:
+    def user_command(self, name=None, guild_ids=None, default_permission=True, guild_permissions=None):
         """
         Decorator for user context commands in discord.
             ``Right-click username`` -> ``apps`` -> ``commands is displayed here``
@@ -1194,7 +1194,7 @@ class Slash():
         def wraper(callback):
             self._add_to_cache(UserCommand(callback, name, guild_ids, default_permission, guild_permissions))
         return wraper
-    def message_command(self, name=None, guild_ids=None, default_permission=True, guild_permissions=None) -> MessageCommand:
+    def message_command(self, name=None, guild_ids=None, default_permission=True, guild_permissions=None):
         """
         Decorator for message context commands in discord.
             ``Right-click message`` -> ``apps`` -> ``commands is displayed here``

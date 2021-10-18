@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from ..tools import _or, _default, _none
 from ..errors import InvalidLength, WrongType
 from .errors import CallbackMissingContextCommandParameters, MissingOptionParameter, NoAsyncCallback, OptionalOptionParameter
@@ -13,20 +11,6 @@ from enum import IntEnum
 
 def format_name(value):
     return str(value).lower().replace(" ", "-")
-
-
-class SlashOptionCollection():
-    """Class for making the acces to SlashOptions easier"""
-    def __init__(self, options):
-        self.__options: dict = {x.name: x for x in options}
-    def __getitem__(self, index) -> SlashOption:
-        if isinstance(index, int):
-            return list(self.__options.values())[index]
-        if isinstance(index, str):
-            return self.__options[index]
-        raise ValueError()
-    def __iter__(self) -> SlashOption:
-        return iter(self.__options.values())
 
 class SlashOption():
     """An option for a slash command
@@ -117,33 +101,6 @@ class SlashOption():
     def __ne__(self, o: object) -> bool:
         return not self.__eq__(o)
 
-    def autocomplete_generator(self, callback):
-        """Decorator for setting the autocomplete generator of a function
-        
-        Usage
-        -------
-
-        .. code-block::
-
-            @ui.slash.command(options=[SlashOption(str, "my_option")]):
-            async def my_command(...):
-                ...
-            
-            @my_command.options["my_option"].autocomplete_generator
-            async def my_autocomplete_function(ctx):
-                ...
-            
-            # or
-            
-            @my_command.options[0].autocomplete_generator
-            async def my_autocomplete_function(ctx):
-                ...
-            
-
-        """
-        self.choice_generator = callback
-        return callback
-
     @property
     def argument_type(self) -> int:
         """Parameter type that the option accepts
@@ -216,29 +173,25 @@ class SlashOption():
                 raise WrongType("choices", value, ["List[dict]", "List[tuple]"])
 
     @property
-    def options(self) -> SlashOptionCollection:
-        """The parameters for the command. 
-    
-        You can use the option's name (``.options["option name"]``) or the index of the option (``.options[index]``) to get an element.
+    def options(self) -> typing.List['SlashOption']:
+        """The parameters for the command
 
-        :type: :class:`SlashOptionCollection`
+        :type: List[:class:`~SlashOptions`]
         """
-        return SlashOptionCollection([SlashOption._from_data(x, self.__choice_generators__.get(x["name"])) for x in self._json.get("options", [])])
+        return [SlashOption._from_data(x, self.__choice_generators__.get(x["name"])) for x in self._json.get("options", [])]
     @options.setter
     def options(self, options):
-        if not isinstance(options, list) and not isinstance(options, SlashOptionCollection):
-            raise WrongType("options", options, ["list", "SlashOptionCollection"])
+        if not isinstance(options, list):
+            raise WrongType("options", options, "list")
         if all(isinstance(x, (SlashOption, dict)) for x in options):
             self._json["options"] = [(x.to_dict() if type(x) is SlashOption else x) for x in options]
         else:
-            for i, x in enumerate(options):
+            i = 0
+            for x in options:
                 if not isinstance(x, SlashOption) and not isinstance(x, dict):
                     raise WrongType("options[" + str(i) + "]", x, ["dict", "SlashOption"])
-        # set autocomplete generators
-        self.__choice_generators__ = {
-            x.name: x.choice_generator or self.__choice_generators__.get(x.name) for x in 
-                [SlashOption._from_data(o) if isinstance(o, dict) else o for o in options]
-            }
+                i += 1
+        self.__choice_generators__ = {x.name: x.choice_generator or self.__choice_generators__.get(x.name) for x in [SlashOption._from_data(o) if isinstance(o, dict) else o for o in options]}
 
     @property
     def autocomplete(self) -> bool:
@@ -261,7 +214,6 @@ class SlashOption():
 
     def to_dict(self):
         return self._json
-
 
 class OptionType:
     """The list of possible slash command option types"""
@@ -460,7 +412,6 @@ class BaseCommand():
         self.__choice_generators__ = {}
 
         self._json = {"type": getattr(command_type, "value", command_type)}
-        # self._options = None
 
         self.options = _default([], options)
         if callback is not None:
@@ -618,28 +569,24 @@ class BaseCommand():
         self._json["description"] = value
     @property
     def options(self) -> typing.List['SlashOption']:
-        """The parameters for the command. 
-    
-        You can use the option's name (``.options["option name"]``) or the index of the option (``.options[index]``) to get an element.
-
-        :type: :class:`SlashOptionCollection`
+        """The parameters for the command
+        
+        :type: List[:class:`~SlashOption`]
         """
-        return SlashOptionCollection([SlashOption._from_data(x, self.__choice_generators__.get(x["name"])) for x in self._json.get("options", [])])
+        return [SlashOption._from_data(x, self.__choice_generators__.get(x["name"])) for x in self._json.get("options", [])]
     @options.setter
     def options(self, options):
-        if not isinstance(options, list) and not isinstance(options, SlashOptionCollection):
-            raise WrongType("options", options, ["list", "SlashOptionCollection"])
+        if not isinstance(options, list):
+            raise WrongType("options", options, "list")
         if all(isinstance(x, (SlashOption, dict)) for x in options):
-            self._json["options"] = [(x.to_dict() if type(x) is SlashOption else x) for x in options]
+            self._json["options"] = [(x.to_dict() if isinstance(x, SlashOption) else x) for x in options]
         else:
-            for i, x in enumerate(options):
-                if not isinstance(x, SlashOption) and not isinstance(x, dict):
+            i = 0
+            for x in options:
+                if not isinstance(x, (SlashOption, dict)):
                     raise WrongType("options[" + str(i) + "]", x, ["dict", "SlashOption"])
-        # set autocomplete generators
-        self.__choice_generators__ = {
-            x.name: x.choice_generator or self.__choice_generators__.get(x.name) for x in 
-                [SlashOption._from_data(o) if isinstance(o, dict) else o for o in options]
-            }
+                i += 1
+        self.__choice_generators__ = {x.name: x.choice_generator or self.__choice_generators__.get(x.name) for x in [SlashOption._from_data(o) if isinstance(o, dict) else o for o in options]}
     # endregion
     # region permissions
     @property
