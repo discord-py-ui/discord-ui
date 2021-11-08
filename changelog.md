@@ -11,11 +11,13 @@
 ## 5.0
 ### Fixed
 - Roles not being parsed correctly
+
 ### Changed
 - default_permission
     > default_permission can now be of type `discord.Permissions` but the api doesn't support that yet.
 - slash http
     > some code changes to slash-http features
+
 ### New
 - ChoiceGeneratorContext
     > Context class for choice generation
