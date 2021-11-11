@@ -37,7 +37,7 @@ A sole parameter will be passed
 .. code-block::
 
     @client.listen()
-    async on_compoent(component: ComponentContext):
+    async on_component(component: ComponentContext):
         ...
 
 .. code-block::
