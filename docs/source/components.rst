@@ -37,7 +37,7 @@ A sole parameter will be passed
 .. code-block::
 
     @client.listen()
-    async on_component(component: ComponentContext):
+    async on_componet(component: ComponentContext):
         ...
 
 .. code-block::
@@ -45,44 +45,44 @@ A sole parameter will be passed
     await client.wait_for('component', check=lambda com: ...)
 
 
-``button_press``
+``button``
 ~~~~~~~~~~~~~~~~~~~~~~
     
 This event will be dispatched whenever a button was pressed
 
 A sole parameter will be passed:
 
-*  :class:`~PressedButton`: The pressed button
+*  :class:`~ButtonInteraction`: The pressed button
 
 .. code-block::
 
     @client.listen()
-    def on_button_press(btn: PressedButton):
+    def on_button(btn: ButtonInteraction):
         ...
 
 .. code-block::
 
-    await client.wait_for('button_press', check=lambda btn: ...)
+    await client.wait_for('button', check=lambda btn: ...)
 
 
-``menu_select``
+``select``
 ~~~~~~~~~~~~~~~~~~~~~~
 
-This event will be dispatched whenever a value was selected in a :class:`~SelectedMenu`
+This event will be dispatched whenever a value was selected in a :class:`~SelectInteraction`
 
 A sole paremeter will be passed
 
-*  :class:`~SelectedMenu`: The menu where a value was selected
+*  :class:`~SelectInteraction`: The menu where a value was selected
 
 .. code-block::
 
     @client.listen()
-    def on_menu_select(menu: SelectedMenu):
+    def on_select(menu: SelectInteraction):
         ...
 
 .. code-block::
 
-    await client.wait_for('menu_select', check=lambda menu: ...)
+    await client.wait_for('select', check=lambda menu: ...)
 
 
 Components
@@ -104,20 +104,10 @@ LinkButton
     :exclude-members: to_dict
 
 
-ButtonStyles
+ButtonStyle
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: ButtonStyles
-
-    .. note::
-
-        *  (Primary, blurple) = 1
-
-        *  (Secondary, grey) = 2
-        
-        *  (Succes, green) = 3
-        
-        *  (Danger, red) = 4
+.. autoclass:: ButtonStyle
     
 
 SelectMenu
@@ -137,13 +127,6 @@ SelectOption
     :exclude-members: to_dict
 
 
-ActionRow
-~~~~~~~~~~
-
-.. autoclass:: ActionRow
-    :members:
-
-
 Interactions
 =================
 
@@ -154,19 +137,19 @@ Message
 .. autoclass:: Message()
     :members:
 
-PressedButton
+ButtonInteraction
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: PressedButton()
+.. autoclass:: ButtonInteraction()
     :members:
     :inherited-members:
     :exclude-members: to_dict
 
 
-SelectedMenu
+SelectInteraction
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: SelectedMenu
+.. autoclass:: SelectInteraction()
     :members:
     :inherited-members:
     :exclude-members: to_dict

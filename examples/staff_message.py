@@ -11,7 +11,7 @@
 # region imports
 import discord
 from discord.ext import commands
-from discord_ui import UI, SlashOption, ChoiceGeneratorContext
+from discord_ui import UI, SlashOption, AutocompleteInteraction
 # endregion
 
 # initalize bot with intents for the `fetch_members` function
@@ -20,7 +20,7 @@ bot = commands.Bot(" ", intents=discord.Intents(members=True))
 ui = UI(bot)
 
 # Function to generate the choices
-async def staff_generartor(ctx: ChoiceGeneratorContext):
+async def staff_generartor(ctx: AutocompleteInteraction):
     # get the value of the previous selected 'staff' option
     role: discord.Role = ctx.selected_options["staff"]
     # get all members that have that role

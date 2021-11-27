@@ -11,7 +11,7 @@ To use cog tools, you have to import the module
 
 .. code-block::
 
-    from discord_ui.cogs import slash_cog, subslash_cog, context_cog, listening_component_cog
+    from discord_ui.cogs import slash_command, subslash_command, context_cog, listening_component
 
 .. important::
 
@@ -25,7 +25,7 @@ Example
 
     from discord.ext import commands
     from discord_ui import UI
-    from discord_ui.cogs import slash_cog, subslash_cog
+    from discord_ui.cogs import slash_command, subslash_command
 
 
     bot = commands.Bot(" ")
@@ -36,7 +36,7 @@ Example
         def __init__(self, bot):
             self.bot = bot
         
-        @slash_cog(guild_ids=[785567635802816595])
+        @slash_command(guild_ids=[785567635802816595])
         async def name(self, ctx):
             """Responds with the name of the bot"""
             await ctx.send("my name is _" + self.bot.user.name + "_")
@@ -45,22 +45,22 @@ Example
     bot.run("token")
 
 
-slash_cog
-==========
-
-.. automethod:: cogs.slash_cog
-
-subslash_cog
-============
-
-.. automethod:: cogs.subslash_cog
-
-context_cog
+slash_command
 =============
 
-.. automethod:: cogs.context_cog
+.. automethod:: cogs.slash_command
 
-listening_component_cog
+subslash_command
+================
+
+.. automethod:: cogs.subslash_command
+
+context_command
+================
+
+.. automethod:: cogs.context_command
+
+listening_component
 ========================
 
-.. automethod:: cogs.listening_component_cog
+.. automethod:: cogs.listening_component

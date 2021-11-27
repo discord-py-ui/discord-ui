@@ -1,13 +1,138 @@
-from .tools import MISSING
+from __future__ import annotations
+
+from discord.ext.commands.errors import BadArgument
+
+from .tools import All
+from .enums import ButtonStyle, ComponentType
 from .errors import InvalidLength, OutOfValidRange, WrongType
 
-from discord import Emoji
+import discord
 from discord.errors import InvalidArgument
 
 import inspect
-from enum import IntEnum
-from typing import Any, List, Union
+import string
+from random import choice
+from typing import List, Union
 
+__all__ = (
+    'SelectMenu',
+    'SelectOption',
+    'Button',
+    'LinkButton',
+    'ActionRow'
+)
+
+class ComponentStore():
+    """A class for storing message components together with some useful methods"""
+    def __init__(self, components=[]):
+        """Creates a new `ComponentStore`
+        
+        Parameters
+        ----------
+        components: List[:class:`Button` | :class:`LinkButton` | :class:`SelectMenu`]
+            The components that should be stored
+        
+        """
+        self._components: List[Union[Button, LinkButton, SelectMenu]] = []
+        # for checks
+        [self.append(x) for x in components]
+    def _get_index_for(self, key):
+        if isinstance(key, int):
+            return key
+        if isinstance(key, str):
+            s = [i for i, x in enumerate(self._components) if x.custom_id == key]
+            if len(s) == 0:
+                raise KeyError(key)
+            return s[0]
+        raise WrongType(key, "index", ["str", "int"])
+    def __getitem__(self, key):
+        return self._components[self._get_index_for(key)]
+    def __setitem__(self, key, value):
+        self._components[self._get_index_for(key)] = value
+    def __delitem__(self, key):
+        self._components.pop(self._get_index_for(key))
+    def __iter__(self):
+        return iter(self._components)
+    def __len__(self):
+        return len(self._components)
+    def __repr__(self):
+        return f"<{self.__class__.__name__}{str(self._components)}>"
+    
+    def to_list(self):
+        """Returns this class as an list"""
+        return self._components
+    def copy(self):
+        return self.__class__()
+    def append(self, item):
+        if hasattr(item, "custom_id") and item.custom_id in [x.custom_id if hasattr(x, "custom_id") else None for x in self._components]:
+            raise BadArgument(f"A component with the custom_id '{item.custom_id} already exists! CustomIds have to be unique'")
+        self._components.append(item)
+    def clear(self):
+        self._components = []
+    
+    def disable(self, index=All, disable=True):
+        """
+        Disables or enables component(s)
+
+        index: :class:`int` | :class:`str` | :class:`range` | List[:class:`int` | :class:`str`], optional
+            Index(es) or custom_id(s) for the components that should be disabled or enabled; default all components
+        disable: :class:`bool`, optional
+            Whether to disable (``True``) or enable (``False``) components; default True
+
+        """
+        if index is All:
+            index = range(len(self._components))
+        if isinstance(index, (range, list, tuple)):
+            for i in index:
+                self._components[i].disabled = disable
+        elif isinstance(index, (int, str)):
+            self._components[index].disabled = disable
+        return self
+    @property
+    def buttons(self) -> List[Union[Button, LinkButton]]:
+        """All components with the type `Button`"""
+        return [self._components[i] for i, x in enumerate(self._components) if x.component_type == ComponentType.Button]
+    @property
+    def selects(self) -> List[SelectMenu]:
+        """All components with the type `Select`"""
+        return [self._components[i] for i, x in enumerate(self._components) if x.component_type == ComponentType.Select]
+    def get_rows(self) -> List[ComponentStore]:
+        """
+        Returns the component rows as componentstores
+        
+        Example
+        --------
+        
+        If the components are
+        
+        ```
+        Button1, Button2
+        Button3
+        SelectMenu
+        ```
+
+        The `.get_rows` method would then return
+
+        ```py
+        >>> message.get_rows()
+        [ 
+            ComponentStore[Button1, Button2], 
+            ComponentStore[Button3], 
+            ComponentStore[SelectMenu]
+        ]
+        ```
+
+        """
+        rows = []
+        current_row = []
+        for i, x in enumerate(self._components):
+            if getattr(x, 'new_line', True) == True and i > 0:
+                rows.append(ComponentStore(current_row))
+                current_row = []
+            current_row.append(self._components[i])
+        if len(current_row) > 0:
+            rows.append(ComponentStore(current_row))
+        return rows
 
 class SelectOption():
     """
@@ -21,10 +146,21 @@ class SelectOption():
         The user-facing name of the option, max 25 characters; default \u200b ("empty" char)
     description: :class:`str`, optional
         An additional description of the option, max 50 characters
-    emoji : :class:`discord.Emoji` | :class:`str`, optional
+    emoji: :class:`discord.Emoji` | :class:`str`, optional
         Emoji appearing before the label; default MISSING
+    default: :class:`bool`
+        Whether this option should be selected by default in the select menu; default False
+
+    Raises
+    -------
+    :class:`WrongType`
+        A value you want to set is not an instance of a valid type
+    :class:`InvalidLenght`
+        The lenght of a value is not valid
+    :class:`OutOfValidRange`
+        A value is out of its valid range
     """
-    def __init__(self, value, label="\u200b", description=None, emoji=None) -> None:
+    def __init__(self, value, label="\u200b", description=None, emoji=None, default=False) -> None:
         """
         Creates a new SelectOption
 
@@ -37,13 +173,9 @@ class SelectOption():
         self._value = None
         self._description = None
         self._emoji = None
-        self.default: bool = False
-        """
-        Whether this option is selected by default in the menu or not
 
-        :type: :class:`bool`
-        """
-
+        self.default: bool = default
+        """Whether this option is selected by default in the menu or not"""
         self.label = label
         self.value = value
         self.description = description
@@ -53,20 +185,12 @@ class SelectOption():
 
     @property
     def content(self) -> str:
-        """
-        The complete option content, consisting of the emoji and label
-
-        :type: :class:`str`
-        """
+        """The complete option content, consisting of the emoji and label"""
         return (self.emoji + " ") if self.emoji is not None else "" + (self.label or '')
     
     @property
     def label(self) -> str:
-        """
-        The main text appearing on the option 
-
-        :type: :class:`str`
-        """
+        """The main text appearing on the option """
         return self._label
     @label.setter
     def label(self, value: str):
@@ -79,12 +203,8 @@ class SelectOption():
         self._label = value
 
     @property
-    def value(self) -> Any:
-        """
-        A unique value for the option, which will be usedd to identify the selected value
-
-        :type: :class:`str`
-        """
+    def value(self) -> str:
+        """A unique value for the option, which will be usedd to identify the selected value"""
         return self._value
     @value.setter
     def value(self, value):
@@ -97,11 +217,7 @@ class SelectOption():
 
     @property
     def description(self) -> str:
-        """
-        A description appearing on the option
-
-        :type: :class:`str`
-        """
+        """A short description for the option"""
         return self._description
     @description.setter
     def description(self, value):
@@ -117,9 +233,7 @@ class SelectOption():
         The mention of the emoji before the text
 
             .. note::
-                For setting the emoji, you can use a str or discord.Emoji
-        
-        :type: :class:`str`
+                For setting the emoji, you can use a :class:`str` or a :class:`discord.Emoji`
         """
         if self._emoji is None:
             return None
@@ -127,7 +241,7 @@ class SelectOption():
             return self._emoji["name"]
         return f'<{"a" if "animated" in self._emoji else ""}:{self._emoji["name"]}:{self._emoji["id"]}>'
     @emoji.setter
-    def emoji(self, val: Union[Emoji, str, dict]):
+    def emoji(self, val: Union[discord.Emoji, str, dict]):
         """The emoji appearing before the label"""
         if val is None:
             self._emoji = None
@@ -136,7 +250,7 @@ class SelectOption():
                 "id": None,
                 "name": val
             }
-        elif isinstance(val, Emoji):
+        elif isinstance(val, discord.Emoji):
             self._emoji = {
                 "id": val.id,
                 "name": val.name,
@@ -163,18 +277,18 @@ class SelectOption():
         return payload
 
     @classmethod
-    def _fromData(cls, data) -> "SelectOption":
+    def _from_data(cls, data) -> SelectOption:
         """
         Initializes a new SelectOption from a dict
         
         Parameters
         ----------
-            data: :class:`dict`
-                The data to initialize from
+        data: :class:`dict`
+            The data to initialize from
         Returns
         -------
-            :class:`~SelectOption`
-                The new Option generated from the dict
+        :class:`~SelectOption`
+            The new Option generated from the dict
         
         """
         x = SelectOption(data["value"], data.get("label"), data.get("description"), data.get("emoji"))
@@ -185,25 +299,16 @@ class Component():
     def __init__(self, component_type) -> None:
         self._component_type = getattr(component_type, "value", component_type)
     @property
-    def component_type(self) -> int:
-        """
-        The message component type
-
-        :type: :class:`int`
-        """
+    def component_type(self) -> ComponentType:
+        """The component type"""
         return ComponentType(self._component_type)
 
 class UseableComponent(Component):
     def __init__(self, component_type) -> None:
         Component.__init__(self, component_type)
-        self._custom_id = None
     @property
     def custom_id(self) -> str:
-        """
-        The custom_id of the menu to identify it
-
-        :type: :class:`str`
-        """
+        """A custom identifier for this component"""
         return self._custom_id
     @custom_id.setter
     def custom_id(self, value: str):
@@ -215,62 +320,50 @@ class UseableComponent(Component):
 
 class SelectMenu(UseableComponent):
     """
-    Represents a ui-dropdown selectmenu
+    A ui-dropdown selectmenu
 
     Parameters
     ----------
-    custom_id: :class:`str`
-        The custom_id for identifying the menu, max 100 characters
     options: List[:class:`~SelectOption`]
         A list of options to select from
+    custom_id: :class:`str`, optional
+        The custom_id for identifying the menu, max 100 characters
     min_values: :class:`int`, optional
         The minimum number of items that must be chosen; default ``1``, min 0, max 25
     max_values: :class:`int`, optional
         The maximum number of items that can be chosen; default ``1``, max 25
     placeholder: :class:`str`, optional
         A custom placeholder text if nothing is selected, max 100 characters; default MISSING
-    default: :class:`int`, optional
+    default: :class:`int` | :class:`range`, optional
         The position of the option that should be selected by default; default MISSING
     disabled: :class:`bool`, optional
         Whether the select menu should be disabled or not; default ``False``
     """
-    def __init__(self, custom_id, options, min_values=1, max_values=1, placeholder=None, default=None, disabled=False) -> None:
+    def __init__(self, options, custom_id=None, min_values=1, max_values=1, placeholder=None, default=None, disabled=False) -> None:
         """
         Creates a new ui select menu
 
         Example:
         ```py
-        SelectMenu(custom_id="my_id", options=[SelectOption(...)], min_values=2, placeholder="select something", default=0)
+        SelectMenu(options=[SelectOption(...)], custom_id="my_id", min_values=2, placeholder="select something", default=0)
         ```
         """
         UseableComponent.__init__(self, ComponentType.Select)
         self._options = None
 
         self.max_values: int = 0
-        """
-        The maximum number of items that can be chosen; default 1, max 25
-
-        :type: :class:`int`
-        """
+        """The maximum number of items that can be chosen; default 1, max 25"""
         self.min_values: int = 0
         """
         The minimum number of items that must be chosen; default 1, min 0, max 25
-
-        :type: :class:`int`
         """
         self.disabled = disabled
         """
-        Whether the selectmenu is disabled or not
-
-        :type: :class:`bool`
-        """
+        Whether the selectmenu is disabled or not"""
         self.placeholder: str = placeholder
         """
-        Custom placeholder text if nothing is selected
-
-        :type: :class:`str` | :class:`None`
-        """
-        self.custom_id = custom_id
+        Custom placeholder text if nothing is selected"""
+        self.custom_id = custom_id or ''.join([choice(string.ascii_letters) for _ in range(100)])
         self.disabled = disabled
         self.options = options
 
@@ -300,17 +393,13 @@ class SelectMenu(UseableComponent):
         return f"<discord_ui.SelectMenu(custom_id={self.custom_id}, options={self.options})>"
     
     @staticmethod
-    def _fromData(data) -> 'SelectMenu':
-        return SelectMenu(data["custom_id"], data["options"], data.get("min_values"), data.get("max_values"), data.get("placeholder"), disabled=data.get("disabled", False))
+    def _from_data(data) -> SelectMenu:
+        return SelectMenu(data["options"], data["custom_id"], data.get("min_values"), data.get("max_values"), data.get("placeholder"), disabled=data.get("disabled", False))
     # region props
     @property
     def options(self) -> List[SelectOption]:
-        """
-        The options in the select menu to select from
-
-        :type: List[:class:`~SelectOption`]
-        """
-        return [SelectOption._fromData(x) for x in self._options]
+        """The options in the select menu to select from"""
+        return [SelectOption._from_data(x) for x in self._options]
     @options.setter
     def options(self, value: List[SelectOption]):
         if isinstance(value, list):
@@ -326,30 +415,28 @@ class SelectMenu(UseableComponent):
             raise WrongType("options", value, "list")
 
     @property
-    def default_option(self) -> Union[SelectOption, None]:
-        """
-        The option selected by default
-
-        :type: :class:`~SelectOption` | :class:`None`
-        """
-        x = [x for x in self.options if x.default]
-        if len(x) == 1:
-            return x[0]
-    def set_default_option(self, position: int) -> 'SelectMenu':
+    def default_options(self) -> List[SelectOption]:
+        """The option selected by default"""
+        return [x for x in self.options if x.default]
+    def set_default_option(self, position) -> SelectMenu:
         """
         Selects the default selected option
 
         Parameters
         ----------
-        position: :class:`int`
-            The position of the option that should be default
+        position: :class:`int` | :class:`range`
+            The position of the option that should be default. 
+            If ``position`` is of type :class:`range`, it will iterate through it and disable all components with the index of the indexes.
         """
-        if not isinstance(position, int):
+        if not isinstance(position, (int, range)):
             raise WrongType("position", position, "int")
-        if position < 0 or position >= len(self.options):
-            raise OutOfValidRange("default option position", 0, str(len(self.options) - 1))
-        self._options[position]["default"] = True
-        return self
+        if isinstance(position, int):
+            if position < 0 or position >= len(self.options):
+                raise OutOfValidRange("default option position", 0, str(len(self.options) - 1))
+            self._options[position].default = True
+            return self
+        for pos in position:
+            self._options[pos].default = True
     # endregion
 
     def to_dict(self) -> dict:
@@ -381,11 +468,13 @@ class BaseButton(Component):
         self.disabled = disabled
         self.emoji = emoji
 
+    def __repr__(self):
+        return f"<{self.__class__.__name__}(custom_id={self.custom_id}, color={self.color})>"
     def __str__(self) -> str:
         return self.content
     def to_dict(self):
         payload = {"type": self._component_type, "style": self._style, "disabled": self.disabled, "emoji": self._emoji}
-        if self._style == ButtonStyles.url:
+        if self._style == ButtonStyle.URL:
             payload["url"] = self._url
         else:
             payload["custom_id"] = self._custom_id
@@ -397,20 +486,12 @@ class BaseButton(Component):
 
     @property
     def content(self) -> str:
-        """
-        The complete content in the button ("{emoji} {label}")
-
-        :type: :class:`str`
-        """
+        """The complete content in the button ("{emoji} {label}")"""
         return (self.emoji + " " if self.emoji is not None else "") + (self.label or '')
         
     @property
     def label(self) -> str:
-        """
-        The label displayed on the button
-
-        :type: :class:`str`
-        """
+        """The label displayed on the button"""
         return self._label
     @label.setter
     def label(self, val: str):
@@ -427,17 +508,13 @@ class BaseButton(Component):
 
     @property
     def color(self) -> int:
-        """
-        The color for the button
-
-        :type: :class:`int`, one of :class:`~ButtonStyles`
-        """
+        """The color for the button"""
         return self._style
     @color.setter
     def color(self, val):
-        if ButtonStyles.getColor(val) is None:
+        if ButtonStyle.getColor(val) is None:
             raise InvalidArgument(str(val) + " is not a valid color")
-        self._style = ButtonStyles.getColor(val).value
+        self._style = ButtonStyle.getColor(val).value
     
     @property
     def emoji(self) -> str:
@@ -446,8 +523,6 @@ class BaseButton(Component):
         
             .. note::
                 For setting the emoji, you can use a str or discord.Emoji          
-        
-        :type: :class:`str`
         """
         if self._emoji is None:
             return None
@@ -455,14 +530,14 @@ class BaseButton(Component):
             return self._emoji["name"]
         return f'<{"a" if "animated" in self._emoji else ""}:{self._emoji["name"]}:{self._emoji["id"]}>'
     @emoji.setter
-    def emoji(self, val: Union[Emoji, str, dict]):
+    def emoji(self, val: Union[discord.Emoji, str, dict]):
         if val is None:
             self._emoji = None
         elif isinstance(val, str):
             self._emoji = {
                 "name": val
             }
-        elif isinstance(val, Emoji):
+        elif isinstance(val, discord.Emoji):
             self._emoji = {
                 "id": val.id,
                 "name": val.name,
@@ -479,8 +554,9 @@ class Button(BaseButton, UseableComponent):
 
     Parameters
     ----------
-    custom_id: :class:`str`
+    custom_id: :class:`str`, optional
         A identifier for the button, max 100 characters
+            If no custom_id was passed, a random 100 character string will be generated
     label: :class:`str`, optional
         Text that appears on the button, max 80 characters; default \u200b ("empty" char)
     color: :class:`str` | :class:`int`, optional
@@ -491,7 +567,7 @@ class Button(BaseButton, UseableComponent):
             You can either use a string for a color or an int. Color strings are: 
             (`primary`, `blurple`), (`secondary`, `grey`), (`succes`, `green`) and (`danger`, `Red`)
             
-            If you want to use integers, take a lot at the :class:`~ButtonStyles` class
+            If you want to use integers, take a lot at the :class:`~ButtonStyle` class
 
     emoji: :class:`discord.Emoji` | :class:`str`, optional
         The emoji displayed before the text; default MISSING
@@ -499,26 +575,42 @@ class Button(BaseButton, UseableComponent):
         Whether a new line should be added before the button; default False
     disabled: :class:`bool`, optional
         Whether the button is disabled; default False
+
+    Raises
+    -------
+    :class:`WrongType`
+        A value you want to set is not an instance of a valid type
+    :class:`InvalidLenght`
+        The lenght of a value is not valid
+    :class:`OutOfValidRange`
+        A value is out of its valid range
+    :class:`InvalidArgument`
+        The color you provided is not a valid color alias
     """
-    def __init__(self, custom_id, label="\u200b", color = "blurple", emoji=None, new_line=False, disabled=False) -> None:
+    def __init__(self, label="\u200b", custom_id=None, color="blurple", emoji=None, new_line=False, disabled=False) -> None:
         """
         Creates a new ui-button
 
         Example:
         ```py
-        Button("my_custom_id", "This is a cool button", "green", new_line=True)
+        Button("This is a cool button", "my_custom_id", "green")
         ```
         """
         BaseButton.__init__(self, label, color, emoji, new_line, disabled)
         UseableComponent.__init__(self, self.component_type)
-        self.custom_id = custom_id
-    def __repr__(self) -> str:
-        return f"<discord_ui.Button({self.custom_id}:{self.content})>"
-    def copy(self) -> 'Button':
-        return Button(self.custom_id, self.label, self.color, self.emoji, self.new_line, self.disabled)
+        self.custom_id = custom_id or ''.join([choice(string.ascii_letters) for _ in range(100)])
+    def copy(self) -> Button:
+        return self.__class__(
+            label=self.label, 
+            custom_id=self.custom_id, 
+            color=self.color, 
+            emoji=self.emoji, 
+            new_line=self.new_line, 
+            disabled=self.disabled
+        )
 
     @classmethod
-    def _fromData(cls, data, new_line=False) -> 'Button':
+    def _from_data(cls, data, new_line=False) -> Button:
         """
         Returns a new button initialized from api response data
 
@@ -527,11 +619,18 @@ class Button(BaseButton, UseableComponent):
         Button
             The initialized button
         """
-        return Button(data["custom_id"], data.get("label"), data["style"], data.get("emoji"), new_line, data.get("disabled", False))
+        return Button(
+            label=data.get("label"),
+            custom_id=data["custom_id"],
+            color=data["style"], 
+            emoji=data.get("emoji"), 
+            new_line=new_line, 
+            disabled=data.get("disabled", False)
+        )
 
 class LinkButton(BaseButton):
     """
-    A discord-ui linkbutton
+    A ui-button that will open a link when it's pressed
 
     Parameters
     ----------
@@ -545,6 +644,15 @@ class LinkButton(BaseButton):
         Whether a new line should be added before the button; default False
     disabled: :class:`bool`, optional
         Whether the button is disabled; default False
+
+    Raises
+    -------
+    :class:`WrongType`
+        A value you want to set is not an instance of a valid type
+    :class:`InvalidLenght`
+        The lenght of a value is not valid
+    :class:`OutOfValidRange`
+        A value is out of its valid range
     """
     def __init__(self, url, label="\u200b", emoji=None, new_line=False, disabled=False) -> None:
         """
@@ -555,22 +663,24 @@ class LinkButton(BaseButton):
         LinkButton("https://discord.com/", "press me (if you can)!", emoji="😀", disabled=True)
         ```
         """
-        BaseButton.__init__(self, label, ButtonStyles.url, emoji, new_line, disabled)
+        BaseButton.__init__(self, label, ButtonStyle.URL, emoji, new_line, disabled)
         self._url = None
         self.url = url
 
     def __repr__(self) -> str:
-        return f"<discord_ui.LinkButton({self.custom_id}:{self.content})>"
-    def copy(self) -> 'LinkButton':
-        return LinkButton(self.url, self.label, self.emoji, self.new_line, self.disabled)
+        return f"<{self.__class__.__name__}(url={self.url}, content={self.content}, custom_id={self.custom_id})>"
+    def copy(self) -> LinkButton:
+        return self.__class__(
+            url=self.url, 
+            label=self.label, 
+            emoji=self.emoji, 
+            new_line=self.new_line, 
+            disabled=self.disabled
+        )
 
     @property
     def url(self) -> str:
-        """
-        The link which will be opened upon pressing the button
-
-        :type: :class:`str`
-        """
+        """The link which will be opened when the button was pressed"""
         return self._url
     @url.setter
     def url(self, val: str):
@@ -579,39 +689,14 @@ class LinkButton(BaseButton):
         self._url = str(val)
 
     @classmethod
-    def _fromData(cls, data, new_line=False) -> 'LinkButton':
-        return LinkButton(data["url"], data.get("label"), data.get("emoji"), new_line, data.get("disabled", False))
-
-
-class ButtonStyles(IntEnum):
-    """
-    A list of button styles (colors) in message components
-    """
-    Primary     =     	 blurple        = 1
-    Secondary   =         grey          = 2
-    Succes      =        green          = 3
-    Danger      =         red           = 4
-    url                                 = 5
-
-    def __str__(self) -> str:
-        return self.name
-
-    @classmethod
-    def getColor(cls, s):
-        if isinstance(s, int):
-            return cls(s)
-        if isinstance(s, cls):
-            return s
-        s = s.lower()
-        if s in ("blurple", "primary"):
-            return cls.blurple
-        if s in ("grey", "gray", "secondary"):
-            return cls.grey
-        if s in ("green", "succes"):
-            return cls.green
-        if s in ("red", "danger"):
-            return cls.red
-# endregion
+    def _from_data(cls, data, new_line=False) -> LinkButton:
+        return LinkButton(
+            url=data["url"], 
+            label=data.get("label"), 
+            emoji=data.get("emoji"), 
+            new_line=new_line, 
+            disabled=data.get("disabled", False)
+        )
 
 
 class ActionRow():
@@ -619,13 +704,8 @@ class ActionRow():
     Alternative to setting ``new_line`` in a full component list or putting the components in a list
         
     Only works for :class:`~Button` and :class:`~LinkButton`, because :class:`~SelectMenu` is always in a new line
-    
-    Parameters
-    ----------
-        disbaled: :class:`bool`, optional
-            Whether all components should be disabled; default False   
     """
-    def __init__(self, *items, disabled = False):
+    def __init__(self, *items):
         """
         Creates a new component list
 
@@ -636,13 +716,16 @@ class ActionRow():
         ActionRow([Button(...), Button(...)])
         ```
         """
-        self.items = items[0] if all(isinstance(i, list) for i in items) else items
+        self.items: List[Union[Button, LinkButton, SelectMenu]] = items[0] if all(isinstance(i, list) for i in items) else items
         """The componetns in the action row"""
         self.component_type = 1
-        self.disable(disabled)
         
-    def disable(self, disable=True) -> 'ActionRow':
+    def disable(self, disable=True) -> ActionRow:
         for i, _ in enumerate(self.items):
+            if isinstance(self.items[i], list):
+                for j, _ in enumerate(self.items[i]):
+                    self.items[i][j].disabled = disable
+                continue
             self.items[i].disabled = disable
         return self
     def filter(self, check = lambda x: ...):
@@ -651,35 +734,24 @@ class ActionRow():
         
         Parameters
         ----------
-            check: :class:`lambda`
-                What condition has to be True that the component will pass the filter
+        check: :class:`lambda`
+            What condition has to be True that the component will pass the filter
         
         Returns
         -------
-            :returns: The filtered components
-            :type: List[:class:`~Button` | :class:`~LinkButton`]
+        List[:class:`~Button` | :class:`~LinkButton`]
+            The filtered components
         
         """
         return [x for x in self.items if check(x)]
 
 
-class ComponentType(IntEnum):
-    """
-    A list of component types
-    """
-    Action_row      =           1
-    Button          =           2
-    Select          =           3
-
-    def __str__(self) -> str:
-        return self.name
-
 def make_component(data, new_line = False):
     if ComponentType(data["type"]) == ComponentType.Button:
-        if data["style"] == ButtonStyles.url:
-            return LinkButton._fromData(data, new_line)
-        return Button._fromData(data, new_line)
+        if data["style"] == ButtonStyle.URL:
+            return LinkButton._from_data(data, new_line)
+        return Button._from_data(data, new_line)
     if ComponentType(data["type"]) is ComponentType.Select:
-        return SelectMenu._fromData(data)
+        return SelectMenu._from_data(data)
     # if data["type"] == ComponentType.ACTION_ROW:
-        # return ActionRow._fromData(data)
+        # return ActionRow._from_data(data)

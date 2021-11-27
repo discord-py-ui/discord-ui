@@ -68,23 +68,39 @@ You can filter the select callback with the ``values`` parameter
 
 The callback will now be only called if the selected values of a select menu equal to ``values``
 
-There are some more usefull things you can use
+There are some more useful things you can use
 
 
 Class
------
+------
 
 You can add a timeout to the listener after which the listener will be removed from the message
 
 .. code-block::
-
-    .. code-block::
 
     class MyListener(Listener):
         def __init__(self):
             self.timeout = 20   # 20 seconds timeout
 
 If you **set** timeout to ``None``, the listener will never timeout
+
+You can also add a list of target users to the listener
+
+.. code-block::
+
+    class MyListener(Listener):
+        def __init__(self):
+            self.target_users = [a, list, of, users]
+
+And last but not least, you can supress the `discord_ui.listener.NoListenerFound` errors when no 
+listener could be found
+
+.. code-block::
+
+    class MyListener(Listener):
+        def __init__(self):
+            self.supress_no_listener_found = True
+
 
 Sending
 --------
@@ -104,7 +120,7 @@ First method:
             async def test(self, ctx):
                 ...
 
-        await message.channel.send("showcase", components=[Button("test", "this is a showcase")], listener=MyListener())
+        await message.channel.send("showcase", components=[Button("this is a showcase", "test")], listener=MyListener())
 
 Second method:
 
@@ -114,7 +130,7 @@ Second method:
     async def on_message(message)
         class MyListener(Listener):
             def __init__(self):
-                self.components = [Button("test", "this is a showcase")]
+                self.components = [Button("this is a showcase", "test")]
             @Listener.button("test")
             async def test(self, ctx):
                 ...
@@ -136,7 +152,7 @@ Third method:
             async def test(self, ctx):
                 ...
 
-        msg = await message.channel.send("showcase", components=[Button("test", "this is a showcase")])
+        msg = await message.channel.send("showcase", components=[Button("this is a showcase", "test")])
         msg.attach_listener(MyListener())
 
 Fourth method:
@@ -154,7 +170,7 @@ Fourth method:
             async def test(self, ctx):
                 ...
 
-        msg = await message.channel.send("showcase", components=[Button("test", "this is a showcase")])
+        msg = await message.channel.send("showcase", components=[Button("this is a showcase", "test")])
         ui.components.attach_listener_to(msg, MyListener())
 
 And the last method:
@@ -172,28 +188,34 @@ And the last method:
             async def test(self, ctx):
                 ...
 
-        msg = await message.channel.send("showcase", components=[Button("test", "this is a showcase")])
+        msg = await message.channel.send("showcase", components=[Button("this is a showcase", "test")])
         MyListener.attach_me_to(msg)
 """
 
 from .tools import setup_logger
+from .receive import ComponentContext, Message, ButtonInteraction, SelectInteraction
 from .components import Button, ComponentType, LinkButton, SelectMenu
-from .receive import ComponentContext, Message
 
 import discord
-from discord.ext import commands
-from discord.state import ConnectionState
+from discord.ext.commands import CheckFailure
 
 import asyncio
 from inspect import getmembers
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Callable, Coroutine
+
+__all__ = (
+    'Listener',
+)
 
 logging = setup_logger(__name__)
+
+class AnyID:
+    pass
 
 class _Listener():
     def __init__(self, callback, custom_id, component_type, values=None) -> None:
         self.callback = callback
-        self.custom_id = custom_id
+        self.custom_id = custom_id or AnyID
         self.type = component_type
         self.target_values = [str(v) for v in values] if values is not None else None 
 
@@ -220,7 +242,7 @@ class _Listener():
     
     async def invoke(self, ctx, listener):
         if not await self.can_run(ctx):
-            raise commands.errors.CheckFailure()
+            raise CheckFailure()
         await self.callback(listener, ctx)
 
 class NoListenerFound(Exception):
@@ -250,21 +272,42 @@ class Listener():
     timeout: :class:`float`, optional
         A timeout after how many seconds the listener shouold be deleted.
         If ``None``, the listener will never timeout
-    target_user: :class:`discord.Member` | :class:`discord.User`
-        The user from which the interactions should be received. 
+    target_users: List[:class:`discord.Member` | :class:`discord.User` | :class:`int` | :class:`str`]
+        A list of users or user ids from which the interactions has to be be received. 
         Every interaction by other users will be ignored
     """
-    def __init__(self, timeout=180.0, target_user=None) -> None:
+    def __init__(self, timeout=180.0, target_users=None) -> None:
+        self._target_users = []
         self.timeout: float = timeout
         """Timeout after how many seconds the listener should timeout and be deleted"""
-        self.target_user: Union[discord.Member, discord.User] = target_user
-        """The user from which the interaction has to come"""
+        self.target_users = target_users
         self.components: List[Union[List[Button, LinkButton, SelectMenu], Button, LinkButton, SelectMenu]] = []
         """The components that are going to be send together with the listener"""
         self.message: Message = None
         """The target message"""
+        self.supress_no_listener_found: bool = False
+        """Whether `discord_ui.listener.NoListenerFound` should be supressed and not get thrown 
+        when no target component listener could be found"""
+
     def __init_subclass__(cls) -> None:
         cls.__listeners__ = []
+        cls.timeout = 180.0
+        cls._target_users = None
+        cls.supress_no_listener_found = False
+        cls._on_error = {x[1].__exception_cls__: x[1] for x in getmembers(cls, predicate=lambda x: getattr(x, "__on_error__", False))}
+        cls._wrong_user = next(iter([x[1] for x in getmembers(cls, predicate=lambda x: getattr(x, "__wrong_user__", False))]), None)
+
+
+    @property
+    def target_users(self) -> List[int]:
+        """A list of user ids from which the interaction has to come"""
+        return self._target_users
+    @target_users.setter
+    def target_users(self, value):
+        if value != None:
+            self._target_users = [int(getattr(x, 'id', x)) for x in value]
+        else:
+            self._target_users = None
 
     @staticmethod
     def button(custom_id=None):
@@ -290,9 +333,9 @@ class Listener():
                     ...
         
         """
-        def wraper(callback):
-            return _Listener(callback, custom_id or callback.__name__, ComponentType.Button)
-        return wraper
+        def wrapper(callback):
+            return _Listener(callback, custom_id, ComponentType.Button)
+        return wrapper
     @staticmethod
     def select(custom_id=None, values=None):
         """A decorator that will set a callback up for a select menu
@@ -323,31 +366,101 @@ class Listener():
             async def othere_callback(self, ctx):
                 ...
         """
-        def wraper(callback):
+        def wrapper(callback):
             return _Listener(callback, custom_id or callback.__name__, ComponentType.Select, values)
-        return wraper
+        return wrapper
+    
+    @staticmethod
+    def on_error(exception_cls=BaseException):
+        """Decorator for a function that will handle exceptions
+        
+        Parameters
+        ----------
+        exception_cls: :class:`class`, optional
+            The type of the exception that should be handled; default Exception
+
+        Example
+        -------
+
+        .. code-block::
+
+            from discord.ext.commands import CheckFailure
+
+            class MyListener(Listener):
+                ...
+            # exception handler for checkfailures
+            @Listener.on_error(CheckFailure)
+            async def check_failure(self, ctx, exception):
+                await ctx.send("check failed: " + str(exception), hidden=True)
+            @Listener.on_error(Exception)
+            async def exception(self, ctx, exception):
+                await ctx.send("base exception occured " + str(exception))
+        
+        """
+        def wrapper(callback: Callable[[Listener, Union[ButtonInteraction, SelectInteraction], Exception], Coroutine[None, None, None]]):
+            callback.__on_error__ = True
+            callback.__exception_cls__ = exception_cls
+            return callback
+        return wrapper
+    @staticmethod
+    def wrong_user():
+        """Decorator for a function that will be called when a user that is not in `.target_users` tried
+        to use a component
+
+        Example
+        -------
+
+        .. code-block::
+
+            class MyListener(Listener):
+                def __init__(self):
+                    self.components = [Button()]
+                    self.target_users = [785567635802816595]
+                @Listener.button()
+                async def a_button(self, ctx):
+                    await ctx.send("you are allowed")
+                @Listener.wrong_user()
+                async def you_wrong(self, ctx):
+                    await ctx.send("this component is not for you")
+
+
+        """
+        def wrapper(callback):
+            callback.__wrong_user__ = True
+            return callback
+        return wrapper
 
     async def _call_listeners(self, interaction_component):
         listeners = self._get_listeners_for(interaction_component)
         if len(listeners) > 0:
             for listener in listeners:
-                await listener.invoke(interaction_component, self)
-        else:
+                if self._target_users is not None and not interaction_component.author.id in self._target_users:
+                    if self._wrong_user is not None:
+                        await self._wrong_user(interaction_component)
+                    raise WrongUser()
+                try:
+                    await listener.invoke(interaction_component, self)
+                except tuple([x for x in self._on_error]) as ex:
+                    handler = self._on_error.get(next(iter([x for x in self._on_error if isinstance(ex, x)]), None))
+                    if handler is not None:
+                        await handler(self, interaction_component, ex)
+                    else:
+                        raise ex
+        elif not self.supress_no_listener_found:
             raise NoListenerFound()
     def _get_listeners(self) -> Dict[str, List[_Listener]]:
         all_listeners = [x[1] for x in getmembers(self, predicate=lambda x: isinstance(x, _Listener))]
         listeners = {}
         for lister in all_listeners:
+            # prevent NoneType has no attribute 'append'
             if not listeners.get(lister.custom_id):
                 listeners[lister.custom_id] = []
             listeners[lister.custom_id].append(lister)
         return listeners
-    def _get_listeners_for(self, interaction_component: ComponentContext) -> _Listener:
+    def _get_listeners_for(self, interaction_component: ComponentContext) -> List[_Listener]:
         listeners = self._get_listeners()
-        listers = []
+        listers = listeners.get(AnyID, []) # fill list with any_id listeners directly
         for listener in listeners.get(interaction_component.custom_id, []):
-            if hasattr(self, 'target_user') and self.target_user.id != interaction_component.author.id:
-                continue
             if listener.type == interaction_component.component_type:
                 if listener.target_values is not None:
                     if sorted(interaction_component.data["values"]) == sorted(listener.target_values):
@@ -365,14 +478,15 @@ class Listener():
         logging.debug("deleted listener")
     def _start(self, message):
         self.message = message
-        self._state: ConnectionState = message._state
+        self._state: discord.state.ConnectionState = message._state
         self._target_message_id = str(self.message.id)
         self._state._component_listeners[self._target_message_id] = self
         
-        # region removal
         loop = asyncio.get_event_loop()
+        # call deletion function later
         if getattr(self, 'timeout', None) is not None:
-                loop.call_later(self.timeout, self._stop)
+            loop.call_later(self.timeout, self._stop)
+    
     def attach_me_to(self, message):
         """Attaches this listener to a message after it was sent
         

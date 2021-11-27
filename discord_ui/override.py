@@ -6,37 +6,20 @@
     And last but not least, if you're using dpy 2, the discord.ext.commands.Bot will be overriden with our
     own class, which enables `enable_debug_events` in order for our lib to work
 """
-
-import asyncio
 from .tools import MISSING
-from .receive import Message, WebhookMessage
-from .http import jsonifyMessage, BetterRoute, send_files
+from .receive import Message
+from .http import get_message_payload, BetterRoute, send_files
 
 import discord
-from discord.ext import commands
 
 import sys
 
-def override_dpy2_client():
-    module = sys.modules["discord"]
-
-    class OverridenV2Bot(commands.bot.Bot):
-        """A overriden client that enables `enable_debug_events` for receiving the events"""
-        def __init__(self, command_prefix, help_command = None, description = None, **options):
-            commands.bot.Bot.__init__(self, command_prefix, help_command=help_command, description=description, enable_debug_events=True, **options)
-
-    def client_override(cls, *args, **kwargs):
-        if cls is commands.bot.Bot:
-            return object.__new__(OverridenV2Bot)
-        else:
-            return object.__new__(cls)
-
-    if discord.__version__.startswith("2"):
-        module.ext.commands.bot.Bot.__new__ = client_override
-    sys.modules["discord"] = module
 def override_dpy():
-    """This method overrides dpy methods. You shouldn't need to use this method by your own, the lib overrides everything by default"""
-    module = sys.modules["discord"]
+    """This function overrides default dpy objects. 
+    You shouldn't need to use this method by your own, the lib overrides everything that needs to be 
+    overriden by default"""
+    # override for dpy forks
+    module = sys.modules[discord.__name__]
 
     #region message override
     async def send(self: discord.TextChannel, content=None, **kwargs) -> Message:
@@ -50,7 +33,7 @@ def override_dpy():
             kwargs["components"] = listener.to_components()
         r = None
         if kwargs.get("file") is None and kwargs.get("files") is None:
-            payload = jsonifyMessage(content=content, **kwargs)
+            payload = get_message_payload(content=content, **kwargs)
             r = await self._state.http.request(route, json=payload)
         else:
             if kwargs.get("file") is not None:
@@ -58,12 +41,12 @@ def override_dpy():
             elif kwargs.get("files") is not None:
                 files = kwargs.pop("files")
             
-            payload = jsonifyMessage(content=content, **kwargs)
+            payload = get_message_payload(content=content, **kwargs)
             r = await send_files(route, files=files, payload=payload, http=self._state.http)
         
         msg = Message(state=self._state, channel=channel, data=r)
         if kwargs.get("delete_after") is not None:
-            await msg.delete(delay=kwargs.get("delete_after"))
+            await msg.delete(delay=kwargs.pop("delete_after"))
     
         if listener is not None:
             listener._start(msg)
@@ -81,13 +64,8 @@ def override_dpy():
     #endregion
 
     #region webhook override
-    def webhook_message_override(cls, *args, **kwargs):
-        if cls is discord.webhook.WebhookMessage:
-            return object.__new__(WebhookMessage)
-        else:
-            return object.__new__(cls)
     def send_webhook(self: discord.Webhook, content=MISSING, *, wait=False, username=MISSING, avatar_url=MISSING, tts=False, files=None, embed=MISSING, embeds=MISSING, allowed_mentions=MISSING, components=MISSING):
-        payload = jsonifyMessage(content, tts=tts, embed=embed, embeds=embeds, allowed_mentions=allowed_mentions, components=components)
+        payload = get_message_payload(content, tts=tts, embed=embed, embeds=embeds, allowed_mentions=allowed_mentions, components=components)
 
         if username is not None:
             payload["username"] = username
@@ -97,8 +75,7 @@ def override_dpy():
         return self._adapter.execute_webhook(payload=payload, wait=wait, files=files)
 
     module.webhook.Webhook.send = send_webhook
-    module.webhook.WebhookMessage.__new__ = webhook_message_override
     #endregion
 
-
-    sys.modules["discord"] = module
+    # override for dpy forks
+    sys.modules[discord.__name__] = module

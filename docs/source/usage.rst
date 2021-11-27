@@ -79,13 +79,13 @@ And to send them, we use
 
     ...
     await ui.components.send(message.channel, "Hello World", components=[
-        Button("my_custom_id", "press me", "green"),
-        Button("my_other_custom_id", "or press me!", emoji="😁", new_line=True),
-        SelectMenu("another_custom_id", options=[
+        Button("press me", "my_custom_id", "green"),
+        Button("or press me!", "my_other_custom_id", emoji="😁", new_line=True),
+        SelectMenu(options=[
                 SelectOption("choose me", 1),
                 SelectOption("or me", 2),
                 SelectOption("or me", 3)
-        ], placeholder="Select something")
+        ], "another_custom_id", placeholder="Select something")
     ])
 
 **Overriden**
@@ -94,13 +94,13 @@ And to send them, we use
 
     ...
     await message.channel.send(message.channel, "Hello World", components=[
-        Button("my_custom_id", "press me", "green"),
-        Button("my_other_custom_id", "or press me!", emoji="😁", new_line=True),
-        SelectMenu("another_custom_id", options=[
+        Button("press me", "my_custom_id", "green"),
+        Button("or press me!", "my_other_custom_id", emoji="😁", new_line=True),
+        SelectMenu(options=[
                 SelectOption("choose me", 1),
                 SelectOption("or me", 2),
                 SelectOption("or me", 3)
-        ], placeholder="Select something")
+        ], "another_custom_id", placeholder="Select something")
     ])
 
 The message
@@ -134,17 +134,17 @@ Now that we sent some components, how do we receive them?
 Receiving
 ~~~~~~~~~~~~~~~
 
-To receive a button press or a selection, we can listen to the ``button_press`` and the ``menu_select`` events
+To receive a button press or a selection, we can listen to the ``button`` and the ``select`` events
 
 
 **Button**
 
 .. code-block::
 
-    @client.listen('on_button_press')
+    @client.listen('on_button')
     async def on_button(btn):
         # respond
-        await btn.respond("you clicked on " + btn.content)
+        await btn.respond("you clicked on " + btn.component.content)
 
 .. image:: images/components/press_button_example.gif
    :width: 600
@@ -157,7 +157,7 @@ If you want to acces the message on which the button is, you use ``btn.messsage`
 
 .. code-block::
 
-    @client.listen('on_menu_select')
+    @client.listen('on_select')
     async def on_menu(menu):
         # respond
         await menu.respond("you selected " + ', '.join([value.content for value in menu.selected_options]))
@@ -194,7 +194,7 @@ You can send a message and directly wait for a button press and respond to it
         if message.content == "!test":
             btn = await (
                 await ui.components.send(message.channel, "hello", components=[
-                    Button("custom_id", "there")
+                    Button("there", "custom_id")
                 ])
             ).wait_for("button", client)
             await btn.respond("you pressed a button")
@@ -208,7 +208,7 @@ You can send a message and directly wait for a button press and respond to it
         if message.content == "!test":
             btn = await (
                 await message.channel.send(message.channel, "hello", components=[
-                    Button("custom_id", "there")
+                    Button("there", "custom_id")
                 ])
             ).wait_for("button", client)
             await btn.respond("you pressed a button")
@@ -234,8 +234,12 @@ Sending the components
     async def on_message(message):
         if message.content == "!test":
             await message.channel.send(message.channel, "listening", components=[
-                    Button("listening", "hi there"),
-                    SelectMenu("listening", options=[SelectOption(label="This is a option", value="my_value", description="This is the description of the option")])
+                    Button("hi there", "listening"),
+                    SelectMenu(
+                        options=[
+                            SelectOption(label="This is a option", value="my_value", description="This is the description of the option")
+                        ], custom_id="listening"
+                    )
                 ]
             )
 
@@ -247,8 +251,8 @@ Sending the components
     async def on_message(message):
         if message.content == "!test":
             await message.channel.send(message.channel, "listening", components=[
-                    Button("listening", "hi there"),
-                    SelectMenu("listening", options=[SelectOption(label="This is a option", value="my_value", description="This is the description of the option")])
+                    Button("hi there", "listening"),
+                    SelectMenu(options=[SelectOption(label="This is a option", value="my_value", description="This is the description of the option")], "listening")
                 ]
             )
 
@@ -482,7 +486,7 @@ To use that feature, you need to change two things with :class:`~SlashOption`
 
 .. code-block::
 
-    async def my_generator(ctx: ChoiceGeneratorContext):
+    async def my_generator(ctx: AutocompleteInteraction):
         ...
         return [choices here]
 
@@ -496,7 +500,7 @@ For example
 
 .. code-block::
 
-    async def my_generator(ctx: ChoiceGeneratorContext):
+    async def my_generator(ctx: AutocompleteInteraction):
         ...
         return [{"name": "a choice name", "value": "yeah"}, ("other choice", "other value")]
 
@@ -504,7 +508,7 @@ You can change the options based on the "query" the user has already typed
 
 .. code-block::
 
-    async def my_generator(ctx: ChoiceGeneratorContext):
+    async def my_generator(ctx: AutocompleteInteraction):
         available_choices = ["hello", "hellow", "world", "warudo", "this", "is", "a", "test"]
         return [(x, x) for x in available_choices if x.startswith(ctx.value_query)]
 
@@ -513,7 +517,7 @@ You can also generate choices based on other options that were already selected.
 This example filters user that have the role passed in the "staff" option
 .. code-block::
 
-    async def my_generator(ctx: ChoiceGeneratorContext):
+    async def my_generator(ctx: AutocompleteInteraction):
         role: discord.Role = ctx.selected_options["staff"]
         members = role.guild.fetch_members().filter(predicate=lambda x: x.get_role(role.id))
         return [(x.name, str(x.id)) async for x in members]
@@ -555,7 +559,7 @@ would look like this
 
 subcommand group
 ------------------
-A subcommand group is a group of subucommands, you could see it like a subcommand of a subcommand
+A subcommand group is a group of subcommands, you could see it like a subcommand of a subcommand
 
 
 .. code-block::
@@ -583,7 +587,7 @@ Would look like this
 
 context-commands
 -----------------
-discord added a new feature called context-commands, which are basically slash commands, but focusing on messages and users
+context-commands are basically slash commands, but focusing on messages and users
 
 To create a message command, which can be used when right-clicking a message, we use
 
@@ -712,5 +716,35 @@ You can set the color of a button with many ways
     Button(..., color="rEd")                        # red button
     Button(..., color="danger")                     # red button
     Button(..., color="DANger")                     # red button
-    Button(..., color=ButtonStyles.red)             # red button
-    Button(..., color=ButtonStyles.Danger)          # red button
+    Button(..., color=ButtonStyle.Red)              # red button
+    Button(..., color=ButtonStyle.Destructive)      # red button
+
+autocompletion
+---------------
+
+For autocompletion you dont have to pass the ``autocomplete`` parameter to the option, 
+if you pass ``generator``, ``autocomplete`` will be automatically set to ``True``
+
+.. code-block::
+
+    async def my_generator(ctx: AutocompleteInteraction):
+        ...
+        return [choices here]
+
+    @ui.slash.command(options=[SlashOption(str, "name", generator=my_generator, required=True)])
+    async def my_command(ctx, name):
+        ...
+
+You can set set the generator for the autocompletion with a decorator
+
+
+.. code-block::
+
+    @ui.slash.command(options=[SlashOption(str, "name", required=True)])
+    async def my_command(ctx, name):
+        ...
+
+    # set the generator
+    @my_command.options[0].autocomplete_function        # you could also use my_command.options["name"]
+    async def my_generator(ctx: AutocompletInteraction):
+        return [...]

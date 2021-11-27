@@ -2,14 +2,14 @@
 discord-ui extension
 ~~~~~~~~~~~~~~~~~~~~
 
-A discord.py extension for discord's ui features like Buttons, SelectMenus, LinkButtons slash-commands and context-commands (message-commands and user-commands)
+A discord.py extension for discord's ui features like Buttons, SelectMenus, LinkButtons, 
+slash-commands and context-commands (message-commands and user-commands).
 
-This libary features sending components, creating application-commands and receiving them
 
 - - -
 
 Links
-    [Docs](https://discord-ui.rtfd.io/) | [Github](https://github.com/discord-py-ui/discord-ui/) | [PyPi](https://pypi.org/project/discord-ui/) | [License](https://github.com/git/git-scm.com/blob/main/MIT-LICENSE.txt)
+    [**Docs**](https://discord-ui.rtfd.io/) | [**Github**](https://github.com/discord-py-ui/discord-ui/) | [**PyPi**](https://pypi.org/project/discord-ui/) | [**License**](https://github.com/git/git-scm.com/blob/main/MIT-LICENSE.txt)
 
 - Made by [404kuso](https://github.com/404kuso) and [RedstoneZockt](https://github.com/RedstoneZockt)
 - Made for [discord.py](https://github.com/Rapptz/discord.py) and you
@@ -31,22 +31,21 @@ If you need any help or assist, join our [discord](https://discord.gg/bDJCGD994p
 """
 
 
-from .client import Components, Slash, UI
-from .components import ActionRow, Button, LinkButton, SelectMenu, SelectOption, ButtonStyles
-from .slash.types import OptionType, SlashPermission, SlashOption
-from .slash.tools import ParseMethod
-from .tools import components_to_dict
-from .slash.tools import create_choice
-from .receive import Interaction, InteractionType, Message, WebhookMessage, PressedButton, SelectedMenu, ComponentContext, SlashedCommand, SlashedSubCommand, EphemeralMessage, EphemeralResponseMessage, ChoiceGeneratorContext
+from .client import *
+from .components import *
+from .slash.types import *
+from .slash.tools import *
+from .tools import *
+from .slash.tools import *
+from .receive import *
+from .listener import *
 from .slash import ext
-from .listener import Listener
+from .enums import ButtonStyle, OptionType, Channel, Mentionable
 
-from .override import override_dpy, override_dpy2_client
-override_dpy2_client()
+
+from .override import override_dpy
 
 
 __title__ = "discord-ui"
-__version__ = "5.0.2"
-
-if __version__.endswith("a"):
-    print("Warning: This version is a preview version and can contain some issues!")
+__version__ = "5.1.0"
+__author__ = "404kuso, RedstoneZockt"

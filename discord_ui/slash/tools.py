@@ -1,13 +1,22 @@
-from .types import AdditionalType, OptionType
+from .types import OptionType
 from ..tools import get, setup_logger
 from ..errors import CouldNotParse
+from ..enums import Channel, Mentionable
 
 import discord
-from discord.enums import ChannelType
 
 import typing
 
 logging = setup_logger(__name__)
+
+__all__ = (
+    'ParseMethod',
+    'create_choice',
+)
+
+class AdditionalType:
+    MESSAGE     =       44
+    GUILD       =       45
 
 class ParseMethod:
     """Methods of how the interaction argument data should be treated
@@ -60,21 +69,21 @@ def resolve(data, _state):
 
                 guild = _state._get_guild(data["guild_id"])
                 channel = None
-                if ChannelType(channel_data["type"]) is ChannelType.text:
+                if discord.enums.ChannelType(channel_data["type"]) is discord.enums.ChannelType.text:
                     channel = discord.TextChannel(data=channel_data, guild=guild, state=_state)
-                elif ChannelType(channel_data["type"]) is ChannelType.voice:
+                elif discord.enums.ChannelType(channel_data["type"]) is discord.enums.ChannelType.voice:
                     channel = discord.VoiceChannel(data=channel_data, guild=guild, state=_state)
-                elif ChannelType(channel_data["type"]) is ChannelType.category:
+                elif discord.enums.ChannelType(channel_data["type"]) is discord.enums.ChannelType.category:
                     channel = discord.CategoryChannel(data=channel_data, guild=guild, state=_state)
-                elif ChannelType(channel_data["type"]) is ChannelType.group:
+                elif discord.enums.ChannelType(channel_data["type"]) is discord.enums.ChannelType.group:
                     channel = discord.GroupChannel(data=channel_data, guild=guild, state=_state)
-                elif ChannelType(channel_data["type"]) is ChannelType.news:
+                elif discord.enums.ChannelType(channel_data["type"]) is discord.enums.ChannelType.news:
                     channel = discord.NewsChannel(data=channel_data, guild=guild, state=_state)
-                elif ChannelType(channel_data["type"]) is ChannelType.private:
+                elif discord.enums.ChannelType(channel_data["type"]) is discord.enums.ChannelType.private:
                     channel = discord.DMChannel(data=channel_data, guild=guild, state=_state)
-                elif ChannelType(channel_data["type"]) is ChannelType.store:
+                elif discord.enums.ChannelType(channel_data["type"]) is discord.enums.ChannelType.store:
                     channel = discord.StoreChannel(data=channel_data, guild=guild, state=_state)
-                elif ChannelType(channel_data["type"]) is ChannelType.stage_voice:
+                elif discord.enums.ChannelType(channel_data["type"]) is discord.enums.ChannelType.stage_voice:
                     channel = discord.StageChannel(data=channel_data, guild=guild, state=_state)
                 resolved["channels"][channel_id] = channel
         elif x == "roles":
@@ -111,6 +120,8 @@ def resolve_data(value, typ, data, state):
         return resolved["roles"].get(value)
     elif typ == OptionType.CHANNEL:
         return resolved["channels"].get(value)
+    elif typ == OptionType.MENTIONABLE:
+        return list(resolved.values())[0].get(value)
     elif typ == AdditionalType.MESSAGE:
         return resolved["messages"].get(value)
     else:
@@ -145,7 +156,7 @@ async def handle_options(data, options, method, _discord: discord.Client):
             _options[op["name"]] = parsed
     return _options
 
-async def handle_thing(value, typ, data, method, _discord, auto=False) -> typing.Union[str, int, bool, discord.Member, discord.TextChannel, discord.Role, float, discord.Message, discord.Guild]:
+async def handle_thing(value, typ, data, method, _discord, auto=False) -> typing.Union[str, int, bool, discord.Member, Channel, discord.Role, float, Mentionable, discord.Message, discord.Guild]:
     logging.debug("Trying to handle val " + str(value) + " type " + str(typ) +  " with method " + str(method) + " auto is" + str(auto))
     typ = int(typ)
     if method is ParseMethod.RESOLVE or method is ParseMethod.AUTO:
@@ -192,15 +203,15 @@ def create_choice(name, value) -> dict:
     
     Parameters
     ----------
-        name: :class:`str`
-            The name of the choice
-        value: :class:`Any`
-            The value that will be received when the user selected this choice
+    name: :class:`str`
+        The name of the choice
+    value: :class:`Any`
+        The value that will be received when the user selected this choice
     
     Returns
     -------
-        :returns: The created choice
-        :type: :class:`dict`
+    :class:`dict`
+        The created choice
     
     """
     return {"name": name, "value": value}

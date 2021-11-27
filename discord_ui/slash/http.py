@@ -1,9 +1,11 @@
+from .errors import NoCommandFound
 from ..tools import get, setup_logger
 from ..http import BetterRoute, handle_rate_limit, send_files
 
-from discord.ext import commands as com
+from discord.http import HTTPClient
 from discord.state import ConnectionState
-from discord.errors import Forbidden, HTTPException, NotFound
+from discord import NotFound, HTTPException, Forbidden
+
 
 import aiohttp
 
@@ -11,32 +13,41 @@ logging = setup_logger(__name__)
 
 class SlashHTTP():
     def __init__(self, client) -> None:
-        self._http = client.http
-        self.token = client._connection.http.token
-        self.application_id = client.user.id
+        self._http: HTTPClient = client.http
+        self.token: str = client._connection.http.token
+        self.application_id: int = client.user.id
     async def respond_to(self, interaction_id, interaction_token, response_type, data=None, files=None):
         route = BetterRoute("POST", f'/interactions/{interaction_id}/{interaction_token}/callback')
         payload = {
-            "type": response_type
+            "type": getattr(response_type, "value", response_type)
         }
         if data:
             payload["data"] = data
         if files is not None:
             return await send_files(route, files, payload, self._http)
         return await self._http.request(route, json=payload)
-    async def get_command(self, command_name, guild_id=None):
+    async def fetch_command(self, id, guild_id=None):
+        try:
+            if guild_id:
+                return await self._http.request(BetterRoute("GET",f"/applications/{self.application_id}/guilds/{guild_id}/commands/{id}"))
+            return await self._http.request(BetterRoute("GET", f"/applications/{self.application_id}/commands/{id}"))
+        except HTTPException as ex:
+            if ex.status == 429:
+                await handle_rate_limit(await ex.response.json())
+                return await self.fetch_command(id, guild_id)
+            raise ex
+    async def get_command(self, command_name, guild_id=None, type=None):
         return get(
             (
                 await self.get_global_commands()
             ) if guild_id is None else (
                 await self.get_guild_commands(guild_id)
-            ),
-            command_name, lambda x: x.get("name")
+            ), check=lambda x: x.get("name") == command_name and (type or x.get("type")) == x.get("type")
         )
-    async def get_id(self, command_name, guild_id=None):
-        found = (await self.get_command(command_name, guild_id))
+    async def get_id(self, command_name, guild_id=None, type=None):
+        found = await self.get_command(command_name, guild_id, getattr(type, "value", type))
         if found is None:
-            raise Exception("No slash command found with name '" + command_name + "'")
+            raise NoCommandFound("No command found with name '" + command_name + "'")
         return found.get('id')
 
     async def delete_global_commands(self):
@@ -66,9 +77,6 @@ class SlashHTTP():
             if ex.status == 429:
                 await handle_rate_limit(await ex.response.json())
                 return await self.delete_guild_command(command_id, guild_id)
-            else:
-                raise ex
-        except Exception as ex:
             raise ex
 
     async def get_command_permissions(self, command_id, guild_id):
@@ -156,3 +164,4 @@ class SlashHTTP():
 # just for typing
 class ModifiedSlashState(ConnectionState):
     slash_http: SlashHTTP = None
+    http: HTTPClient

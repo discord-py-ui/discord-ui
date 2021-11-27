@@ -9,7 +9,7 @@
 
 import asyncio
 from discord.ext import commands
-from discord_ui import SlashedCommand, UI, Button
+from discord_ui import SlashInteraction, UI, Button
 from discord_ui.components import LinkButton
 
 # The main discord bot client
@@ -20,10 +20,10 @@ ui = UI(client)
 
 # A component list for the calculator
 calculator = [
-    [Button("num_7", "7", "blurple"), Button("num_8", "8", "blurple"), Button("num_9", "9", "blurple"), Button("plu", "+", "green"), Button("close", ")", "green")],
-    [Button("num_4", "4", "blurple"), Button("num_5", "5", "blurple"), Button("num_6", "6", "blurple"), Button("sub", "-", "green"), Button("open", "(", "green")],
-    [Button("num_1", "1", "blurple"), Button("num_2", "2", "blurple"), Button("num_3", "3", "blurple"), Button("mult", "*", "green"), Button("backs", "⌫", "red")],
-    [Button("pun", ".", "green"), Button("num_0", "0", "blurple"), Button("equ", "=", "gray"), Button("div", "/", "green"), Button("cls", "C", "red")],
+    [Button("7", color="blurple"), Button("8", color="blurple"), Button("9", color="blurple"), Button("+", color="green"), Button(")", color="green")],
+    [Button("4", color="blurple"), Button("5", color="blurple"), Button("6", color="blurple"), Button("-", color="green"), Button("(", color="green")],
+    [Button("1", color="blurple"), Button("2", color="blurple"), Button("3", color="blurple"), Button("*", color="green"), Button("⌫", "backs", "red")],
+    [Button(".", color="green"), Button("0", color="blurple"), Button("=", color="gray"), Button("/", color="green"), Button("C", "cls", "red")],   
     LinkButton("https://github.com/discord-py-ui/discord-ui/tree/main/examples/calculator.py", "ヾ(≧▽≦*) click here for source code ヾ(≧▽≦*)")
 ]
 
@@ -31,7 +31,7 @@ calculator = [
 
 # Create a slash command
 @ui.slash.command(name="calculator", description="opens a calculator, that will automatically close when no input was provided after 20 seconds", guild_ids=[785567635802816595])
-async def test(ctx: SlashedCommand):
+async def test(ctx: SlashInteraction):
     # The current query for the calculator
     query = ""
     # Send the calculato, \u200b is an 'empty' char
@@ -42,8 +42,8 @@ async def test(ctx: SlashedCommand):
         try:
             # Wait for a button press with a timeout of 20 seconds
             btn = await msg.wait_for("button", client, timeout=20)
-            # Respond to the button, that it was received
-            await btn.respond(ninja_mode=True)
+            # Respond to the button
+            await btn.respond()
             # If the button was the equal button
             if btn.custom_id == "equ":
                 try:
@@ -76,6 +76,7 @@ async def test(ctx: SlashedCommand):
         # When 20 seconds passed without input (we set the timeout to 20 seconds)
         except asyncio.TimeoutError:
             # Delete the calculator
+            # if you don't want to delete the calculator, just comment the next line out
             await msg.delete()
             # Break out of the inifite loop
             break

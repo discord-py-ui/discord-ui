@@ -1,20 +1,27 @@
-from .components import ComponentType
-from .slash.types import BaseCommand, MessageCommand, SlashCommand, SlashSubcommand, UserCommand
+from __future__ import annotations
+
+
+from .tools import EMPTY_CHECK
+from .slash.types import BaseCommand, ContextCommand, MessageCommand, SlashCommand, SlashSubcommand, UserCommand
+from .receive import ButtonInteraction, SelectInteraction
+from .enums import ComponentType
+from .tools import deprecated
 
 import discord
 from discord.errors import InvalidArgument
-from discord.ext.commands import errors
-from discord.ext.commands.cooldowns import BucketType, CooldownMapping
+from discord.ext.commands import Cog, CheckFailure, CooldownMapping, BucketType, CommandOnCooldown
 
+import inspect
 import asyncio
 import datetime
-from typing import Optional
+from typing import Any, Callable, Coroutine, Optional, List, Union
 try:
     from typing import Literal
 except ImportError:
     from typing_extensions import Literal
 
-class WrongListener(errors.CheckFailure):
+# region classes
+class WrongListener(CheckFailure):
     """
     Exception raised when a listening component received a component event that doesn't meet the check conditions
 
@@ -69,12 +76,13 @@ class BaseCallable():
             self.after_invoke(after_invoke)
 
         self.on_error = None
+        self.on_cooldown = None
         
     async def __call__(self, *args, **kwds):
-        return self.callback(*args, **kwds)
+        return await self.invoke(*args, **kwds)
     async def invoke(self, ctx, *args, **kwargs):
         if not await self.can_run(ctx):
-            raise errors.CheckFailure()
+            raise CheckFailure()
         if self._before_invoke is not None:
             await self._before_invoke(ctx)
 
@@ -83,9 +91,14 @@ class BaseCallable():
         try:
             # cooldown checks
             self._prepare_cooldowns(ctx)
-        except Exception:
+        except Exception as c:
             if self._max_concurrency is not None:
                 await self._max_concurrency.release(ctx)
+            if self.on_cooldown:
+                if hasattr(self, "cog"):
+                    await self.on_cooldown(self.cog, ctx, c)
+                else:
+                    self.on_cooldown(ctx, c)
             raise
         try:
             if hasattr(self, "cog"):
@@ -93,10 +106,13 @@ class BaseCallable():
             else:
                 await self.callback(ctx, *args, **kwargs)
         except Exception as ex:
-            if not self.on_error:
-                raise ex
+            if getattr(self, "on_error", None) is None:
+                raise
             else:
-                self.on_error(getattr(self, "cog", None), ctx, ex)
+                if hasattr(self, "cog"):
+                    self.on_error(self.cog, ctx, ex)
+                else:
+                    self.on_error(ctx, ex)
         if self._after_invoke is not None:
             await self._after_invoke(ctx)
     async def can_run(self, ctx):
@@ -115,13 +131,19 @@ class BaseCallable():
         self.__commands_checks__.remove(check)
     def _prepare_cooldowns(self, ctx) -> None:
         if self._buckets.valid:
-            dt = ctx.message.edited_at or ctx.message.created_at
+            # changed for slashcommands
+            dt = ctx.created_at
             current = dt.replace(tzinfo=datetime.timezone.utc).timestamp()
-            bucket = self._buckets.get_bucket(ctx.message, current)
+            bucket = self._buckets.get_bucket(ctx.message if ctx.message is not None else ctx, current)
             if bucket is not None:
-                retry_after = bucket.update_rate_limit(current)
+                if discord.__version__.startswith("2"):
+                    retry_after = bucket.update_rate_limit(ctx, current)
+                else:
+                    retry_after = bucket.update_rate_limit(current)
                 if retry_after:
-                    raise CommandOnCooldown(bucket, retry_after, self._buckets.type)  # type: ignore
+                    if discord.__version__.startswith("2"):
+                        raise CommandOnCooldown(bucket, retry_after, self._buckets.type)
+                    raise CommandOnCooldown(bucket, retry_after)
 
     def is_on_cooldown(self, ctx) -> bool:
         """
@@ -204,6 +226,26 @@ class BaseCallable():
 
         self.on_error = coro
         return coro
+    def cooldown(self, coro):
+        """
+        A decorator that registers a coroutine as a local cooldown error handler.
+        The actual cooldown exception will still be thrown.
+        
+        
+        Parameters
+        -----------
+        coro: :ref:`coroutine <coroutine>`
+            The coroutine to register as the local error handler.
+
+        Raises
+        -------
+        TypeError
+            The coroutine passed is not actually a coroutine.
+        """
+        if not asyncio.iscoroutinefunction(coro):
+            raise TypeError('The error handler must be a coroutine.')
+        
+        self.on_cooldown = coro
     def has_error_handler(self) -> bool:
         """
         :class:`bool`: Checks whether the command has an error handler registered.
@@ -219,8 +261,8 @@ class BaseCallable():
         called. This makes it a useful function to set up database
         connections or any type of set up required.
 
-        This post-invoke function takes a sole parameter, one of :class:`~SlashedCommand` | :class:`~SlashedSubCommand` | 
-        :class:`~SlashedContext` | :class:`~PressedButton` | :class:`SelectedMenu`, depending on what this is used for
+        This post-invoke function takes a sole parameter, one of :class:`~SlashInteraction` | :class:`~SubSlashInteraction` | 
+        :class:`~ContextInteraction` | :class:`~ButtonInteraction` | :class:`SelectInteraction`, depending on what this is used for
 
         Parameters
         -----------
@@ -245,8 +287,8 @@ class BaseCallable():
         called. This makes it a useful function to clean-up database
         connections or any type of clean up required.
 
-        This post-invoke function takes a sole parameter, one of :class:`~SlashedCommand` | :class:`~SlashedSubCommand` | 
-        :class:`~SlashedContext` | :class:`~PressedButton` | :class:`SelectedMenu`, depending on what this is used for
+        This post-invoke function takes a sole parameter, one of :class:`~SlashInteraction` | :class:`~SubSlashInteraction` | 
+        :class:`~ContextInteraction` | :class:`~ButtonInteraction` | :class:`SelectInteraction`, depending on what this is used for
 
 
         Parameters
@@ -274,8 +316,8 @@ class CogCommand(BaseSlash, SlashCommand):
     def __init__(self, *args, **kwargs) -> None:
         SlashCommand.__init__(self, *args, **kwargs)
         BaseSlash.__init__(self, args[0])
-    def copy(self) -> 'CogCommand':
-        c = CogCommand(self.callback, self.name, self.description, self.options, self.guild_ids, self.default_permission, self.guild_permissions)
+    def copy(self) -> CogCommand:
+        c = self.__class__(self.callback, self.name, self.description, self.options, self.guild_ids, self.default_permission, self.guild_permissions)
         for x in self.__slots__:
             setattr(c, x, getattr(self, x, None))
         return c
@@ -283,8 +325,8 @@ class CogSubCommandGroup(BaseSlash, SlashSubcommand):
     def __init__(self, *args, **kwargs) -> None:
         SlashSubcommand.__init__(self, *args, **kwargs)
         BaseSlash.__init__(self, args[0])
-    def copy(self) -> 'CogSubCommandGroup':
-        c = CogSubCommandGroup(self.callback, self.base_names, self.name, self.description, self.options, self.guild_ids, self.default_permission, self.guild_permissions)
+    def copy(self) -> CogSubCommandGroup:
+        c = self.__class__(self.callback, self.base_names, self.name, self.description, self.options, self.guild_ids, self.default_permission, self.guild_permissions)
         for x in self.__slots__:
             setattr(c, x, getattr(self, x, None))
         return c
@@ -292,8 +334,8 @@ class CogMessageCommand(BaseSlash, MessageCommand):
     def __init__(self, *args, **kwargs) -> None:
         MessageCommand.__init__(self, *args, **kwargs)
         BaseSlash.__init__(self, args[0])
-    def copy(self) -> 'CogMessageCommand':
-        c = CogMessageCommand(self.callback, self.name, self.guild_ids, self.default_permission, self.guild_permissions)
+    def copy(self) -> CogMessageCommand:
+        c = self.__class__(self.callback, self.name, self.guild_ids, self.default_permission, self.guild_permissions)
         for x in self.__slots__:
             setattr(c, x, getattr(self, x, None))
         return c
@@ -301,8 +343,8 @@ class CogUserCommand(BaseSlash, UserCommand):
     def __init__(self, *args, **kwargs) -> None:
         UserCommand.__init__(self, *args, **kwargs)
         BaseSlash.__init__(self, args[0])
-    def copy(self) -> 'CogUserCommand':
-        c = CogUserCommand(self.callback, self.name, self.guild_ids, self.default_permission, self.guild_permissions)
+    def copy(self) -> CogUserCommand:
+        c = self.__class__(self.callback, self.name, self.guild_ids, self.default_permission, self.guild_permissions)
         for x in self.__slots__:
             setattr(c, x, getattr(self, x, None))
         return c
@@ -326,8 +368,9 @@ class ListeningComponent(BaseCallable):
             return True
         self.add_check(predicate)
         self.custom_id = custom_id
+# endregion
 
-def slash_cog(name=None, description=None, options=[], guild_ids=None, default_permission=None, guild_permissions=None):
+def slash_command(name=None, description=None, options=None, guild_ids=None, default_permission=None, guild_permissions=None):
     """
     A decorator for cogs that will register a slashcommand
     
@@ -364,7 +407,7 @@ def slash_cog(name=None, description=None, options=[], guild_ids=None, default_p
     callback: :class:`method(ctx)` 
         The asynchron function that will be called if the command was used
         
-        ctx: :class:`~SlashedCommand`
+        ctx: :class:`~SlashInteraction`
             The used slash command
 
         .. note::
@@ -379,8 +422,8 @@ def slash_cog(name=None, description=None, options=[], guild_ids=None, default_p
         class My_Cog(commands.Cog)
             ... 
 
-            @slash_cog(name="hello_world", options=[
-                SlashOption(str, name="parameter", description="this is a parameter", choices=[{ "name": "choice 1", "value": "test" }])
+            @slash_command(name="hello_world", options=[
+            SlashOption(str, name="parameter", description="this is a parameter", choices=[{ "name": "choice 1", "value": "test" }])
             ], guild_ids=[785567635802816595], default_permission=False, 
             guild_permissions={
                     785567635802816595: SlashPermission(allowed={"539459006847254542": SlashPermission.USER})
@@ -389,10 +432,10 @@ def slash_cog(name=None, description=None, options=[], guild_ids=None, default_p
             async def hello_world(self, ctx, parameter = None):
                 ...
     """
-    def wraper(callback):
+    def wrapper(callback):
         return CogCommand(callback, name, description, options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
-    return wraper
-def subslash_cog(base_names, name=None, description=None, options=[], guild_ids=None, default_permission=None, guild_permissions=None):
+    return wrapper
+def subslash_command(base_names, name=None, description=None, options=None, guild_ids=None, default_permission=None, guild_permissions=None):
     """
     A decorator for cogs that will register a subcommand/subcommand-group
   
@@ -433,7 +476,7 @@ def subslash_cog(base_names, name=None, description=None, options=[], guild_ids=
     ---------
     callback: :class:`method(ctx)`
         The asynchron function that will be called if the command was used
-            ctx: :class:`~SlashedSubCommand`
+            ctx: :class:`~SubSlashInteraction`
                 The used slash command
 
             .. note::
@@ -449,8 +492,8 @@ def subslash_cog(base_names, name=None, description=None, options=[], guild_ids=
         class My_Cog(commands.Cog):
             ...
 
-            @subslash_cog(base_names="hello", name="world", options=[
-                SlashOption(argument_type="user", name="user", description="the user to tell the holy words")
+            @subslash_command(base_names="hello", name="world", options=[
+                SlashOption(type="user", name="user", description="the user to tell the holy words")
             ], guild_ids=[785567635802816595])
             async def command(ctx, user):
                 ...
@@ -462,117 +505,175 @@ def subslash_cog(base_names, name=None, description=None, options=[], guild_ids=
         class My_Cog(commands.Cog):
             ...
 
-            @subslash_cog(base_names=["hello", "beautiful"], name="world", options=[
-                SlashOption(argument_type="user", name="user", description="the user to tell the holy words")
+            @subslash_command(base_names=["hello", "beautiful"], name="world", options=[
+                SlashOption(type="user", name="user", description="the user to tell the holy words")
             ], guild_ids=[785567635802816595])
             async def command(ctx, user):
                 ...
 
     """
-    def wraper(callback):
+    def wrapper(callback):
         return CogSubCommandGroup(callback, base_names, name, description=description, options=options, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
-    return wraper
-def context_cog(type: Literal["user", 2, "message", 3], name=None, guild_ids=None, default_permission=None, guild_permissions=None):
+    return wrapper
+
+def context_command(type: Literal["user", 2, "message", 3], name=None, guild_ids=None, default_permission=None, guild_permissions=None):
     """
     Decorator for cogs that will register a context command in discord
             ``Right-click message or user`` -> ``apps`` -> ``commands is displayed here``
 
     Parameters
     ----------
-        type: Literal[``'user'``, ``2`` | ``'message'`` | ``3``]
-            The type of the contextcommand. 
-                ``'user'`` and ``2`` are user-commands; ``'message'`` and ``3`` are message-commansd
-        name: :class:`str`, optional
-            The name of the command; default MISSING
-        guild_ids: List[:class:`str` | :class:`int`]
-            A list of guilds where the command can be used
-        default_permission: :class:`bool` | :class:`discord.Permissions`, optional
-            Permissions that a user needs to have in order to execute the command, default ``True``.
-                    If a bool was passed, it will indicate whether all users can use the command (``True``) or not (``False``)
-        guild_permissions: Dict[:class:`SlashPermission`], optional
-            Special permissions for guilds; default MISSING
+    type: Literal[``'user'``, ``2`` | ``'message'`` | ``3``]
+        The type of the contextcommand. 
+            ``'user'`` and ``2`` are user-commands; ``'message'`` and ``3`` are message-commansd
+    name: :class:`str`, optional
+        The name of the command; default MISSING
+    guild_ids: List[:class:`str` | :class:`int`]
+        A list of guilds where the command can be used
+    default_permission: :class:`bool` | :class:`discord.Permissions`, optional
+        Permissions that a user needs to have in order to execute the command, default ``True``.
+                If a bool was passed, it will indicate whether all users can use the command (``True``) or not (``False``)
+    guild_permissions: Dict[:class:`SlashPermission`], optional
+        Special permissions for guilds; default MISSING
 
     Decorator
     ---------
-
-        callback: :class:`method(ctx, message)`
-            The asynchron function that will be called if the command was used
-                ctx: :class:`~SlashedSubCommand`
-                    The used slash command
-                message: :class:`~Message`
-                    The message on which the command was used
-                
-                .. note::
-
-                    ``ctx`` and ``message`` are just example names, you can use whatever you want for that
+    callback: :class:`method(ctx, message)`
+        The asynchron function that will be called if the command was used
+            ctx: :class:`~SlashCommand`
+                The used slash command
+            message: :class:`~Message | :class:`discord.Member`
+                The message on which the command was used
+    Example
+    -------
     
-        Example
-        -------
-        
-        .. code-block::
+    .. code-block::
 
-            class My_Cog(commands.Cog):
+        class My_Cog(commands.Cog):
+            ...
+
+            # message command
+            @context_command(type="message", name="quote", guild_ids=[785567635802816595])
+            async def quote(ctx, message):
                 ...
-
-                # message command
-                @context_cog(type="message", name="quote", guild_ids=[785567635802816595])
-                async def quote(ctx, message):
-                    ...
-                
-                # user command
-                @context_cog(type="user", name="mention", guild_ids=[785567635802816595])
-                async def mention(ctx, user):
-                    ...
+            
+            # user command
+            @context_command(type="user", name="mention", guild_ids=[785567635802816595])
+            async def mention(ctx, user):
+                ...
         """
-    def wraper(callback):
+    def wrapper(callback):
         if type in ["user", 2]:
             return CogUserCommand(callback, name, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
         elif type in ["message", 3]:
             return CogMessageCommand(callback, name, guild_ids=guild_ids, default_permission=default_permission, guild_permissions=guild_permissions)
         else:
             raise InvalidArgument("Invalid context type! type has to be one of 'user', 1, 'message', 2!")
-    return wraper
-def listening_component_cog(custom_id, messages=None, users=None, component_type: Literal['button', 'select']=None, check=lambda _ctx: True):
+    return wrapper
+def user_command(name=None, guild_ids=None, default_permission=None, guild_permissions=None):
+    """Shortcut to :meth:`context_command(2, ...)`"""
+    return context_command(2, name, guild_ids, default_permission, guild_permissions)
+def message_command(name=None, guild_ids=None, default_permission=None, guild_permissions=None):
+    """Shortcut to :meth:`context_command(3, ...)`"""
+    return context_command(3, name, guild_ids, default_permission, guild_permissions)
+
+def listening_component(custom_id, messages=None, users=None, 
+    component_type: Literal['button', 'select']=None, 
+    check: Callable[[Union[ButtonInteraction, SelectInteraction]], bool]=EMPTY_CHECK
+):
     """
     Decorator for cogs that will register a listening component
 
     Parameters
     ----------
-        custom_id: :class:`str`
-            The custom_id of the components to listen to
-        messages: List[:class:`discord.Message` | :class:`int` :class:`str`], Optional
-            A list of messages or message ids to filter the listening component
-        users: List[:class:`discord.User` | :class:`discord.Member` | :class:`int` | :class:`str`], Optional
-            A list of users or user ids to filter
-        component_type: Literal[``'button'`` | ``'select'``]
-            What type the used component has to be of (select: SelectMenu, button: Button)
-        check: :class:`function`, Optional
-            A function that has to return True in order to invoke the listening component
-                The check function takes to parameters, the component and the message
+    custom_id: :class:`str`
+        The custom_id of the components to listen to
+    messages: List[:class:`discord.Message` | :class:`int` :class:`str`], Optional
+        A list of messages or message ids to filter the listening component
+    users: List[:class:`discord.User` | :class:`discord.Member` | :class:`int` | :class:`str`], Optional
+        A list of users or user ids to filter
+    component_type: Literal[``'button'`` | ``'select'``]
+        What type the used component has to be of (select: SelectMenu, button: Button)
+    check: :class:`function`, Optional
+        A function that has to return True in order to invoke the listening component
+            The check function takes to parameters, the component and the message
 
     Decorator
     ---------
-        callback: :class:`method(ctx)`
-            The asynchron function that will be called if a component with the custom_id was invoked
+    callback: :class:`method(ctx)`
+        The asynchron function that will be called if a component with the custom_id was invoked
 
-            There will be one parameters passed
+        There will be one parameters passed
 
-                ctx: :class:`~PressedButton` or :class:`~SelectedMenu`
-                    The invoked component
-                
-                .. note::
+            ctx: :class:`~ButtonInteraction` or :class:`~SelectInteraction`
+                The invoked component
+            
+            .. note::
 
-                    ``ctx`` is just an example name, you can use whatever you want for it
+                ``ctx`` is just an example name, you can use whatever you want for it
 
     Example
     -------
     
     .. code-block::
     
-        @ui.components.listening_component("custom_id", [539459006847254542], [53945900682362362])
+        @cogs.listening_component("custom_id", [539459006847254542], [53945900682362362], 'button')
         async def callback(ctx):
             ...
     """
-    def wraper(callback):
+    def wrapper(callback: Callable[[Cog, Union[ButtonInteraction, SelectInteraction]], Coroutine[Any, Any, Any]]):
         return ListeningComponent(callback, messages, users, component_type, check, custom_id)
-    return wraper
+    return wrapper
+
+# region deprecated
+@deprecated("slash_command")
+def slash_cog(*args, **kwargs):
+    """Deprecated, use :meth:`~slash_command` insetad"""
+    return slash_command(*args, **kwargs)
+@deprecated("subslash_command")
+def subslash_cog(*args, **kwargs):
+    """Deprecated, use :meth:`~subslash_command` instead"""
+    return subslash_command(*args, **kwargs)
+@deprecated("context_command")
+def context_cog(*args, **kwargs):
+    """Deprecated, use :meth:`~context_command` instead"""
+    return subslash_command(*args, **kwargs)
+@deprecated("listening_component")
+def listening_component_cog(*args, **kwargs):
+    """Deprecated, use :meth:`~listetning_component` instead"""
+    return subslash_command(*args, **kwargs)
+# endregion
+
+def _get_instances_for(target, cls=BaseCallable, check=EMPTY_CHECK):
+    return [x[1] for x in inspect.getmembers(target, lambda x: isinstance(x, cls) and check(x) is True)]
+
+class InteractionableCog(Cog):
+    # for addint to default cog
+    __custom_slots__ = (
+        'get_listening_components', 
+        'get_slash_commands',
+        'get_sub_commands',
+        'get_chat_commands',
+        'get_message_commands',
+        'get_user_commands',
+        'get_context_commands',
+        'get_application_commands',
+    )
+    def get_listening_components(self) -> List[ListeningComponent]:
+        return _get_instances_for(self, ListeningComponent)
+
+    def get_slash_commands(self) -> List[CogCommand]:
+        return _get_instances_for(self, CogCommand, lambda x: x.__type__ == 1)
+    def get_sub_commands(self) -> List[CogSubCommandGroup]:
+        return _get_instances_for(self, CogSubCommandGroup, lambda x: x.__type__ == 1)
+    def get_chat_commands(self) -> List[Union[CogCommand, CogSubCommandGroup]]:
+        return self.get_slashcommands() + self.get_subcommands()
+    
+    def get_message_commands(self) -> List[CogMessageCommand]:
+        return _get_instances_for(self, CogMessageCommand)
+    def get_user_commands(self) -> List[CogUserCommand]:
+        return _get_instances_for(self, CogUserCommand)
+    def get_context_commands(self) -> List[Union[CogMessageCommand, CogUserCommand]]:
+        return self.get_message_commands() + self.get_user_commands()
+    def get_application_commands(self) -> List[Union[CogCommand, CogSubCommandGroup, CogMessageCommand, CogUserCommand]]:
+        return self.get_chat_commands() + self.get_context_commands()

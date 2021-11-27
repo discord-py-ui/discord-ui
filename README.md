@@ -17,11 +17,12 @@
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/discord-ui)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/550953d11c8242b9b7944642a2e292c7)](https://app.codacy.com/gh/discord-py-ui/discord-ui?utm_source=github.com&utm_medium=referral&utm_content=discord-py-ui/discord-ui&utm_campaign=Badge_Grade_Settings)
 
+
 ## Introduction
 
 
 This is a [discord.py](https://github.com/Rapptz/discord.py) ui extension made by [404kuso](https://github.com/404kuso) and [RedstoneZockt](https://github.com/RedstoneZockt)
-for using discord's newest ui features like buttons, slash commands and context commands (we got dpy2 supported if you want to keep using our libary)
+for using discord's newest ui features like buttons, slash commands and context commands.
 
 [Documentation](https://discord-ui.readthedocs.io/en/latest/)
 
@@ -96,9 +97,9 @@ Example for autocompletion of choices
 
 ```py
 import discord
-from discord_ui import UI, SlashOption, ChoiceGeneratorContext
+from discord_ui import UI, SlashOption, AutocompleteInteraction
 
-async def generator(ctx: ChoiceGeneratorContext):
+async def generator(ctx: AutocompleteInteraction):
     available_choices = ["hmm", "this", "is", "a", "an", "test", "testing"]
     return [(x, x) for x in available_choices if x.startswith(ctx.value_query)]
 
@@ -125,8 +126,8 @@ ui = UI(client)
 async def on_message(message: discord.Message):
     if message.content == "!btn":
         msg = await message.channel.send("you", components=[
-            [Button("custom_id", "press me", color="green"), LinkButton("https://discord.com", emoji="😁")],
-            Button("my_custom_id")
+            [Button("press me", color="green"), LinkButton("https://discord.com", emoji="😁")],
+            Button(custom_id="my_custom_id")
         ])
         try:
             btn = await msg.wait_for("button", client, by=message.author, timeout=20)
@@ -152,10 +153,10 @@ ui = UI(client)
 @client.listen("on_message")
 async def on_message(message: discord.Message):
     if message.content == "!sel":
-        msg = await message.channel.send("you", components=[SelectMenu("custom_id", options=[
+        msg = await message.channel.send("you", components=[SelectMenu(options=[
             SelectOption("my_value", label="test", description="this is a test"),
             SelectOption("my_other_value", emoji="🤗", description="this is a test too")
-        ], max_values=2)])
+        ], "custom_id", max_values=2)])
         try:
             sel = await msg.wait_for("select", client, by=message.author, timeout=20)
             await sel.respond("you selected `" + str([x.content for x in sel.selected_options]) + "`")
@@ -169,7 +170,7 @@ Example for cogs
 ```py
 from discord.ext import commands
 from discord_ui import UI
-from discord_ui.cogs import slash_cog, subslash_cog, listening_component_cog
+from discord_ui.cogs import slash_command, subslash_command, listening_component
 
 bot = commands.Bot(" ")
 ui = UI(bot)
@@ -178,11 +179,11 @@ class Example(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
     
-    @slash_cog(name="example", guild_ids=[785567635802816595])
+    @slash_command(name="example", guild_ids=[785567635802816595])
     async def example(self, ctx):
         await ctx.respond("gotchu")
 
-    @subslash_cog(base_names="example", name="command"):
+    @subslash_command(base_names="example", name="command"):
     async def example_command(self, ctx):
         await ctx.respond("okayy")
     
@@ -193,13 +194,151 @@ bot.run("your token")
 You can find more (and better) examples [here](https://github.com/discord-py-ui/discord-ui/tree/main/examples)
 
 
+
+## Contact
+
+You can contact us on discord
+
+- [**Redstone**](https://discord.com/users/355333222596476930)
+- [**kuso**](https://discord.com/users/539459006847254542)
+- [**discord server**](https://discord.gg/bDJCGD994p)
+
+
 # Changelog
 
 -   <details>
-    <summary>5.0.2</summary>
+    <summary>5.1.0</summary>
+    
+    ## **Breaking changes**
+    - Component custom ids are now optional, if no custom id is passed, a 100 characters long random string will be used and because of that the order of Component init params changed
+    - The order of SelectMenus init params changed, `custom_id` comes now after `options`
+    ```py
+    SelectMenu("my_custom_id", [options...here])
+    # is now
+    SelectMenu([options...here], "my_custom_id")
+    ```
+    - Same for Buttons
+    ```py
+    Button("my_custom_id", "label")
+    # is now
+    Button("label", "my_custom_id")
+    ```
+    - ButtonStyles is now ButtonStyle
+    - renamed cog decorators, the old ones still work but they will show a deprecation warning: `slash_command` -> `slash_command`, `subslash_command` -> `subslash_command`, `context_cog` -> `context_command`, `listening_component` -> `listening_component`
+    - Removed `Slash.edit_command` and `Slash.edit_subcommand`, "moved" to `Command.edit`
+    - `SlashedCommand` is now `SlashInteraction`, `SlashedSubCommand` is now `SubSlashInteraction` and `SlashedContext` is now `ContextInteraction`
+    - The command attributes of CommandInteractions (SlashedCommand, ...) are now moved to `Interaction.command.` (the `.command` attribute is a reference to the real command, if you change properties of the command they will be updated)
+    - The component attributes of an interaction are now moved to `.component`
+    - ContextCommands `.param` attribute is now `.target`
+
+    ## **Changed**
+    - `argument_type` in SlashOption is now `type`
+    - `ButtonStyle` value names changed: color names are now capitalized and `Danger` is now `Destructive`
+    - `Listener.target_user` is now `Listener.target_users` and can take users, members and ids as the value
+    - `BaseCommand.options` and `SlashOption.options` is now of type `SlashOptionCollection`, which allows you to acces options by index and name
+    ```py
+    my_command.options["option name"]
+    # or
+    my_command.options[0]
+    ```
+    You can also use some methods like `.get`, `.set` (which will return itself after it set something, so `SlashOption.set(key, value).set(key, value)` would work) and ``SlashOption.options + SlashOption.option`` will add both SlashOptions together
+    - If an invalid guild id was passed to a slashcommand, no exception will be raised anymore, it will just be printed into the console and ignored `logging.error()`
+    - Moved the `discord_ui.ext.py` module into a folder
+    - `on_button_press` and `on_menu_select` is now `on_button` and `on_select`. The old event names will still work but will be removed in the next release
 
     ## **Fixed**
-    - removed print statements
+    - disable_action_row
+    - `ActionRow.disable`
+    - no interaction events being dispatched because subclasses of dpy2 `commands.Bot` instances wouldn't get overriden which lead to not enabling needed debug events
+    - when no matching component listener in `Listener` could be found, the events for components events wouldn't be dispatched
+    - `delete_after` keyword in message send override not working
+    - mentionable type in slashoptions not being parsed to objects
+    - `@discord.ext.commands.Cooldown` not working on cog slashcommands
+
+    ## **Added**
+    - `**fields` to all functions that edit the message components (like `.disable_components`, `.disable_component`, ...). The `**fields` parameter can be used to edit other properties of the message without using `.edit` again and send a "useless" request
+    - `@Lister.on_error` and `@Listener.wrong_user` decorators for handling Exceptions in Listeners
+    - When no keyword was passed to `@Listener.button` or `@Listener.select`, the function will be called on every button/slect
+    - `channel_type` to SlashOption, list of `discord.ChannelType`. This will restrict the shown channels for channel slash options to this list.
+    - support for nextcord. Other libs **should** work too, but they are not tested. 
+    - `Mentionable` type for SlashOptions
+    - description for short slashoptions. If you set the options for a slash command via callback params, you can add a description (and a type) to them with your docstring. There are 3 different styles you can use:
+    ```py
+    # style 1
+    @ui.slash.command()
+    async def my_command(ctx, my_option, my_other_option):
+        """This is my command description
+
+        my_option: `int`:
+            This is the description for the my_option parameter
+        my_other_option: `str`:
+            This is the description for another option
+        """
+        ...
+    
+    # style 2
+    @ui.slash.command()
+    async def my_command(ctx, my_option: int, my_other_option: str):
+        """This is my command description
+
+        my_option: This is the description for the my_option parameter
+        my_other_option: This is the description for another option
+        """
+        ...
+
+    # style 3
+    @ui.slash.command()
+    async def my_command(ctx, my_option, my_other_option: str):
+        """This is my command description
+
+
+        `int`: This is the description for the my_option parameter
+
+        This is the description for another option
+        """
+        ...
+    ```
+    Note: You don't have to use `` `type` ``, you can just use `type`
+    - Empty descriptions for slashcommands and slashoptions. The default description value is now `\u200b` which is an "empty" char
+    - Modifying slashcommand options is now WWAAYYYY easier. You can just do `.options[name or index].name = "new name"` and the option will be updated
+    - You can set the autocomplete choice generator with a decorator now
+    ```py
+    ui.slash.command(options=[SlashOption(str, "my_option")])
+    async def my_command(ctx, my_option):
+        ...
+
+
+    @my_command.options["my_option"].autocomplete_function
+    async def my_generator(ctx):
+        ...
+    # or
+    @my_command.options[0].autocomplete_function
+    async def my_generator(ctx):
+        ...
+    ```
+    - All apllication command decorators will now return the created Command
+    ```py
+    @ui.slash.command(...)
+    async my_command(ctx):
+        ...
+    type(my_command) # SlashCommand
+    ```
+    - Added edit and delete method to slashcommand. You can use this for editing or deleting the command later
+    ```py
+    # edit
+    await my_command.edit(name="test")
+    # delete
+    await my_command.delete()
+    ```
+    - `id` to SlashCommand
+    - `commands_synced` event which will be dispatched when all commands where synced with the api (`UI.Slash.sync_commands`)
+    - `BaseCommmand.update` method which updates the api command with the lcoal changes
+    - `SlashSubCommand.base`, which will be shared among all subslashcommands with the same base
+
+
+    ## **Removed**
+    - `discord.ext.commands.Bot` override for enabling the debug event, this will be enabled when creating a UI instance from the bot
+
     </details>
 
 -   <details>
@@ -323,7 +462,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     
     ## **Added**
     - `discord_ui.ext`
-    > A module with usefull tools and decorators to use [more information](https://discord-ui.readthedocs.io/en/latest/ext.html)
+    > A module with useful tools and decorators to use [more information](https://discord-ui.readthedocs.io/en/latest/ext.html)
     
     - BaseCommand
     > BaseCommand (the superclass for all applicationcommands) has now some extra properties:
@@ -352,8 +491,8 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     > [more information](https://discord-ui.readthedocs.io/en/latest/listeners.html)
 
     ## **Changed**
-    - SelectedMenu
-    > `SelectedMenu.selected_values` are not the raw values that were selected, `SelectMenu.selected_options` are the options of type `SlashOption` that were selected
+    - SelectInteraction
+    > `SelectInteraction.selected_values` are not the raw values that were selected, `SelectMenu.selected_options` are the options of type `SlashOption` that were selected
     - MISSING => None
     > All instance values that were `MISSING` by default are now `None`
 
@@ -632,7 +771,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
     > You can add and remove listening components now with the `Components.add_listening_component`, `Components.remove_listening_component` and `Components.remove_listening_components` functions
 
     - Cogs
-    > You can now use cog decorators like `slash_cog`, `subslash_cog` and `listening_component_cog`
+    > You can now use cog decorators like `slash_command`, `subslash_command` and `listening_component`
 
     ## **Fixed**
 
@@ -863,7 +1002,7 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
 
     ## **Changed**
 
-    - SelectedMenu
+    - SelectInteraction
     > `.values` is not `.selected_values`
 
     ## **Added**
@@ -1123,12 +1262,3 @@ You can find more (and better) examples [here](https://github.com/discord-py-ui/
         > Buttons have now a custom hash property, generated by the discord api 
     
     </details>
-
-
-## Contact
-
-You can contact us on discord
-
-- `RedstoneZockt#0001`
-- `! kuso#6969`
-- [discord](https://discord.gg/bDJCGD994p)

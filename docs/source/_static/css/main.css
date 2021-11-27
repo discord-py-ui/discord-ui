@@ -25,7 +25,7 @@ html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(
     width: 90%;
     height: 110%;
     border-radius: 4px;
-    border-bottom: 3px solid black;
+    border: 3px solid black;
     font-size: 100%;
 }
 
@@ -111,7 +111,8 @@ code.docutils.literal.notranslate, .highlight, div.highlight-default.notranslate
 
 html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple)>dt:first-child {
     font-family: SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,Courier,monospace;
-    color: #000;
+    color: white;
+    background-color: #2C2F33;
 }
 
 .wy-nav-shift {

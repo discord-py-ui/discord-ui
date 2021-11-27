@@ -24,3 +24,26 @@ Interaction
 
 .. autoclass:: Interaction()
     :members:
+
+
+Application commands
+---------------------
+
+.. autoclass:: SlashInteraction()
+    :members:
+
+.. autoclass:: ContextInteraction()
+    :members:
+
+.. autoclass:: AutocompleteInteraction()
+    :members:
+
+
+Components
+-----------
+
+.. autoclass:: ButtonInteraction()
+    :members:
+
+.. autoclass:: SelectInteraction()
+    :members:

@@ -18,4 +18,4 @@ Everything else here could only be needed for intellisense.
 """
 
 from . import ext
-from .types import SlashCommand, SlashSubcommand, SlashOption, ContextCommand, MessageCommand, UserCommand, SlashPermission, OptionType, CommandType
+from .types import SlashOption, SlashPermission, OptionType

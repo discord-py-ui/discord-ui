@@ -34,12 +34,12 @@ This event will be dispatched whenever a normal slash command was used
 
 One parameter will be passed
 
-*  :class:`~SlashedCommand` | :class:`~SlashedSubCommand`
+*  :class:`~SlashInteraction` | :class:`~SlashedSubCommand`
 
 .. code-block::
 
     @client.listen('on_slash_command')
-    def slash_command(ctx: SlashedCommand):
+    def slash_command(ctx: SlashInteraction):
         ...
 
 .. code-block::
@@ -54,13 +54,13 @@ This event will be dispatched whenever a context command was used
 
 Two parameters will be passed
 
-*  :class:`~SlashedContext`
+*  :class:`~ContextInteraction`
 *  :class:`~Message` | :class:`discord.User`
 
 .. code-block::
 
     @client.listen('context_command')
-    def on_context(ctx: SlashedContext, param):
+    def on_context(ctx: ContextInteraction, param):
         ...
 
 .. code-block::
@@ -81,10 +81,10 @@ SlashPermission
 .. autoclass:: SlashPermission
     :members:
 
-SlashedCommand
-===============
+SlashInteraction
+=================
 
-.. autoclass:: SlashedCommand()
+.. autoclass:: SlashInteraction()
     :members:
     :inherited-members:
 

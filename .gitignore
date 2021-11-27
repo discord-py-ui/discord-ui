@@ -134,3 +134,4 @@ dmypy.json
 
 internal/
 test*.py
+discord_ui/ext.py

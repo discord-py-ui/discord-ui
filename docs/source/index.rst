@@ -39,7 +39,7 @@ We got some examples `here <https://github.com/discord-py-ui/discord-ui/tree/mai
 Links
 ---------------------
 
-*  `Github <https://github.com/discord-py-ui/discord-ui/>`__
+*  `Github <https://github.com/discord-py-ui/discord-ui/tree/latest>`__
 *  `Pypi <https://pypi.org/project/discord-ui/>`__
 *  `404kuso <https://github.com/404kuso>`__
 *  `RedstoneZockt <https://github.com/RedstoneZockt>`__

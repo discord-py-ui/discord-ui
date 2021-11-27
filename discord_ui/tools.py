@@ -1,5 +1,25 @@
+from __future__ import annotations
+
+import functools
 import logging
-from typing import Any, List
+import warnings
+from typing import TYPE_CHECKING, Any, Callable, List, TypeVar
+
+__all__ = (
+    'components_to_dict',
+)
+
+
+class _All():
+    def __init__(self) -> None:
+        pass
+    def __contains__(self, _):
+        return True
+    def __iter__(self):
+        return iter([True])
+
+All = _All()
+
 
 class _MISSING:
     def __repr__(self) -> str:
@@ -12,12 +32,54 @@ class _MISSING:
         return self.__repr__()
     def __sizeof__(self) -> int:
         return 0
+    def __len__(self) -> int:
+        return 0
+    def __contains__(self, value):
+        return False
     def get(self, *args):
         return self
+class _EMPTY_CHECK():
+    """An empty check that will always return True"""
+    def __call__(self, *args: Any, **kwds: Any) -> Any:
+        return True
+    def __repr__(self) -> str:
+        return "empty_check"
 
 MISSING = _MISSING()
+EMPTY_CHECK = _EMPTY_CHECK()
+
+R = TypeVar("R")
+
+if TYPE_CHECKING:
+    from typing_extensions import ParamSpec
+    P = ParamSpec('P')
 
 
+def deprecated(instead=None) -> Callable[[Callable[P, R]], Callable[P, R]]:
+    def wrapper(callback: Callable[P, R]) -> Callable[P, R]:
+        @functools.wraps(callback)
+        def wrapped(*args: P.args, **kwargs: P.kwargs):
+            if instead is not None:
+                msg = f"{callback.__name__} is deprecated, use {instead} instead!"
+            else:
+                msg = f"{callback.__name__} is deprecated!"
+            # region warning
+            # turn filter off
+            warnings.simplefilter('always', DeprecationWarning)
+            # warn the user, use stacklevel 2
+            warnings.warn(msg, stacklevel=2, category=DeprecationWarning)
+            # turn filter on again
+            warnings.simplefilter('default', DeprecationWarning) 
+            # endregion
+
+            return callback(*args, **kwargs)
+        return wrapped
+    return wrapper
+
+
+def _raise(ex):
+    """Method to raise an exception in a context where the normal `raise` context cant be used"""
+    raise ex
 def _none(*args, empty_array=False):
     return all(x in [None, MISSING] + [[], [[]]][empty_array is True] for x in args)
 def _or(*args, default=None):
@@ -31,26 +93,34 @@ def _default(default, *args, empty_array=True):
     if len(args) == 1:
         return args[0]
     return args
+def try_get(value, index, default):
+    try:
+        return value[index]
+    except (IndexError, TypeError):
+        return default
 
+def setattribute(object, attribute, value):
+    setattr(object, attribute, value)
+    return object
 
 def get_index(l: list, elem: Any, mapping = lambda x: x, default: int = -1) -> int:
     """Returns the index of an element in the list
     
     Parameters
     ----------
-        l: :class:`List`
-            The list to get from
-        elem: :class:`Any`
-            The element that has to be found
-        mapping: :class:`function`
-            A function that will be applied to the current element that is checked, before comparing it to the target
-        default: :class:`Any`
-            The element that will be returned if nothing is found; default -1
+    l: :class:`List`
+        The list to get from
+    elem: :class:`Any`
+        The element that has to be found
+    mapping: :class:`function`
+        A function that will be applied to the current element that is checked, before comparing it to the target
+    default: :class:`Any`
+        The element that will be returned if nothing is found; default -1
 
     Returns
     -------
-        :returns: The found element
-        :type: :class:`Any`
+    :class:`Any`
+        The found element
     
 
     Example:
@@ -71,19 +141,19 @@ def get(l: list, elem: Any = True, mapping = lambda x: True, default: Any = None
     
     Parameters
     ----------
-        l: :class:`List`
-            The list to get from
-        elem: :class:`Any`
-            The element that has to be found
-        mapping: :class:`function`
-            A function that will be applied to the current element that is checked, before comparing it to the target
-        default: :class:`Any`
-            The element that will be returned if nothing is found; default None
+    l: :class:`List`
+        The list to get from
+    elem: :class:`Any`
+        The element that has to be found
+    mapping: :class:`function`
+        A function that will be applied to the current element that is checked, before comparing it to the target
+    default: :class:`Any`
+        The element that will be returned if nothing is found; default None
 
     Returns
     -------
-        :returns: The found element
-        :type: :class:`Any`
+    :class:`Any`
+        The found element
 
 
     Example:
@@ -97,48 +167,55 @@ def get(l: list, elem: Any = True, mapping = lambda x: True, default: Any = None
             return x
     return default
 
-def components_to_dict(*components) -> List[dict]:
+def components_to_dict(components) -> List[dict]:
     """Converts a list of components to a dict that can be used for other extensions
     
     Parameters
     ----------
-    components: :class:`*args` | :class:`list`
+    components: :class:`list`
         A list of components that should be converted.
         
-        Example
-        
-        .. code-block::
+    Example
+    
+    .. code-block::
 
-            # List of components with component rows (everything in [] defines that it will be in it's own component row)
-            components_to_dict(Button(...), [Button(...), Button(...)], SelectMenu(...), LinkButton)
-            # or
-            components_to_dict([Button(...), [LinkButton(...), Button(...)]])
+        components_to_dict([Button(...), [LinkButton(...), Button(...)]])
 
     Raises
     ------
-        :raises: :class:`Exception` : Invalid Data was passed
+    :class:`Exception`
+        Invalid data was passed
     
     Returns
     -------
-        :returns: The converted data
-        :type: List[:class:`dict`]
+    List[:class:`dict`]
+        The converted data
 
 
     """
     wrappers: List[List[Any]] = []
     component_list = []
-    if len(components) == 1 and isinstance(components[0], list):
-        components = components[0]
 
     if len(components) > 1:
         curWrapper = []
-        i = 0
+        i = 0   # 
         for component in components:
-            if hasattr(component, "items") or isinstance(component, list):
+            # if its a subarray
+            if hasattr(component, "items") or isinstance(component, (list, tuple)):
+                # if this isnt the first line
                 if i > 0 and len(curWrapper) > 0:
                     wrappers.append(curWrapper)
                 curWrapper = []
-                wrappers.append(component.items if hasattr(component, "items") else component)
+                
+                # ActionRow was used
+                if hasattr(component, "items"):
+                    wrappers.append(component.items)
+                # ComponentStore was used
+                elif hasattr(component, "_components"):
+                    wrappers.append(component._components) 
+                else:
+                    # just comepletely append the components to all rappers
+                    wrappers.append(component)
                 continue
                 
             # i > 0 => Preventing empty component field when first button wants to newLine 
@@ -158,7 +235,7 @@ def components_to_dict(*components) -> List[dict]:
             wrappers.append(curWrapper)
     else:
         wrappers = [components]
-
+    
     for wrap in wrappers:
         if isinstance(wrap, list) and not all(hasattr(x, "to_dict") for x in wrap):
             raise Exception("Components with types [" + ', '.join([str(type(x)) for x in wrap]) + "] are missing to_dict() method")
