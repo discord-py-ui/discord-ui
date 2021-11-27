@@ -1636,7 +1636,7 @@ class CommandCache():
         >>> await commands.nuke(globals=False, guilds=[814473329325899787])
         """
         if guilds is All:
-            guilds = self._cache["!globals"]
+            guilds = self["!globals"]
         if guilds is None:
             guilds = []
         if globals is True:
