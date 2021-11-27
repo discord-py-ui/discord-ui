@@ -746,5 +746,5 @@ You can set set the generator for the autocompletion with a decorator
 
     # set the generator
     @my_command.options[0].autocomplete_function        # you could also use my_command.options["name"]
-    async def my_generator(ctx: AutocompletInteraction):
+    async def my_generator(ctx: AutocompleteInteraction):
         return [...]
