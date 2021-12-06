@@ -61,9 +61,9 @@ class SlashOptionCollection():
     
     def __repr__(self) -> str:
         return "<SlashOptionCollection[" + ', '.join([x.__repr__() for x in self]) + "]>"
-    def __eq__(self, o):
+    def __eq__(self, o) -> bool:
         if isinstance(o, SlashOptionCollection):
-            return len(self) == len(o) and self.__options == o.__options
+            return len(self) == len(o) and all(self.__options[i] == o.__options[i] for i, _ in enumerate(self.__options))
         if isinstance(o, list):
             return len(o) == len(self.__options) and list(self.__options.values()) == o
         return False
