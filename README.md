@@ -207,6 +207,16 @@ You can contact us on discord
 # Changelog
 
 -   <details>
+    <summary>5.1.2</summary>
+
+    ## **Fixed**
+    - `commands.nuke`
+    - nextcord import issue (#112) 
+    
+    </details>
+ 
+
+-   <details>
     <summary>5.1.0</summary>
     
     ## **Breaking changes**
@@ -339,14 +349,6 @@ You can contact us on discord
     ## **Removed**
     - `discord.ext.commands.Bot` override for enabling the debug event, this will be enabled when creating a UI instance from the bot
 
-    </details>
-
--   <details>
-
-    ## **Fixed**
-    - `commands.nuke`
-    - nextcord import issue (#112) 
-    
     </details>
 
 -   <details>
