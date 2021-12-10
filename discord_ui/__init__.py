@@ -47,5 +47,5 @@ from .override import override_dpy
 
 
 __title__ = "discord-ui"
-__version__ = "5.1.2"
+__version__ = "5.1.3"
 __author__ = "404kuso, RedstoneZockt"
