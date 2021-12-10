@@ -207,6 +207,16 @@ You can contact us on discord
 # Changelog
 
 -   <details>
+    <summary>5.1.2</summary>
+
+    ## **Fixed**
+    - `commands.nuke`
+    - nextcord import issue (#112) 
+    
+    </details>
+ 
+
+-   <details>
     <summary>5.1.0</summary>
     
     ## **Breaking changes**
