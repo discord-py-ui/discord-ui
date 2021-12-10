@@ -14,6 +14,7 @@ from .errors import (
 )
 
 import discord
+from discord import InvalidArgument
 from discord.ext.commands import Bot, BadArgument
 
 import re
@@ -662,7 +663,7 @@ class BaseCommand():
                                     op_type = _type
                         
                     if OptionType.any_to_type(op_type) is None:
-                        raise discord.errors.InvalidArgument("Could not find a matching option type for parameter '" + str(op_type) + "'")
+                        raise InvalidArgument("Could not find a matching option type for parameter '" + str(op_type) + "'")
                     _ops.append(SlashOption(op_type, _name, op_desc, required=_val.default == inspect._empty))
                 self.options = _ops
 
@@ -778,7 +779,7 @@ class BaseCommand():
     @name.setter
     def name(self, value):
         if value is None:
-            raise discord.errors.InvalidArgument("You have to specify a name")
+            raise InvalidArgument("You have to specify a name")
         if not isinstance(value, str):
             raise WrongType("name", value, "str")
         if len(value) > 32 or len(value) < 1:
@@ -1046,7 +1047,7 @@ class SlashSubcommand(BaseCommand):
         if isinstance(base_names, str):
             base_names = [base_names]
         if len(base_names) > 2:
-            raise discord.errors.InvalidArgument("subcommand groups are currently limited to 2 bases")
+            raise InvalidArgument("subcommand groups are currently limited to 2 bases")
         if any([len(x) > 32 or len(x) < 1 for x in base_names]):
             raise InvalidLength("base_names", 1, 32)
         self.base_names = [format_name(x) for x in base_names]

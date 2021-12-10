@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from discord.ext.commands.errors import BadArgument
+from discord.ext.commands import BadArgument
 
 from .tools import All
 from .enums import ButtonStyle, ComponentType
 from .errors import InvalidLength, OutOfValidRange, WrongType
 
 import discord
-from discord.errors import InvalidArgument
+from discord import InvalidArgument
 
 import inspect
 import string
