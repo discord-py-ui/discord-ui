@@ -115,5 +115,5 @@ def get_message_payload(content=MISSING, tts=False, embed: discord.Embed=MISSING
     return payload
 
 def handle_rate_limit(data):
-    logging.error("You are being rate limited. Retrying after " + str(data["retry_after"]) + " seconds")
+    logging.warning("You are being rate limited. Retrying after " + str(data["retry_after"]) + " seconds")
     return asyncio.sleep(data["retry_after"])

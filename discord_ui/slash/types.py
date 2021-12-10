@@ -1644,8 +1644,6 @@ class CommandCache():
             await self._state.slash_http.delete_global_commands()
         for id in guilds:
             await self._state.slash_http.delete_guild_commands(id)
-        
-
     def get_command_for(self, interaction: InteractionPayload):
         command = self._raw_cache.get(interaction["data"]["id"])
         if command is None:
