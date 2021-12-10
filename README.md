@@ -342,6 +342,14 @@ You can contact us on discord
     </details>
 
 -   <details>
+
+    ## **Fixed**
+    - `commands.nuke`
+    - nextcord import issue (#112) 
+    
+    </details>
+
+-   <details>
     <summary>5.0.1</summary>
 
     ## **Fixed**
