@@ -58,7 +58,7 @@ class SlashHTTP():
         try:
             commands = await self._http.request(BetterRoute("GET", f"/applications/{self.application_id}/guilds/{guild_id}/commands"))
             for x in commands:
-                await self.delete_guild_command( x["id"], guild_id)
+                await self.delete_guild_command(x["id"], guild_id)
         except Forbidden:
             logging.warn("got forbidden in " + str(guild_id))
 
