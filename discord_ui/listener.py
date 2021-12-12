@@ -457,11 +457,11 @@ class Listener():
                 listeners[lister.custom_id] = []
             listeners[lister.custom_id].append(lister)
         return listeners
-    def _get_listeners_for(self, interaction_component: ComponentContext) -> List[_Listener]:
+    def _get_listeners_for(self, interaction_component: ButtonInteraction) -> List[_Listener]:
         listeners = self._get_listeners()
         listers = listeners.get(AnyID, []) # fill list with any_id listeners directly
         for listener in listeners.get(interaction_component.custom_id, []):
-            if listener.type == interaction_component.component_type:
+            if listener.type == interaction_component.component.component_type:
                 if listener.target_values is not None:
                     if sorted(interaction_component.data["values"]) == sorted(listener.target_values):
                     # if all(v in interaction_component.data["values"] for v in listener.target_values):

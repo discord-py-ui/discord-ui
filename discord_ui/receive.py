@@ -358,6 +358,7 @@ class ButtonInteraction(Interaction):
     """An interaction that was created by a :class:`~Button`"""
     def __init__(self, data, user, b, message, client) -> None:
         Interaction.__init__(self, client._connection, data, user, message)
+        self.custom_id: str = data['data']['custom_id']
         self.component: Button = b
         """The component that created the interaction"""
         self.bot: commands.Bot = client
@@ -371,6 +372,7 @@ class SlashInteraction(Interaction):
     """An interaction created by a :class:`~SlashCommand`"""
     def __init__(self, client, command: SlashCommand, data, user, args = None) -> None:
         Interaction.__init__(self, client._connection, data, user)
+        self.custom_id: str = data['data']['custom_id']
         self.command: SlashCommand = command
         """The original command instance that was used. If you change things here, the changes will be applied globally"""
         self.bot: commands.Bot = client
