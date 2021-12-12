@@ -43,8 +43,11 @@ __all__ = (
     'SubSlashInteraction',
     'SlashedSubCommand',        # deprecated
 
+    'ContextInteraction',
+
     'Interaction',
 )
+
 
 class InteractionType:
     PING                                =       Ping        =           1

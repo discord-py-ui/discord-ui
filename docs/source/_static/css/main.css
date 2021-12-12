@@ -71,19 +71,23 @@ html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(
     max-width: 100%;
 }
 
+/* Buttons */
 .btn.btn-neutral {
     border: 1px solid #2C2F33;
     border-radius: 5px;
     color: white
 }
 
+/* Note box background */
 .rst-content .note .admonition-title, .note .admonition-title {
     background-color: rgba(88,101,242,.5);
 }
 
+/* Warning box title */
 .rst-content .warning .admonition-title, .warning .admonition-title {
     background-color: #fee65cad;
 }
+/* Warning box background */
 .rst-content .warning, .warning {
     background-color: rgba(254,231,92,.5);
 }
@@ -109,6 +113,11 @@ code.docutils.literal.notranslate, .highlight, div.highlight-default.notranslate
     color: white;
 }
 
+
+html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple) .descclassname {
+    color: white;
+}
+
 html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(.footnote):not(.glossary):not(.simple)>dt:first-child {
     font-family: SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,Courier,monospace;
     color: white;
@@ -123,6 +132,7 @@ html.writer-html5 .rst-content dl[class]:not(.option-list):not(.field-list):not(
     background-color: #5865F2;
 }
 
+/* Navigationsdings */
 .wy-side-nav-search, .wy-nav-top {
     /* background-color: #5865F2; */
     background: #5865F2;
