@@ -339,9 +339,9 @@ class SelectInteraction(Interaction):
     """An interaction that was created by a :class:`~SelectMenu`"""
     def __init__(self, data, user, s, msg, client) -> None:
         Interaction.__init__(self, client._connection, data, user, msg)
-        
         self.component: SelectMenu = s
         self.bot: commands.Bot = client
+        self.custom_id: str = data['data']['custom_id']
         self.selected_options: List[SelectOption] = []
         """The list of the selected options"""
         self.selected_values: List[str] = []
@@ -375,7 +375,6 @@ class SlashInteraction(Interaction):
     """An interaction created by a :class:`~SlashCommand`"""
     def __init__(self, client, command: SlashCommand, data, user, args = None) -> None:
         Interaction.__init__(self, client._connection, data, user)
-        self.custom_id: str = data['data']['custom_id']
         self.command: SlashCommand = command
         """The original command instance that was used. If you change things here, the changes will be applied globally"""
         self.bot: commands.Bot = client

@@ -752,7 +752,6 @@ class Components():
         self._discord.dispatch("component", ComponentContext(self._discord._connection, data, user, msg))
 
 
-        # Handle auto_defer
         if int(data["data"]["component_type"]) == 2:
             for x in msg.components.buttons:
                 if hasattr(x, 'custom_id') and x.custom_id == data["data"]["custom_id"]:
@@ -761,6 +760,7 @@ class Components():
             for x in msg.components.selects:
                 if x.custom_id == data["data"]["custom_id"]:
                     component = SelectInteraction(data, user, x, msg, self._discord)
+        # Handle auto_defer
         component._handle_auto_defer(self.auto_defer)
         
         
