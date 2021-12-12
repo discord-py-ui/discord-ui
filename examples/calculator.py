@@ -9,8 +9,7 @@
 
 import asyncio
 from discord.ext import commands
-from discord_ui import SlashInteraction, UI, Button
-from discord_ui.components import LinkButton
+from discord_ui import SlashInteraction, UI, Button, LinkButton
 
 # The main discord bot client
 client = commands.Bot(" ")

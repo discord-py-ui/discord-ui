@@ -21,3 +21,6 @@ Here is a list of possible examples of how to use our package
 
 -  [`staff messager`](https://github.com/discord-py-ui/discord-ui/tree/main/examples/staff_message.py)
     : slashcommand with autocomplete for sending messages to a staff mmember
+
+- [`cog example`](https://github.com/discord-py-ui/discord-ui/tree/main/examples/cogs.py)
+    : simple example for using application commands in cogs
