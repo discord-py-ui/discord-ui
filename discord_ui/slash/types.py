@@ -1563,6 +1563,8 @@ class CommandCache():
                     if api_command:
                         # get permissions for the command
                         api_permissions = await http.get_command_permissions(api_command["id"], guild)
+                    # the guild permissions for the current guild
+                    command_perms = base.guild_permissions.get(int(guild)) or base.guild_permissions.get(str(guild))
                     global_command = await self.api.get_global_command(base.name, base.command_type)
                     # If no command in that guild or a global one was found
                     if api_command is None or global_command is not None:
@@ -1576,8 +1578,8 @@ class CommandCache():
                         new_command = await http.create_guild_command(base.to_dict(), guild, base.permissions.to_dict())
                     elif api_command != base:
                         new_command = await http.edit_guild_command(api_command["id"], guild, base.to_dict(), base.permissions.to_dict())
-                    elif api_permissions != base.permissions:
-                        await http.update_command_permissions(guild, api_command["id"], base.permissions.to_dict())
+                    elif api_permissions != command_perms:
+                        await http.update_command_permissions(guild, api_command["id"], command_perms.to_dict())
                     base._id = new_command["id"] if new_command else api_command["id"]
                     self._raw_cache[base._id] = base
 
