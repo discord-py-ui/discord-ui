@@ -206,6 +206,8 @@ You can contact us on discord
 
 # Changelog
 
+This will be moved to https://discord-py-ui.github.io/discord-ui/
+
 -   <details>
     <summary>5.1.2</summary>
 
