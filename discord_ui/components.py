@@ -349,7 +349,7 @@ class SelectMenu(UseableComponent):
         ```
         """
         UseableComponent.__init__(self, ComponentType.Select)
-        self._options = None
+        self.options: List[SelectOption] = options or None
 
         self.max_values: int = 0
         """The maximum number of items that can be chosen; default 1, max 25"""
@@ -365,7 +365,6 @@ class SelectMenu(UseableComponent):
         Custom placeholder text if nothing is selected"""
         self.custom_id = custom_id or ''.join([choice(string.ascii_letters) for _ in range(100)])
         self.disabled = disabled
-        self.options = options
 
         if min_values is not None and max_values is None:
             if min_values < 0 or min_values > 25:
@@ -394,26 +393,12 @@ class SelectMenu(UseableComponent):
     
     @staticmethod
     def _from_data(data) -> SelectMenu:
-        return SelectMenu(data["options"], data["custom_id"], data.get("min_values"), data.get("max_values"), data.get("placeholder"), disabled=data.get("disabled", False))
+        return SelectMenu([
+            SelectOption._from_data(d) for d in data["options"]
+        ], data["custom_id"], data.get("min_values"), data.get("max_values"), data.get("placeholder"), disabled=data.get("disabled", False)
+    )
     # region props
-    @property
-    def options(self) -> List[SelectOption]:
-        """The options in the select menu to select from"""
-        return [SelectOption._from_data(x) for x in self._options]
-    @options.setter
-    def options(self, value: List[SelectOption]):
-        if isinstance(value, list):
-            if len(value) > 25 or len(value) == 0:
-                raise OutOfValidRange("length of options", 1, 25)
-            if all(isinstance(x, SelectOption) for x in value):
-                self._options = [x.to_dict() for x in value]
-            elif all(isinstance(x, dict) for x in value):
-                self._options = value
-            else:
-                raise WrongType("options", value, ["List[SelectOption]", "List[dict]"])
-        else:
-            raise WrongType("options", value, "list")
-
+    
     @property
     def default_options(self) -> List[SelectOption]:
         """The option selected by default"""
@@ -433,17 +418,17 @@ class SelectMenu(UseableComponent):
         if isinstance(position, int):
             if position < 0 or position >= len(self.options):
                 raise OutOfValidRange("default option position", 0, str(len(self.options) - 1))
-            self._options[position].default = True
+            self.options[position].default = True
             return self
         for pos in position:
-            self._options[pos].default = True
+            self.options[pos].default = True
     # endregion
 
     def to_dict(self) -> dict:
         payload = {
             "type": self._component_type,
             "custom_id": self._custom_id,
-            "options": self._options,
+            "options": [x.to_dict() for x in self.options],
             "disabled": self.disabled,
             "min_values": self.min_values,
             "max_values": self.max_values
