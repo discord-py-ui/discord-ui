@@ -1564,7 +1564,7 @@ class CommandCache():
                         # get permissions for the command
                         api_permissions = await http.get_command_permissions(api_command["id"], guild)
                     # the guild permissions for the current guild
-                    command_perms = base.guild_permissions and base.guild_permissions.get(int(guild)) or base.guild_permissions.get(str(guild))
+                    command_perms = base.guild_permissions and (base.guild_permissions.get(int(guild)) or base.guild_permissions.get(str(guild)))
                     global_command = await self.api.get_global_command(base.name, base.command_type)
                     # If no command in that guild or a global one was found
                     if api_command is None or global_command is not None:
