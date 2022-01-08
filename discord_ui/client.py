@@ -22,8 +22,6 @@ from .receive import (
 from .listener import Listener
 from .override import override_dpy as override_it
 from .enums import CommandType, InteractionResponseType, ComponentType
-
-from .override import override_dpy as override_it
 from .listener import Listener
 from .enums import InteractionResponseType, ComponentType
 
@@ -231,18 +229,18 @@ class Slash():
             if command is None:
                 logging.warning("no slashcommand handler found for " + data["data"]["name"])
                 return
-            
-            parsed_options = {
-                x["name"]: {
+
+            parsed_options = {}
+            for x in raw_options:
+                parsed_options[x['name']] = {
                     "name": x["name"], 
                     "value": await handle_thing(
                             x["value"], x["type"], data, self.parse_method, self._discord
                     )
-                } | (
-                    {"focused": True} if x.get("focused") else {}
-                ) 
-                for x in raw_options
-            }
+                }
+                if x.get('focused'):
+                    parsed_options[x['name']]['focused'] = True
+
             choice_ctx = AutocompleteInteraction(command, self._discord._connection, data, parsed_options, user) 
             return await self.http.respond_to(choice_ctx.id, choice_ctx.token, InteractionResponseType.Autocomplete_result, {
                 "choices": [

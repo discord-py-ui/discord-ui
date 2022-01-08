@@ -167,6 +167,13 @@ def get(l: list, elem: Any = True, mapping = lambda x: True, default: Any = None
             return x
     return default
 
+def iterable(o):
+    try:
+        iter(o)
+        return True
+    except TypeError:
+        return False
+
 def components_to_dict(components) -> List[dict]:
     """Converts a list of components to a dict that can be used for other extensions
     
@@ -235,11 +242,11 @@ def components_to_dict(components) -> List[dict]:
             wrappers.append(curWrapper)
     else:
         wrappers = [components]
-    
+
     for wrap in wrappers:
         if isinstance(wrap, list) and not all(hasattr(x, "to_dict") for x in wrap):
             raise Exception("Components with types [" + ', '.join([str(type(x)) for x in wrap]) + "] are missing to_dict() method")
-        component_list.append({"type": 1, "components": [x.to_dict() for x in wrap] if type(wrap) is list else [wrap.to_dict()]})
+        component_list.append({"type": 1, "components": [x.to_dict() for x in wrap] if iterable(wrap) else [wrap.to_dict()]})
     return component_list
 
 def setup_logger(name):
