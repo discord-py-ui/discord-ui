@@ -189,7 +189,7 @@ And the last method:
                 ...
 
         msg = await message.channel.send("showcase", components=[Button("this is a showcase", "test")])
-        MyListener.attach_me_to(msg)
+        MyListener().attach_me_to(msg)
 """
 
 from .tools import setup_logger
