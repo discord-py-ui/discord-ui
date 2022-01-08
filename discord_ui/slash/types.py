@@ -1579,7 +1579,7 @@ class CommandCache():
                     elif api_command != base:
                         new_command = await http.edit_guild_command(api_command["id"], guild, base.to_dict(), base.permissions.to_dict())
                     elif api_permissions != command_perms:
-                        await http.update_command_permissions(guild, api_command["id"], command_perms.to_dict())
+                        await http.update_command_permissions(guild, api_command["id"], command_perms.to_dict() if command_perms is not None else {})
                     base._id = new_command["id"] if new_command else api_command["id"]
                     self._raw_cache[base._id] = base
 
