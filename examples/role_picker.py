@@ -19,7 +19,7 @@ from discord_ui import UI, SlashInteraction, SelectMenu, SelectOption
 # The main bot client
 client = commands.Bot(" ")
 # initialize the extension
-ui = UI(client, slash_options={"wait_sync": 2, "delete_unused": True})
+ui = UI(client, slash_options={"wait_sync": 2})
 
 # Create a slash command
 @ui.slash.command(name="role-picker", description="let's you pick roles", guild_ids=[785567635802816595])

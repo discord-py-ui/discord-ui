@@ -1,3 +1,4 @@
+from typing import List
 from .errors import NoCommandFound
 from ..tools import get, setup_logger
 from ..http import BetterRoute, handle_rate_limit, send_files
@@ -26,6 +27,22 @@ class SlashHTTP():
         if files is not None:
             return await send_files(route, files, payload, self._http)
         return await self._http.request(route, json=payload)
+    async def bulk_overwrite_global_commands(self, data: list) -> List[dict]:
+        try:
+            return await self._http.request(BetterRoute('PUT', f'/applications/{self.application_id}/commands'), json=data)
+        except HTTPException as ex:
+            if ex.code == 429:
+                await handle_rate_limit(await ex.response.json())
+                return await self.bulk_overwrite_global_commands(data)
+    async def bulk_overwrite_guild_commands(self, guild_id, data: list):
+        try:
+            return await self._http.request(BetterRoute('PUT', f'/applications/{self.application_id}/guilds/{guild_id}/commands'), json=data)
+        except HTTPException as ex:
+            if ex.code == 429:
+                await handle_rate_limit(await ex.response.json())
+                return await self.bulk_overwrite_guild_commands(guild_id, data)
+     
+    
     async def fetch_command(self, id, guild_id=None):
         try:
             if guild_id:
@@ -51,16 +68,23 @@ class SlashHTTP():
         return found.get('id')
 
     async def delete_global_commands(self):
-        commands = await self._http.request(BetterRoute("GET", f"/applications/{self.application_id}/commands"))
-        for x in commands:
-            await self.delete_global_command(x["id"])
+        try:
+            await self._http.request(
+                BetterRoute('PUT', f'/applications/{self.application_id}/commands'), json=[]
+            )
+        except HTTPException as ex:
+            if ex.status == 429:
+                await handle_rate_limit(await ex.response.json())
+                return await self.delete_global_commands()
     async def delete_guild_commands(self, guild_id):
         try:
-            commands = await self._http.request(BetterRoute("GET", f"/applications/{self.application_id}/guilds/{guild_id}/commands"))
-            for x in commands:
-                await self.delete_guild_command(x["id"], guild_id)
-        except Forbidden:
-            logging.warn("got forbidden in " + str(guild_id))
+            await self._http.request(
+                BetterRoute('PUT', f'/applications/{self.application_id}/guilds/{guild_id}/commands'), json=[]
+            )
+        except HTTPException as ex:
+            if ex.status == 429:
+                await handle_rate_limit(await ex.response.json())
+                return await self.delete_guild_commands(guild_id)
 
     async def delete_global_command(self, command_id):
         try:

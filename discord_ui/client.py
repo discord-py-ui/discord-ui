@@ -62,9 +62,7 @@ class Slash():
     parse_method: :class:`bool`, optional
         How received option data should be treated; Default ``ParseMethod.AUTO``
 
-    delete_unused: :class:`bool`, optional
-        Whether the commands that are not registered by this slash extension should be deleted in the api; Default ``False``
-
+    
     sync_on_cog: :class:`bool`, optional
         Whether the slashcommands should be updated whenever a new cog is added or removed; Default ``False``
 
@@ -108,7 +106,7 @@ class Slash():
         
 
     """
-    def __init__(self, client, parse_method = ParseMethod.AUTO, auto_sync=True, delete_unused = False, sync_on_cog=False, wait_sync = 1, auto_defer = False) -> None:
+    def __init__(self, client, parse_method = ParseMethod.AUTO, auto_sync=True, sync_on_cog=False, wait_sync = 1, auto_defer = False) -> None:
         """
         Creates a new slash command thing
         
@@ -119,7 +117,6 @@ class Slash():
         """
         self.ready = False
         self.parse_method: int = parse_method
-        self.delete_unused: bool = delete_unused
         self.sync_on_cog: bool = sync_on_cog
         self.wait_sync: float = wait_sync
         self.auto_defer: Tuple[bool, bool] = (auto_defer, False) if isinstance(auto_defer, bool) else auto_defer
@@ -149,7 +146,7 @@ class Slash():
                 self.commands.add(com)
             old_add(*args, **kwargs)
             if self.ready and self.sync_on_cog is True:
-                self._discord.loop.create_task(self.commands.sync(self.delete_unused))
+                self._discord.loop.create_task(self.commands.sync())
         self._discord.add_cog = add_cog_override
 
         old_remove = self._discord.remove_cog
@@ -162,7 +159,7 @@ class Slash():
                 self.commands.remove(com)
             old_remove(*args, **kwargs)
             if self.ready and self.sync_on_cog is True:
-                self._discord.loop.create_task(self.commands.sync(self.delete_unused))
+                self._discord.loop.create_task(self.commands.sync())
         self._discord.remove_cog = remove_cog_override
         
         async def on_connect():
@@ -172,14 +169,14 @@ class Slash():
             if self.auto_sync is False:
                 return
             await asyncio.sleep(_or(self.wait_sync, 1))
-            await self.commands.sync(self.delete_unused)
-            # await self.sync_commands(self.delete_unused)
+            await self.commands.sync()
+            # await self.sync_commands()
         self._discord.add_listener(on_connect)
 
     @deprecated("commands.sync")
-    async def sync_commands(self, delete_unused=False):
+    async def sync_commands(self):
         """deprecated, use ``commands.sync`` instead"""
-        return await self.commands.sync(delete_unused)
+        return await self.commands.sync()
     async def _on_slash_response(self, msg):
         if discord.__version__.startswith("2"):
             if isinstance(msg, bytes):
@@ -1057,16 +1054,13 @@ class UI():
                 For more information see https://github.com/discord-py-ui/discord-ui/blob/main/discord_ui/override.py
 
         slash_options: :class:`dict`, optional
-            Settings for the slash command part; Default `{parse_method: ParseMethod.AUTO, delete_unused: False, wait_sync: 1}`
+            Settings for the slash command part; Default `{parse_method: ParseMethod.AUTO, wait_sync: 1}`
             
             ``parse_method``: :class:`int`, optional
                 How the received interaction argument data should be treated; Default ``ParseMethod.AUTO``
 
             ``auto_sync``: :class:`bool`, optional
                 Whether the libary should sync the slash commands automatically; Default ``True``
-
-            ``delete_unused``: :class:`bool`, optional
-                Whether the commands that are not registered by this slash ui should be deleted in the api; Default ``False``
 
             ``sync_on_cog``: :class:`bool`, optional
                 Whether the slashcommands should be updated whenever a new cog is added or removed; Default ``True``
@@ -1081,13 +1075,13 @@ class UI():
 
         ``[1]``: Whether the deferration should be hidden (True) or public (False)
     """
-    def __init__(self, client, override_dpy=True, slash_options = {"parse_method": ParseMethod.AUTO, "auto_sync": True, "delete_unused": False, "sync_on_cog": True, "wait_sync": 1}, auto_defer = False) -> None:
+    def __init__(self, client, override_dpy=True, slash_options = {"parse_method": ParseMethod.AUTO, "auto_sync": True, "sync_on_cog": True, "wait_sync": 1}, auto_defer = False) -> None:
         """
         Creates a new ui object
         
         Example
         ```py
-        UI(client, slash_options={"delete_unused": True, "wait_sync": 2}, auto_defer=True)
+        UI(client, slash_options={"wait_sync": 2}, auto_defer=True)
         ```
         """
         # enable debug events if needed
@@ -1098,7 +1092,7 @@ class UI():
         """For using message components"""
         self.logger = logging
         if slash_options is None:
-            slash_options = {"resolve_data": True, "delete_unused": False, "wait_sync": 1, "auto_defer": auto_defer}
+            slash_options = {"resolve_data": True, "wait_sync": 1, "auto_defer": auto_defer}
         if slash_options.get("auto_defer") is None:
             slash_options["auto_defer"] = auto_defer
         self.slash: Slash = Slash(client, **slash_options)
