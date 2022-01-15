@@ -692,7 +692,7 @@ class BaseCommand():
         self.guild_permissions: t.Dict[(t.Union[str, int], SlashPermission)] = guild_permissions
         self.permissions: SlashPermission = SlashPermission()
         """The current permissions for this command."""
-        self.guild_ids: t.List[int] = [int(x) for x in guild_ids or []]
+        self.guild_ids: t.List[int] = [int(x) for x in guild_ids or getattr(callback, '__guild_ids__', [])]
         """A list of guild ids where the command is available"""
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__.split('.')[-1]}({self.to_dict()})>"

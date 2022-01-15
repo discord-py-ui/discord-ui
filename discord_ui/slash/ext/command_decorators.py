@@ -33,7 +33,7 @@ class _auto_guild_sentinel():
         self.guild_ids: List[int] = []
         """The guild_ids that should be used when decorating a command with this class"""
     def __call__(self, m):
-        if inspect.ismethod(m):
+        if inspect.isfunction(m):
             m.__guild_ids__ = self.guild_ids
         else:
             m.guild_ids = self.guild_ids

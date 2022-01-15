@@ -162,7 +162,7 @@ class Slash():
                 self._discord.loop.create_task(self.commands.sync())
         self._discord.remove_cog = remove_cog_override
         
-        async def on_connect():
+        async def on_ready():
             self.http = SlashHTTP(self._discord)
             self._discord._connection.slash_http = self.http
             self.ready = True
@@ -171,7 +171,7 @@ class Slash():
             await asyncio.sleep(_or(self.wait_sync, 1))
             await self.commands.sync()
             # await self.sync_commands()
-        self._discord.add_listener(on_connect)
+        self._discord.add_listener(on_ready)
 
     @deprecated("commands.sync")
     async def sync_commands(self):
