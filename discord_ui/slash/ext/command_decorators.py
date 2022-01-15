@@ -189,7 +189,7 @@ def alias(aliases):
     
     """
     def wrapper(command):
-        if not hasattr(command, "__aliases__"):
+        if not hasattr(command, "__aliases__") or command.__aliases__ is None:
             command.__aliases__ = []
         # Allow multiple alias decorators
         command.__aliases__.extend(aliases if not isinstance(aliases, str) else [aliases])

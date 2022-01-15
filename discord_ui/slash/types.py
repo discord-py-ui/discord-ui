@@ -1496,12 +1496,12 @@ class CommandCache():
             return self.__getitem__(key)
         except KeyError:
             return default
-    def append(self, base: C, is_base=False) -> C:
-        if base.has_aliases and is_base is False:
+    def append(self, base: C, is_alias=False) -> C:
+        if base.has_aliases and is_alias is False:
             for a in base.__aliases__:
                 cur = base.copy()
                 cur.name = a
-                self.append(cur, is_base=True)
+                self.append(cur, is_alias=True)
         self._add(base)
         return base
     def remove(self, base: SlashCommand):
@@ -1547,6 +1547,7 @@ class CommandCache():
             for i, c in enumerate(data):
                 if c['name'] == command.name and c['type'] == command.command_type.value:
                     _command = data.pop(i)
+            command._state = self._state
             command._id = _command['id']
             self._raw_cache[command._id] = command
 
@@ -1561,6 +1562,7 @@ class CommandCache():
                 for i, c in enumerate(data):
                     if c['name'] == command.name and c['type'] == command.command_type.value:
                         _command = data.pop(i)
+                command._state = self._state
                 command._id = _command['id']
                 self._raw_cache[command._id] = command
 
