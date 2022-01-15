@@ -1,7 +1,6 @@
 from __future__ import annotations
 import asyncio
 
-
 from .http import ModifiedSlashState
 from ..tools import All, _raise
 from ..enums import CommandType, OptionType
@@ -19,6 +18,7 @@ from discord import InvalidArgument
 from discord.ext.commands import Bot, BadArgument
 
 import re
+import copy
 import inspect
 import warnings
 import typing as t
@@ -1499,9 +1499,10 @@ class CommandCache():
     def append(self, base: C, is_alias=False) -> C:
         if base.has_aliases and is_alias is False:
             for a in base.__aliases__:
-                cur = base.copy()
+                cur = copy.copy(base)
                 cur.name = a
                 self.append(cur, is_alias=True)
+        base.name = base.__original_name__
         self._add(base)
         return base
     def remove(self, base: SlashCommand):
