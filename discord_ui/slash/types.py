@@ -1115,7 +1115,7 @@ class SlashSubcommand(BaseCommand):
         for guild in [guild_id] if guild_id is not None else self.guild_ids:
             base = self.base or await self.fetch_base(guild)
             base.guild_ids = self.guild_ids
-            base._state = self._state
+            self._state = base._state
 
             if len(self.base_names) > 1:
                 if base.__subcommands__.get(self.base_names[1]) is None:
@@ -1560,12 +1560,13 @@ class CommandCache():
             ]
             data = await http.bulk_overwrite_guild_commands(guild, [c.to_dict() for c in commands])
             for command in commands:
-                for i, c in enumerate(data):
-                    if c['name'] == command.name and c['type'] == command.command_type.value:
-                        _command = data.pop(i)
-                command._state = self._state
-                command._id = _command['id']
-                self._raw_cache[command._id] = command
+                if data:
+                    for i, c in enumerate(data):
+                        if c['name'] == command.name and c['type'] == command.command_type.value:
+                            _command = data.pop(i)
+                    command._state = self._state
+                    command._id = _command['id']
+                    self._raw_cache[command._id] = command
 
         self._client.dispatch("commands_synced")
         await self._on_sync()

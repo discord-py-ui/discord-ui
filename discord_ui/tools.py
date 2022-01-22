@@ -24,6 +24,8 @@ All = _All()
 class _MISSING:
     def __repr__(self) -> str:
         return "..."
+    def __bool__(self) -> bool:
+        return False
     def __eq__(self, o: object) -> bool:
         return isinstance(o, _MISSING)
     def __ne__(self, o: object) -> bool:
