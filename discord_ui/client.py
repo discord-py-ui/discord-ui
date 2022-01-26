@@ -115,6 +115,8 @@ class Slash():
         Slash(client)
         ```
         """
+        if not isinstance(client, commands.Bot):
+            raise discord.ClientException('client needs to be of type discord.ext.commands.Bot')
         self.ready = False
         self.parse_method: int = parse_method
         self.sync_on_cog: bool = sync_on_cog
@@ -687,6 +689,8 @@ class Components():
         Components(client, auto_defer=(True, False))
         ```
         """
+        if not isinstance(client, commands.Bot):
+            raise discord.ClientException('client needs to be of type discord.ext.commands.Bot')
         if override_dpy:
             override_it()
 
