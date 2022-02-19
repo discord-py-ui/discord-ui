@@ -1543,7 +1543,7 @@ class CommandCache():
                 for type in self._cache['globals']
                     for command in self._cache['globals'][type]
         ]
-        data = await http.bulk_overwrite_global_commands([c.to_dict() for c in commands])
+        data = await http.bulk_overwrite_global_commands([c.to_dict() for c in commands]) or []
         for command in commands:
             for i, c in enumerate(data):
                 if c['name'] == command.name and c['type'] == command.command_type.value:
@@ -1558,15 +1558,14 @@ class CommandCache():
                     for type in self._cache[guild]
                         for command in self._cache[guild][type]
             ]
-            data = await http.bulk_overwrite_guild_commands(guild, [c.to_dict() for c in commands])
+            data = await http.bulk_overwrite_guild_commands(guild, [c.to_dict() for c in commands]) or []
             for command in commands:
-                if data:
-                    for i, c in enumerate(data):
-                        if c['name'] == command.name and c['type'] == command.command_type.value:
-                            _command = data.pop(i)
-                    command._state = self._state
-                    command._id = _command['id']
-                    self._raw_cache[command._id] = command
+                for i, c in enumerate(data):
+                    if c['name'] == command.name and c['type'] == command.command_type.value:
+                        _command = data.pop(i)
+                command._state = self._state
+                command._id = _command['id']
+                self._raw_cache[command._id] = command
 
         self._client.dispatch("commands_synced")
         await self._on_sync()
